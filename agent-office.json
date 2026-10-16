@@ -15,21 +15,17 @@
         "tahap1",
         "tpd",
         "potensi dasar",
-        "paket soal",
+        "paket ojk",
         "buat paket",
         "bikin paket",
-        "generate",
-        "generator",
         "soal ojk",
         "kemampuan umum",
         "penalaran numerik"
       ],
       "wajib_salah_satu": [
-        "generate",
-        "generator",
-        "buat paket",
-        "bikin paket",
-        "paket soal",
+        "ojk",
+        "pcam",
+        "paket ojk",
         "soal ojk",
         "potensi dasar",
         "tpd"
@@ -205,7 +201,9 @@
         "cek generator",
         "uji ojk",
         "uji validator",
-        "uji coba generator"
+        "uji coba generator",
+        "generator ojk",
+        "validator ojk"
       ],
       "wajib_salah_satu": [
         "uji generator",
