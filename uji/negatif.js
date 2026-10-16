@@ -4,9 +4,9 @@
  * Uji positif ("butir yang benar lulus") belum membuktikan validator benar-benar memeriksa.
  * Berkas ini membuat paket, lalu merusak salinan butir dengan cara yang pasti membuat soal
  * salah (kunci digeser, dua opsi sama-benar, angka tabel/grafik/model diubah, kondisi awal
- * interaktif sudah sama dengan kunci, ...) dan mewajibkan validator menolak SEMUANYA.
- * Perusakan jenis "mungkin" (mis. fakta verbal dibuang) hanya dilaporkan tingkat
- * deteksinya, karena kadang hasil perusakan kebetulan tetap benar.
+ * interaktif sudah sama dengan kunci, fakta verbal dibuang atau dibalik, ...) dan mewajibkan
+ * validator menolak SEMUANYA. Perusakan jenis "mungkin" (mis. kotak deret figural diganti)
+ * hanya dilaporkan tingkat deteksinya, karena kadang hasil perusakan kebetulan tetap benar.
  *
  * Selain butir dari paket, setiap keluarga figural dibuat langsung dari bank pada ketiga
  * tingkat, sehingga perusakan wajib (kunci digeser, dua opsi sama-benar) pasti mengenai
@@ -133,9 +133,38 @@ var MUTASI = [
     terapkan: function (b) { b.pembahasan = []; }
   },
   {
-    nama: 'fakta verbal dibuang', pasti: false,
+    nama: 'fakta verbal dibuang', pasti: true,
     berlaku: function (b) { return b.submateri === 'verbal' && Array.isArray(b.model.fakta); },
     terapkan: function (b) { b.model.fakta = []; }
+  },
+  {
+    // tiap fakta berpolaritas dibalik (termasuk <-> tidak termasuk, "hanya" <-> "seperti", naik <-> turun,
+    // "tidak semua" <-> "semua", teori <-> terbukti, perlu <-> cukup, urutan dan perbandingan ditukar)
+    // sementara kalimatnya tetap: validator harus melihat bahwa kalimat dan faktanya tidak cocok lagi
+    nama: 'polaritas fakta verbal dibalik', pasti: true,
+    berlaku: function (b) { return b.submateri === 'verbal' && Array.isArray(b.model.fakta) && b.model.fakta.some(function (f) { return f.tipe !== 'latar' && f.tipe !== 'golongan'; }); },
+    terapkan: function (b) {
+      var Q = { semua: 'tidak-semua', 'tidak-semua': 'semua', sebagian: 'tidak-ada', 'tidak-ada': 'sebagian', 'sebagian-besar': 'tidak-ada' };
+      var ST = { teori: 'terbukti', belum: 'terbukti', terbukti: 'belum' };
+      b.model.fakta.forEach(function (f) {
+        if (f.tipe === 'bagian') f.ya = !f.ya;
+        else if (f.tipe === 'daftar') f.lengkap = !f.lengkap;
+        else if (f.tipe === 'sebab') f.arah = f.arah === 'naik' ? 'turun' : 'naik';
+        else if (f.tipe === 'kuantor') f.q = Q[f.q];
+        else if (f.tipe === 'status') f.status = ST[f.status];
+        else if (f.tipe === 'syarat') f.jenis = f.jenis === 'perlu' ? 'cukup' : 'perlu';
+        else if (f.tipe === 'urutan') { var p = f.pertama; f.pertama = f.lanjut[0]; f.lanjut[0] = p; }
+        else if (f.tipe === 'banding') { var a = f.a; f.a = f.b; f.b = a; }
+      });
+    }
+  },
+  {
+    nama: 'kalimat bacaan verbal dihapus', pasti: true,
+    berlaku: function (b) { return b.submateri === 'verbal' && Array.isArray(b.model.fakta) && b.model.fakta.length > 1; },
+    terapkan: function (b) {
+      var t = b.model.fakta[b.model.fakta.length - 1].teks;
+      b.stimulus.teks = [String(b.stimulus.teks[0]).replace(' ' + t, '')];
+    }
   },
   {
     nama: 'matriks 5x5: satu kotak tampak diganti bentuk lain', pasti: true,

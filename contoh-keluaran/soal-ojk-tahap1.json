@@ -134,15 +134,15 @@
        "tingkat": "Sedang",
        "benih": 2648707237,
        "jenis": "pg",
-       "soal": "Platform pinjam-meminjam daring tumbuh cepat seiring meluasnya penggunaan ponsel pintar. Platform Sinergi membiayai beberapa sektor, antara lain perdagangan, kuliner, pertanian, dan kerajinan. Platform Sinergi tidak menawarkan pilihan tenor pinjaman yang fleksibel. Platform Sinergi bekerja sama dengan 5.800 mitra pemberi dana. Platform Arunika menilai kelayakan peminjam menggunakan skor kredit. Platform Bina Usaha tidak berizin dan diawasi oleh otoritas. Platform Bina Usaha memperoleh izin usaha pada tahun 2021. Pengguna dianjurkan memeriksa legalitas platform sebelum bertransaksi.\nPernyataan: Platform Sinergi bekerja sama dengan mitra pemberi dana yang lebih sedikit daripada Platform Arunika.",
+       "soal": "Banyak kota besar kini berlomba memperbaiki layanan angkutan umum perkotaan. Angkutan umum perkotaan dapat dibedakan menjadi dua golongan, yaitu angkutan massal berjalur khusus dan angkutan umum reguler. Yang tergolong angkutan massal berjalur khusus antara lain kereta rel listrik dan bus rapid transit, sedangkan angkutan kota tidak termasuk di dalamnya. Jalur khusus meningkatkan ketepatan waktu kedatangan bus. Ketepatan waktu yang lebih baik pada gilirannya menambah minat warga untuk beralih dari kendaraan pribadi. Secara teori, peralihan pengguna mobil ke angkutan massal dapat mengurangi kemacetan di pusat kota secara drastis. Halte-halte yang baru dibangun hanya dilengkapi ruang tunggu berpendingin, papan informasi kedatangan, tempat parkir sepeda, dan mesin isi ulang kartu. Pembayaran nontunai diwajibkan bagi seluruh penumpang, kecuali anak di bawah lima tahun. Saat ini sebagian rute bus sudah terhubung dengan stasiun kereta. Namun demikian, pembenahan ini masih menghadapi hambatan, seperti subsidi operasional yang terbatas, jadwal yang belum terpadu antarmoda, dan tarif parkir di pusat kota yang terlalu murah. Potongan tarif hanya diberikan kepada penumpang yang melakukan sekurang-kurangnya 22 perjalanan dalam sebulan.\nPernyataan: Dampak peralihan pengguna mobil ke angkutan massal terhadap kemacetan di pusat kota belum terbukti.",
        "stimulus": {
-        "judul": "Pembiayaan Berbasis Teknologi",
+        "judul": "Angkutan Perkotaan",
         "teks": [
-         "Platform pinjam-meminjam daring tumbuh cepat seiring meluasnya penggunaan ponsel pintar. Platform Sinergi membiayai beberapa sektor, antara lain perdagangan, kuliner, pertanian, dan kerajinan. Platform Sinergi tidak menawarkan pilihan tenor pinjaman yang fleksibel. Platform Sinergi bekerja sama dengan 5.800 mitra pemberi dana. Platform Arunika menilai kelayakan peminjam menggunakan skor kredit. Platform Bina Usaha tidak berizin dan diawasi oleh otoritas. Platform Bina Usaha memperoleh izin usaha pada tahun 2021. Pengguna dianjurkan memeriksa legalitas platform sebelum bertransaksi."
+         "Banyak kota besar kini berlomba memperbaiki layanan angkutan umum perkotaan. Angkutan umum perkotaan dapat dibedakan menjadi dua golongan, yaitu angkutan massal berjalur khusus dan angkutan umum reguler. Yang tergolong angkutan massal berjalur khusus antara lain kereta rel listrik dan bus rapid transit, sedangkan angkutan kota tidak termasuk di dalamnya. Jalur khusus meningkatkan ketepatan waktu kedatangan bus. Ketepatan waktu yang lebih baik pada gilirannya menambah minat warga untuk beralih dari kendaraan pribadi. Secara teori, peralihan pengguna mobil ke angkutan massal dapat mengurangi kemacetan di pusat kota secara drastis. Halte-halte yang baru dibangun hanya dilengkapi ruang tunggu berpendingin, papan informasi kedatangan, tempat parkir sepeda, dan mesin isi ulang kartu. Pembayaran nontunai diwajibkan bagi seluruh penumpang, kecuali anak di bawah lima tahun. Saat ini sebagian rute bus sudah terhubung dengan stasiun kereta. Namun demikian, pembenahan ini masih menghadapi hambatan, seperti subsidi operasional yang terbatas, jadwal yang belum terpadu antarmoda, dan tarif parkir di pusat kota yang terlalu murah. Potongan tarif hanya diberikan kepada penumpang yang melakukan sekurang-kurangnya 22 perjalanan dalam sebulan."
         ],
         "gambar": []
        },
-       "pertanyaan": "Platform Sinergi bekerja sama dengan mitra pemberi dana yang lebih sedikit daripada Platform Arunika.",
+       "pertanyaan": "Dampak peralihan pengguna mobil ke angkutan massal terhadap kemacetan di pusat kota belum terbukti.",
        "perintah": "Berdasarkan bacaan di atas, apakah pernyataan berikut Benar, Salah, atau Tidak Diketahui?",
        "opsi": [
         {
@@ -171,87 +171,189 @@
        "langkah": [],
        "pembahasan": [
         "Jenis soal: Verbal (Verbal Reasoning).",
-        "Bacaan menyatakan \"Platform Sinergi bekerja sama dengan 5.800 mitra pemberi dana\".",
-        "Dari keterangan itu tidak dapat ditentukan mana yang lebih rendah antara Platform Sinergi dan Platform Arunika.",
+        "Bacaan menyebut: \"Secara teori, peralihan pengguna mobil ke angkutan massal dapat mengurangi kemacetan di pusat kota secara drastis\".",
+        "Bacaan hanya menyebut hal itu mungkin terjadi \"secara teori\", tanpa menyebut apakah sudah atau belum terbukti.",
         "Jadi pernyataan tersebut TIDAK DIKETAHUI.",
         "Jawaban: C (Tidak Diketahui)"
        ],
        "gambarPembahasan": [],
        "model": {
         "topik": "Verbal",
+        "tema": "angkutan",
         "fakta": [
          {
-          "tipe": "daftar",
-          "teks": "Platform Sinergi membiayai beberapa sektor, antara lain perdagangan, kuliner, pertanian, dan kerajinan.",
-          "ent": "Platform Sinergi",
-          "himp": "sektor",
+          "id": "f1",
+          "tipe": "latar",
+          "teks": "Banyak kota besar kini berlomba memperbaiki layanan angkutan umum perkotaan."
+         },
+         {
+          "id": "f2",
+          "tipe": "golongan",
+          "induk": "kota",
           "anggota": [
-           "perdagangan",
-           "kuliner",
-           "pertanian",
-           "kerajinan"
+           "massal",
+           "reguler"
+          ],
+          "nama": {
+           "massal": "angkutan massal berjalur khusus",
+           "reguler": "angkutan umum reguler"
+          },
+          "teks": "Angkutan umum perkotaan dapat dibedakan menjadi dua golongan, yaitu angkutan massal berjalur khusus dan angkutan umum reguler."
+         },
+         {
+          "id": "f3",
+          "tipe": "bagian",
+          "x": "krl",
+          "y": "massal",
+          "ya": true,
+          "nama": {
+           "x": "kereta rel listrik"
+          },
+          "penanda": "tergolong",
+          "teks": "Yang tergolong angkutan massal berjalur khusus antara lain kereta rel listrik dan bus rapid transit, sedangkan angkutan kota tidak termasuk di dalamnya."
+         },
+         {
+          "id": "f4",
+          "tipe": "bagian",
+          "x": "brt",
+          "y": "massal",
+          "ya": true,
+          "nama": {
+           "x": "bus rapid transit"
+          },
+          "penanda": "tergolong",
+          "teks": "Yang tergolong angkutan massal berjalur khusus antara lain kereta rel listrik dan bus rapid transit, sedangkan angkutan kota tidak termasuk di dalamnya."
+         },
+         {
+          "id": "f5",
+          "tipe": "bagian",
+          "x": "angkot",
+          "y": "massal",
+          "ya": false,
+          "nama": {
+           "x": "angkutan kota"
+          },
+          "penanda": "tidak termasuk",
+          "teks": "Yang tergolong angkutan massal berjalur khusus antara lain kereta rel listrik dan bus rapid transit, sedangkan angkutan kota tidak termasuk di dalamnya."
+         },
+         {
+          "id": "f6",
+          "tipe": "sebab",
+          "dari": "jalur",
+          "ke": "tepat",
+          "arah": "naik",
+          "nama": {
+           "dari": "jalur khusus",
+           "ke": "ketepatan waktu"
+          },
+          "penanda": "meningkatkan ketepatan waktu",
+          "teks": "Jalur khusus meningkatkan ketepatan waktu kedatangan bus."
+         },
+         {
+          "id": "f7",
+          "tipe": "sebab",
+          "dari": "tepat",
+          "ke": "minat",
+          "arah": "naik",
+          "nama": {
+           "dari": "ketepatan waktu",
+           "ke": "minat warga"
+          },
+          "penanda": "menambah minat warga",
+          "teks": "Ketepatan waktu yang lebih baik pada gilirannya menambah minat warga untuk beralih dari kendaraan pribadi."
+         },
+         {
+          "id": "f8",
+          "tipe": "status",
+          "hal": "macet",
+          "status": "teori",
+          "teks": "Secara teori, peralihan pengguna mobil ke angkutan massal dapat mengurangi kemacetan di pusat kota secara drastis."
+         },
+         {
+          "id": "f9",
+          "tipe": "daftar",
+          "subjek": "halte",
+          "himp": "fasilitas",
+          "anggota": [
+           "dingin",
+           "info",
+           "sepeda",
+           "isi"
+          ],
+          "lengkap": true,
+          "nama": {
+           "dingin": "ruang tunggu berpendingin",
+           "info": "papan informasi kedatangan",
+           "sepeda": "tempat parkir sepeda",
+           "isi": "mesin isi ulang kartu"
+          },
+          "penanda": "hanya",
+          "teks": "Halte-halte yang baru dibangun hanya dilengkapi ruang tunggu berpendingin, papan informasi kedatangan, tempat parkir sepeda, dan mesin isi ulang kartu."
+         },
+         {
+          "id": "f10",
+          "tipe": "bagian",
+          "x": "balita",
+          "y": "wajibKartu",
+          "ya": false,
+          "nama": {
+           "x": "anak di bawah lima tahun"
+          },
+          "penanda": "kecuali",
+          "teks": "Pembayaran nontunai diwajibkan bagi seluruh penumpang, kecuali anak di bawah lima tahun."
+         },
+         {
+          "id": "f11",
+          "tipe": "kuantor",
+          "kelompok": "rute",
+          "sifat": "kuantor:sebagian",
+          "q": "sebagian",
+          "nama": {
+           "kelompok": "rute bus"
+          },
+          "teks": "Saat ini sebagian rute bus sudah terhubung dengan stasiun kereta."
+         },
+         {
+          "id": "f12",
+          "tipe": "daftar",
+          "subjek": "kota",
+          "himp": "hambatan",
+          "anggota": [
+           "subsidi",
+           "jadwal",
+           "parkir"
           ],
           "lengkap": false,
-          "id": "f1"
+          "nama": {
+           "subsidi": "subsidi operasional yang terbatas",
+           "jadwal": "jadwal yang belum terpadu antarmoda",
+           "parkir": "tarif parkir di pusat kota yang terlalu murah"
+          },
+          "penanda": "seperti",
+          "teks": "Namun demikian, pembenahan ini masih menghadapi hambatan, seperti subsidi operasional yang terbatas, jadwal yang belum terpadu antarmoda, dan tarif parkir di pusat kota yang terlalu murah."
          },
          {
-          "tipe": "sifat",
-          "teks": "Platform Sinergi tidak menawarkan pilihan tenor pinjaman yang fleksibel.",
-          "ent": "Platform Sinergi",
-          "prop": "tenor",
-          "ada": false,
-          "id": "f2"
-         },
-         {
-          "tipe": "nilai",
-          "teks": "Platform Sinergi bekerja sama dengan 5.800 mitra pemberi dana.",
-          "ent": "Platform Sinergi",
-          "attr": "mitra",
-          "v": 5800,
-          "id": "f3"
-         },
-         {
-          "tipe": "sifat",
-          "teks": "Platform Arunika menilai kelayakan peminjam menggunakan skor kredit.",
-          "ent": "Platform Arunika",
-          "prop": "skor",
-          "ada": true,
-          "id": "f4"
-         },
-         {
-          "tipe": "sifat",
-          "teks": "Platform Bina Usaha tidak berizin dan diawasi oleh otoritas.",
-          "ent": "Platform Bina Usaha",
-          "prop": "izin",
-          "ada": false,
-          "id": "f5"
-         },
-         {
-          "tipe": "tahun",
-          "teks": "Platform Bina Usaha memperoleh izin usaha pada tahun 2021.",
-          "ent": "Platform Bina Usaha",
-          "peristiwa": "izin",
-          "t": 2021,
-          "id": "f6"
+          "id": "f13",
+          "tipe": "syarat",
+          "aksi": "diskon",
+          "jenis": "perlu",
+          "ambang": 22,
+          "teks": "Potongan tarif hanya diberikan kepada penumpang yang melakukan sekurang-kurangnya 22 perjalanan dalam sebulan."
          }
         ],
         "klaim": {
-         "tipe": "banding",
-         "a": "Platform Sinergi",
-         "b": "Platform Arunika",
-         "attr": "mitra",
-         "rel": "<",
-         "teks": "Platform Sinergi bekerja sama dengan mitra pemberi dana yang lebih sedikit daripada Platform Arunika."
+         "tipe": "status",
+         "hal": "macet",
+         "jenis": "belum",
+         "teks": "Dampak peralihan pengguna mobil ke angkutan massal terhadap kemacetan di pusat kota belum terbukti."
         },
-        "tipeKlaim": "banding-TD",
-        "tema": "fintech",
-        "perlu": null,
-        "paragraf": "Platform pinjam-meminjam daring tumbuh cepat seiring meluasnya penggunaan ponsel pintar. Platform Sinergi membiayai beberapa sektor, antara lain perdagangan, kuliner, pertanian, dan kerajinan. Platform Sinergi tidak menawarkan pilihan tenor pinjaman yang fleksibel. Platform Sinergi bekerja sama dengan 5.800 mitra pemberi dana. Platform Arunika menilai kelayakan peminjam menggunakan skor kredit. Platform Bina Usaha tidak berizin dan diawasi oleh otoritas. Platform Bina Usaha memperoleh izin usaha pada tahun 2021. Pengguna dianjurkan memeriksa legalitas platform sebelum bertransaksi."
+        "tipeKlaim": "status-belum-teori",
+        "paragraf": "Banyak kota besar kini berlomba memperbaiki layanan angkutan umum perkotaan. Angkutan umum perkotaan dapat dibedakan menjadi dua golongan, yaitu angkutan massal berjalur khusus dan angkutan umum reguler. Yang tergolong angkutan massal berjalur khusus antara lain kereta rel listrik dan bus rapid transit, sedangkan angkutan kota tidak termasuk di dalamnya. Jalur khusus meningkatkan ketepatan waktu kedatangan bus. Ketepatan waktu yang lebih baik pada gilirannya menambah minat warga untuk beralih dari kendaraan pribadi. Secara teori, peralihan pengguna mobil ke angkutan massal dapat mengurangi kemacetan di pusat kota secara drastis. Halte-halte yang baru dibangun hanya dilengkapi ruang tunggu berpendingin, papan informasi kedatangan, tempat parkir sepeda, dan mesin isi ulang kartu. Pembayaran nontunai diwajibkan bagi seluruh penumpang, kecuali anak di bawah lima tahun. Saat ini sebagian rute bus sudah terhubung dengan stasiun kereta. Namun demikian, pembenahan ini masih menghadapi hambatan, seperti subsidi operasional yang terbatas, jadwal yang belum terpadu antarmoda, dan tarif parkir di pusat kota yang terlalu murah. Potongan tarif hanya diberikan kepada penumpang yang melakukan sekurang-kurangnya 22 perjalanan dalam sebulan."
        },
        "sidik": {
-        "inti": "verbal|fintech|banding-TD|Platform Sinergi membiayai beberapa sektor, antara lain perdagangan, kuliner, pertanian, dan kerajinan.|Platform Sinergi tidak menawarkan pilihan tenor pinjaman yang fleksibel.|Platform Sinergi bekerja sama dengan 5.800 mitra pemberi dana.|Platform Arunika menilai kelayakan peminjam menggunakan skor kredit.|Platform Bina Usaha tidak berizin dan diawasi oleh otoritas.|Platform Bina Usaha memperoleh izin usaha pada tahun 2021.|Platform Sinergi bekerja sama dengan mitra pemberi dana yang lebih sedikit daripada Platform Arunika.",
+        "inti": "verbal|angkutan|status-belum-teori|Banyak kota besar kini berlomba memperbaiki layanan angkutan umum perkotaan. Angkutan umum perkotaan dapat dibedakan menjadi dua golongan, yaitu angkutan massal berjalur khusus dan angkutan umum reguler. Yang tergolong angkutan massal berjalur khusus antara lain kereta rel listrik dan bus rapid transit, sedangkan angkutan kota tidak termasuk di dalamnya. Jalur khusus meningkatkan ketepatan waktu kedatangan bus. Ketepatan waktu yang lebih baik pada gilirannya menambah minat warga untuk beralih dari kendaraan pribadi. Secara teori, peralihan pengguna mobil ke angkutan massal dapat mengurangi kemacetan di pusat kota secara drastis. Halte-halte yang baru dibangun hanya dilengkapi ruang tunggu berpendingin, papan informasi kedatangan, tempat parkir sepeda, dan mesin isi ulang kartu. Pembayaran nontunai diwajibkan bagi seluruh penumpang, kecuali anak di bawah lima tahun. Saat ini sebagian rute bus sudah terhubung dengan stasiun kereta. Namun demikian, pembenahan ini masih menghadapi hambatan, seperti subsidi operasional yang terbatas, jadwal yang belum terpadu antarmoda, dan tarif parkir di pusat kota yang terlalu murah. Potongan tarif hanya diberikan kepada penumpang yang melakukan sekurang-kurangnya 22 perjalanan dalam sebulan.|Dampak peralihan pengguna mobil ke angkutan massal terhadap kemacetan di pusat kota belum terbukti.",
         "param": [],
-        "entitas": "fintechPlatform Sinergi,Platform Bina Usaha,Platform Arunika"
+        "entitas": "angkutan"
        }
       },
       {
@@ -267,15 +369,15 @@
        "tingkat": "Sedang",
        "benih": 2111875319,
        "jenis": "pg",
-       "soal": "Program peningkatan literasi keuangan dijalankan di berbagai provinsi. Provinsi Bali mengajarkan beberapa materi, antara lain asuransi, pinjaman daring yang aman, dan dana pensiun. Provinsi Kalimantan Timur memiliki indeks literasi keuangan sebesar 43 persen. Provinsi Kalimantan Timur mencatat 280 ribu peserta pelatihan literasi. Provinsi Kalimantan Timur memiliki 40 penyuluh keuangan. Provinsi Sulawesi Selatan memulai program literasi keuangan pada tahun 2017. Provinsi Kalimantan Timur menjalankan program literasi keuangan di sekolah menengah. Provinsi Kalimantan Timur tidak menjangkau desa terpencil melalui penyuluhan keliling. Hasil survei akan dipakai untuk menyusun program berikutnya.\nPernyataan: Provinsi Bali mengajarkan dana pensiun.",
+       "soal": "Banyak desa kini mengembangkan diri menjadi desa wisata yang menawarkan pengalaman hidup bersama warga. Kegiatan di desa wisata dibedakan menjadi dua jenis, yaitu wisata alam dan wisata budaya. Wisata budaya mencakup pertunjukan tari tradisional dan kelas membatik, sedangkan penjelajahan hutan termasuk wisata alam. Model ini dinilai mampu menggerakkan ekonomi desa tanpa merusak kekhasan budayanya. Kedatangan wisatawan meningkatkan kepedulian warga terhadap kebersihan desa. Kepedulian warga yang tumbuh pada gilirannya memperbaiki kualitas lingkungan desa. Pada tahap awal, pendapatan desa wisata hanya berasal dari paket kuliner lokal, sewa sepeda, jasa pemandu wisata, dan tiket masuk. Secara teori, desa wisata dapat menahan laju perpindahan pemuda desa ke kota, tetapi dampak itu belum terbukti dalam praktik. Sebagian warga bahkan membuka rumahnya sebagai tempat menginap bagi wisatawan. Pengembangannya juga masih menghadapi tantangan, seperti sinyal telepon yang lemah dan persaingan dengan desa wisata lain. Setiap desa wisata yang dikunjungi 16 ribu wisatawan atau lebih per tahun otomatis memperoleh dana pengembangan dari pemerintah daerah.\nPernyataan: Dampak desa wisata terhadap perpindahan pemuda desa ke kota belum terbukti.",
        "stimulus": {
-        "judul": "Literasi Keuangan Daerah",
+        "judul": "Desa Wisata",
         "teks": [
-         "Program peningkatan literasi keuangan dijalankan di berbagai provinsi. Provinsi Bali mengajarkan beberapa materi, antara lain asuransi, pinjaman daring yang aman, dan dana pensiun. Provinsi Kalimantan Timur memiliki indeks literasi keuangan sebesar 43 persen. Provinsi Kalimantan Timur mencatat 280 ribu peserta pelatihan literasi. Provinsi Kalimantan Timur memiliki 40 penyuluh keuangan. Provinsi Sulawesi Selatan memulai program literasi keuangan pada tahun 2017. Provinsi Kalimantan Timur menjalankan program literasi keuangan di sekolah menengah. Provinsi Kalimantan Timur tidak menjangkau desa terpencil melalui penyuluhan keliling. Hasil survei akan dipakai untuk menyusun program berikutnya."
+         "Banyak desa kini mengembangkan diri menjadi desa wisata yang menawarkan pengalaman hidup bersama warga. Kegiatan di desa wisata dibedakan menjadi dua jenis, yaitu wisata alam dan wisata budaya. Wisata budaya mencakup pertunjukan tari tradisional dan kelas membatik, sedangkan penjelajahan hutan termasuk wisata alam. Model ini dinilai mampu menggerakkan ekonomi desa tanpa merusak kekhasan budayanya. Kedatangan wisatawan meningkatkan kepedulian warga terhadap kebersihan desa. Kepedulian warga yang tumbuh pada gilirannya memperbaiki kualitas lingkungan desa. Pada tahap awal, pendapatan desa wisata hanya berasal dari paket kuliner lokal, sewa sepeda, jasa pemandu wisata, dan tiket masuk. Secara teori, desa wisata dapat menahan laju perpindahan pemuda desa ke kota, tetapi dampak itu belum terbukti dalam praktik. Sebagian warga bahkan membuka rumahnya sebagai tempat menginap bagi wisatawan. Pengembangannya juga masih menghadapi tantangan, seperti sinyal telepon yang lemah dan persaingan dengan desa wisata lain. Setiap desa wisata yang dikunjungi 16 ribu wisatawan atau lebih per tahun otomatis memperoleh dana pengembangan dari pemerintah daerah."
         ],
         "gambar": []
        },
-       "pertanyaan": "Provinsi Bali mengajarkan dana pensiun.",
+       "pertanyaan": "Dampak desa wisata terhadap perpindahan pemuda desa ke kota belum terbukti.",
        "perintah": "Berdasarkan bacaan di atas, apakah pernyataan berikut Benar, Salah, atau Tidak Diketahui?",
        "opsi": [
         {
@@ -304,94 +406,180 @@
        "langkah": [],
        "pembahasan": [
         "Jenis soal: Verbal (Verbal Reasoning).",
-        "Bacaan menyatakan \"Provinsi Bali mengajarkan beberapa materi, antara lain asuransi, pinjaman daring yang aman, dan dana pensiun\".",
-        "\"dana pensiun\" termasuk dalam daftar, jadi pernyataan itu benar.",
+        "Bacaan menyebut: \"Secara teori, desa wisata dapat menahan laju perpindahan pemuda desa ke kota, tetapi dampak itu belum terbukti dalam praktik\".",
+        "Bacaan menegaskan bahwa hal itu belum terbukti. Pernyataan itu sesuai dengan bacaan.",
         "Jadi pernyataan tersebut BENAR.",
         "Jawaban: A (Benar)"
        ],
        "gambarPembahasan": [],
        "model": {
         "topik": "Verbal",
+        "tema": "desawisata",
         "fakta": [
          {
-          "tipe": "daftar",
-          "teks": "Provinsi Bali mengajarkan beberapa materi, antara lain asuransi, pinjaman daring yang aman, dan dana pensiun.",
-          "ent": "Provinsi Bali",
-          "himp": "materi",
+          "id": "f1",
+          "tipe": "latar",
+          "teks": "Banyak desa kini mengembangkan diri menjadi desa wisata yang menawarkan pengalaman hidup bersama warga."
+         },
+         {
+          "id": "f2",
+          "tipe": "golongan",
+          "induk": "kegiatan",
           "anggota": [
-           "asuransi",
-           "pinjaman daring yang aman",
-           "dana pensiun"
+           "alam",
+           "budaya"
+          ],
+          "nama": {
+           "alam": "wisata alam",
+           "budaya": "wisata budaya"
+          },
+          "teks": "Kegiatan di desa wisata dibedakan menjadi dua jenis, yaitu wisata alam dan wisata budaya."
+         },
+         {
+          "id": "f3",
+          "tipe": "bagian",
+          "x": "tari",
+          "y": "budaya",
+          "ya": true,
+          "nama": {
+           "x": "pertunjukan tari tradisional"
+          },
+          "penanda": "mencakup",
+          "teks": "Wisata budaya mencakup pertunjukan tari tradisional dan kelas membatik, sedangkan penjelajahan hutan termasuk wisata alam."
+         },
+         {
+          "id": "f4",
+          "tipe": "bagian",
+          "x": "batik",
+          "y": "budaya",
+          "ya": true,
+          "nama": {
+           "x": "kelas membatik"
+          },
+          "penanda": "mencakup",
+          "teks": "Wisata budaya mencakup pertunjukan tari tradisional dan kelas membatik, sedangkan penjelajahan hutan termasuk wisata alam."
+         },
+         {
+          "id": "f5",
+          "tipe": "bagian",
+          "x": "hutan",
+          "y": "alam",
+          "ya": true,
+          "nama": {
+           "x": "penjelajahan hutan"
+          },
+          "penanda": "termasuk",
+          "teks": "Wisata budaya mencakup pertunjukan tari tradisional dan kelas membatik, sedangkan penjelajahan hutan termasuk wisata alam."
+         },
+         {
+          "id": "f6",
+          "tipe": "latar",
+          "teks": "Model ini dinilai mampu menggerakkan ekonomi desa tanpa merusak kekhasan budayanya."
+         },
+         {
+          "id": "f7",
+          "tipe": "sebab",
+          "dari": "datang",
+          "ke": "peduli",
+          "arah": "naik",
+          "nama": {
+           "dari": "kedatangan wisatawan",
+           "ke": "kepedulian warga"
+          },
+          "penanda": "meningkatkan kepedulian warga",
+          "teks": "Kedatangan wisatawan meningkatkan kepedulian warga terhadap kebersihan desa."
+         },
+         {
+          "id": "f8",
+          "tipe": "sebab",
+          "dari": "peduli",
+          "ke": "lingkungan",
+          "arah": "naik",
+          "nama": {
+           "dari": "kepedulian warga",
+           "ke": "kualitas lingkungan"
+          },
+          "penanda": "memperbaiki kualitas lingkungan",
+          "teks": "Kepedulian warga yang tumbuh pada gilirannya memperbaiki kualitas lingkungan desa."
+         },
+         {
+          "id": "f9",
+          "tipe": "daftar",
+          "subjek": "desa",
+          "himp": "pendapatan",
+          "anggota": [
+           "kuliner",
+           "sepeda",
+           "pemandu",
+           "tiket"
+          ],
+          "lengkap": true,
+          "nama": {
+           "kuliner": "paket kuliner lokal",
+           "sepeda": "sewa sepeda",
+           "pemandu": "jasa pemandu wisata",
+           "tiket": "tiket masuk"
+          },
+          "penanda": "hanya",
+          "teks": "Pada tahap awal, pendapatan desa wisata hanya berasal dari paket kuliner lokal, sewa sepeda, jasa pemandu wisata, dan tiket masuk."
+         },
+         {
+          "id": "f10",
+          "tipe": "status",
+          "hal": "urban",
+          "status": "belum",
+          "teks": "Secara teori, desa wisata dapat menahan laju perpindahan pemuda desa ke kota, tetapi dampak itu belum terbukti dalam praktik."
+         },
+         {
+          "id": "f11",
+          "tipe": "kuantor",
+          "kelompok": "warga",
+          "sifat": "kuantor:sebagian",
+          "q": "sebagian",
+          "nama": {
+           "kelompok": "warga"
+          },
+          "teks": "Sebagian warga bahkan membuka rumahnya sebagai tempat menginap bagi wisatawan."
+         },
+         {
+          "id": "f12",
+          "tipe": "daftar",
+          "subjek": "desa",
+          "himp": "hambatan",
+          "anggota": [
+           "sinyal",
+           "saing"
           ],
           "lengkap": false,
-          "id": "f1"
+          "nama": {
+           "sinyal": "sinyal telepon yang lemah",
+           "saing": "persaingan dengan desa wisata lain"
+          },
+          "penanda": "seperti",
+          "teks": "Pengembangannya juga masih menghadapi tantangan, seperti sinyal telepon yang lemah dan persaingan dengan desa wisata lain."
          },
          {
-          "tipe": "nilai",
-          "teks": "Provinsi Kalimantan Timur memiliki indeks literasi keuangan sebesar 43 persen.",
-          "ent": "Provinsi Kalimantan Timur",
-          "attr": "indeks",
-          "v": 43,
-          "id": "f2"
-         },
-         {
-          "tipe": "nilai",
-          "teks": "Provinsi Kalimantan Timur mencatat 280 ribu peserta pelatihan literasi.",
-          "ent": "Provinsi Kalimantan Timur",
-          "attr": "peserta",
-          "v": 280,
-          "id": "f3"
-         },
-         {
-          "tipe": "nilai",
-          "teks": "Provinsi Kalimantan Timur memiliki 40 penyuluh keuangan.",
-          "ent": "Provinsi Kalimantan Timur",
-          "attr": "agen",
-          "v": 40,
-          "id": "f4"
-         },
-         {
-          "tipe": "tahun",
-          "teks": "Provinsi Sulawesi Selatan memulai program literasi keuangan pada tahun 2017.",
-          "ent": "Provinsi Sulawesi Selatan",
-          "peristiwa": "program",
-          "t": 2017,
-          "id": "f5"
-         },
-         {
-          "tipe": "sifat",
-          "teks": "Provinsi Kalimantan Timur menjalankan program literasi keuangan di sekolah menengah.",
-          "ent": "Provinsi Kalimantan Timur",
-          "prop": "sekolah",
-          "ada": true,
-          "id": "f6"
-         },
-         {
-          "tipe": "sifat",
-          "teks": "Provinsi Kalimantan Timur tidak menjangkau desa terpencil melalui penyuluhan keliling.",
-          "ent": "Provinsi Kalimantan Timur",
-          "prop": "desa",
-          "ada": false,
-          "id": "f7"
+          "id": "f13",
+          "tipe": "syarat",
+          "aksi": "dana",
+          "jenis": "cukup",
+          "ambang": 16,
+          "teks": "Setiap desa wisata yang dikunjungi 16 ribu wisatawan atau lebih per tahun otomatis memperoleh dana pengembangan dari pemerintah daerah."
          }
         ],
         "klaim": {
-         "tipe": "daftar",
-         "ent": "Provinsi Bali",
-         "himp": "materi",
-         "x": "dana pensiun",
-         "termasuk": true,
-         "teks": "Provinsi Bali mengajarkan dana pensiun."
+         "tipe": "status",
+         "hal": "urban",
+         "jenis": "belum",
+         "teks": "Dampak desa wisata terhadap perpindahan pemuda desa ke kota belum terbukti."
         },
-        "tipeKlaim": "daftar-B",
-        "tema": "literasi",
-        "perlu": null,
-        "paragraf": "Program peningkatan literasi keuangan dijalankan di berbagai provinsi. Provinsi Bali mengajarkan beberapa materi, antara lain asuransi, pinjaman daring yang aman, dan dana pensiun. Provinsi Kalimantan Timur memiliki indeks literasi keuangan sebesar 43 persen. Provinsi Kalimantan Timur mencatat 280 ribu peserta pelatihan literasi. Provinsi Kalimantan Timur memiliki 40 penyuluh keuangan. Provinsi Sulawesi Selatan memulai program literasi keuangan pada tahun 2017. Provinsi Kalimantan Timur menjalankan program literasi keuangan di sekolah menengah. Provinsi Kalimantan Timur tidak menjangkau desa terpencil melalui penyuluhan keliling. Hasil survei akan dipakai untuk menyusun program berikutnya."
+        "tipeKlaim": "status-belum",
+        "paragraf": "Banyak desa kini mengembangkan diri menjadi desa wisata yang menawarkan pengalaman hidup bersama warga. Kegiatan di desa wisata dibedakan menjadi dua jenis, yaitu wisata alam dan wisata budaya. Wisata budaya mencakup pertunjukan tari tradisional dan kelas membatik, sedangkan penjelajahan hutan termasuk wisata alam. Model ini dinilai mampu menggerakkan ekonomi desa tanpa merusak kekhasan budayanya. Kedatangan wisatawan meningkatkan kepedulian warga terhadap kebersihan desa. Kepedulian warga yang tumbuh pada gilirannya memperbaiki kualitas lingkungan desa. Pada tahap awal, pendapatan desa wisata hanya berasal dari paket kuliner lokal, sewa sepeda, jasa pemandu wisata, dan tiket masuk. Secara teori, desa wisata dapat menahan laju perpindahan pemuda desa ke kota, tetapi dampak itu belum terbukti dalam praktik. Sebagian warga bahkan membuka rumahnya sebagai tempat menginap bagi wisatawan. Pengembangannya juga masih menghadapi tantangan, seperti sinyal telepon yang lemah dan persaingan dengan desa wisata lain. Setiap desa wisata yang dikunjungi 16 ribu wisatawan atau lebih per tahun otomatis memperoleh dana pengembangan dari pemerintah daerah."
        },
        "sidik": {
-        "inti": "verbal|literasi|daftar-B|Provinsi Bali mengajarkan beberapa materi, antara lain asuransi, pinjaman daring yang aman, dan dana pensiun.|Provinsi Kalimantan Timur memiliki indeks literasi keuangan sebesar 43 persen.|Provinsi Kalimantan Timur mencatat 280 ribu peserta pelatihan literasi.|Provinsi Kalimantan Timur memiliki 40 penyuluh keuangan.|Provinsi Sulawesi Selatan memulai program literasi keuangan pada tahun 2017.|Provinsi Kalimantan Timur menjalankan program literasi keuangan di sekolah menengah.|Provinsi Kalimantan Timur tidak menjangkau desa terpencil melalui penyuluhan keliling.|Provinsi Bali mengajarkan dana pensiun.",
+        "inti": "verbal|desawisata|status-belum|Banyak desa kini mengembangkan diri menjadi desa wisata yang menawarkan pengalaman hidup bersama warga. Kegiatan di desa wisata dibedakan menjadi dua jenis, yaitu wisata alam dan wisata budaya. Wisata budaya mencakup pertunjukan tari tradisional dan kelas membatik, sedangkan penjelajahan hutan termasuk wisata alam. Model ini dinilai mampu menggerakkan ekonomi desa tanpa merusak kekhasan budayanya. Kedatangan wisatawan meningkatkan kepedulian warga terhadap kebersihan desa. Kepedulian warga yang tumbuh pada gilirannya memperbaiki kualitas lingkungan desa. Pada tahap awal, pendapatan desa wisata hanya berasal dari paket kuliner lokal, sewa sepeda, jasa pemandu wisata, dan tiket masuk. Secara teori, desa wisata dapat menahan laju perpindahan pemuda desa ke kota, tetapi dampak itu belum terbukti dalam praktik. Sebagian warga bahkan membuka rumahnya sebagai tempat menginap bagi wisatawan. Pengembangannya juga masih menghadapi tantangan, seperti sinyal telepon yang lemah dan persaingan dengan desa wisata lain. Setiap desa wisata yang dikunjungi 16 ribu wisatawan atau lebih per tahun otomatis memperoleh dana pengembangan dari pemerintah daerah.|Dampak desa wisata terhadap perpindahan pemuda desa ke kota belum terbukti.",
         "param": [],
-        "entitas": "literasiProvinsi Bali,Provinsi Kalimantan Timur,Provinsi Sulawesi Selatan"
+        "entitas": "desawisata"
        }
       },
       {
@@ -7195,15 +7383,15 @@
        "tingkat": "Sedang",
        "benih": 4230687494,
        "jenis": "pg",
-       "soal": "Tingkat literasi keuangan berbeda-beda di setiap daerah. Provinsi Riau mencatat 250 ribu peserta pelatihan literasi. Provinsi Bali memiliki indeks literasi keuangan sebesar 46 persen. Provinsi Riau memulai program literasi keuangan pada tahun 2015. Provinsi Kalimantan Timur memiliki 20 penyuluh keuangan. Provinsi Kalimantan Timur hanya mengajarkan mengatur anggaran, dana pensiun, dan pinjaman daring yang aman. Provinsi Riau memiliki 290 penyuluh keuangan. Hasil survei akan dipakai untuk menyusun program berikutnya.\nPernyataan: Provinsi Riau memiliki penyuluh keuangan yang lebih banyak daripada Provinsi Kalimantan Timur.",
+       "soal": "Banyak desa kini mengembangkan diri menjadi desa wisata yang menawarkan pengalaman hidup bersama warga. Kegiatan di desa wisata dibedakan menjadi dua jenis, yaitu wisata alam dan wisata budaya. Yang tergolong wisata budaya antara lain upacara adat, kelas membatik, dan pertunjukan tari tradisional, tetapi tidak termasuk penjelajahan hutan. Model ini dinilai mampu menggerakkan ekonomi desa tanpa merusak kekhasan budayanya. Kedatangan wisatawan meningkatkan kepedulian warga terhadap kebersihan desa, dan kepedulian itu pada gilirannya memperbaiki kualitas lingkungan. Pendapatan desa wisata berasal dari berbagai sumber, seperti paket kuliner lokal, jasa pemandu wisata, parkir kendaraan, dan sewa sepeda. Secara teori, desa wisata dapat menahan laju perpindahan pemuda desa ke kota, tetapi dampak itu belum terbukti dalam praktik. Sebagian warga bahkan membuka rumahnya sebagai tempat menginap bagi wisatawan. Meski demikian, ada sejumlah kendala yang perlu diatasi, antara lain promosi yang belum gencar, persaingan dengan desa wisata lain, dan sinyal telepon yang lemah. Dana pengembangan dari pemerintah daerah hanya diberikan kepada desa wisata yang dikunjungi sekurang-kurangnya 8 ribu wisatawan per tahun.\nPernyataan: Kepedulian warga terhadap kebersihan desa meningkat berkat kedatangan wisatawan.",
        "stimulus": {
-        "judul": "Literasi Keuangan Daerah",
+        "judul": "Desa Wisata",
         "teks": [
-         "Tingkat literasi keuangan berbeda-beda di setiap daerah. Provinsi Riau mencatat 250 ribu peserta pelatihan literasi. Provinsi Bali memiliki indeks literasi keuangan sebesar 46 persen. Provinsi Riau memulai program literasi keuangan pada tahun 2015. Provinsi Kalimantan Timur memiliki 20 penyuluh keuangan. Provinsi Kalimantan Timur hanya mengajarkan mengatur anggaran, dana pensiun, dan pinjaman daring yang aman. Provinsi Riau memiliki 290 penyuluh keuangan. Hasil survei akan dipakai untuk menyusun program berikutnya."
+         "Banyak desa kini mengembangkan diri menjadi desa wisata yang menawarkan pengalaman hidup bersama warga. Kegiatan di desa wisata dibedakan menjadi dua jenis, yaitu wisata alam dan wisata budaya. Yang tergolong wisata budaya antara lain upacara adat, kelas membatik, dan pertunjukan tari tradisional, tetapi tidak termasuk penjelajahan hutan. Model ini dinilai mampu menggerakkan ekonomi desa tanpa merusak kekhasan budayanya. Kedatangan wisatawan meningkatkan kepedulian warga terhadap kebersihan desa, dan kepedulian itu pada gilirannya memperbaiki kualitas lingkungan. Pendapatan desa wisata berasal dari berbagai sumber, seperti paket kuliner lokal, jasa pemandu wisata, parkir kendaraan, dan sewa sepeda. Secara teori, desa wisata dapat menahan laju perpindahan pemuda desa ke kota, tetapi dampak itu belum terbukti dalam praktik. Sebagian warga bahkan membuka rumahnya sebagai tempat menginap bagi wisatawan. Meski demikian, ada sejumlah kendala yang perlu diatasi, antara lain promosi yang belum gencar, persaingan dengan desa wisata lain, dan sinyal telepon yang lemah. Dana pengembangan dari pemerintah daerah hanya diberikan kepada desa wisata yang dikunjungi sekurang-kurangnya 8 ribu wisatawan per tahun."
         ],
         "gambar": []
        },
-       "pertanyaan": "Provinsi Riau memiliki penyuluh keuangan yang lebih banyak daripada Provinsi Kalimantan Timur.",
+       "pertanyaan": "Kepedulian warga terhadap kebersihan desa meningkat berkat kedatangan wisatawan.",
        "perintah": "Berdasarkan bacaan di atas, apakah pernyataan berikut Benar, Salah, atau Tidak Diketahui?",
        "opsi": [
         {
@@ -7232,87 +7420,200 @@
        "langkah": [],
        "pembahasan": [
         "Jenis soal: Verbal (Verbal Reasoning).",
-        "Bacaan menyatakan \"Provinsi Kalimantan Timur memiliki 20 penyuluh keuangan\".",
-        "Bacaan menyatakan \"Provinsi Riau memiliki 290 penyuluh keuangan\".",
-        "Membandingkan kedua nilai itu, pernyataan tersebut sesuai dengan bacaan.",
+        "Bacaan menyebut: \"Kedatangan wisatawan meningkatkan kepedulian warga terhadap kebersihan desa, dan kepedulian itu pada gilirannya memperbaiki kualitas lingkungan\".",
+        "Menurut bacaan, kedatangan wisatawan meningkatkan kepedulian warga terhadap kebersihan desa. Pernyataan menyampaikan hubungan sebab-akibat yang sama dengan kata lain.",
         "Jadi pernyataan tersebut BENAR.",
         "Jawaban: A (Benar)"
        ],
        "gambarPembahasan": [],
        "model": {
         "topik": "Verbal",
+        "tema": "desawisata",
         "fakta": [
          {
-          "tipe": "nilai",
-          "teks": "Provinsi Riau mencatat 250 ribu peserta pelatihan literasi.",
-          "ent": "Provinsi Riau",
-          "attr": "peserta",
-          "v": 250,
-          "id": "f1"
+          "id": "f1",
+          "tipe": "latar",
+          "teks": "Banyak desa kini mengembangkan diri menjadi desa wisata yang menawarkan pengalaman hidup bersama warga."
          },
          {
-          "tipe": "nilai",
-          "teks": "Provinsi Bali memiliki indeks literasi keuangan sebesar 46 persen.",
-          "ent": "Provinsi Bali",
-          "attr": "indeks",
-          "v": 46,
-          "id": "f2"
-         },
-         {
-          "tipe": "tahun",
-          "teks": "Provinsi Riau memulai program literasi keuangan pada tahun 2015.",
-          "ent": "Provinsi Riau",
-          "peristiwa": "program",
-          "t": 2015,
-          "id": "f3"
-         },
-         {
-          "tipe": "nilai",
-          "teks": "Provinsi Kalimantan Timur memiliki 20 penyuluh keuangan.",
-          "ent": "Provinsi Kalimantan Timur",
-          "attr": "agen",
-          "v": 20,
-          "id": "f4"
-         },
-         {
-          "tipe": "daftar",
-          "teks": "Provinsi Kalimantan Timur hanya mengajarkan mengatur anggaran, dana pensiun, dan pinjaman daring yang aman.",
-          "ent": "Provinsi Kalimantan Timur",
-          "himp": "materi",
+          "id": "f2",
+          "tipe": "golongan",
+          "induk": "kegiatan",
           "anggota": [
-           "mengatur anggaran",
-           "dana pensiun",
-           "pinjaman daring yang aman"
+           "alam",
+           "budaya"
           ],
-          "lengkap": true,
-          "id": "f5"
+          "nama": {
+           "alam": "wisata alam",
+           "budaya": "wisata budaya"
+          },
+          "teks": "Kegiatan di desa wisata dibedakan menjadi dua jenis, yaitu wisata alam dan wisata budaya."
          },
          {
-          "tipe": "nilai",
-          "teks": "Provinsi Riau memiliki 290 penyuluh keuangan.",
-          "ent": "Provinsi Riau",
-          "attr": "agen",
-          "v": 290,
-          "id": "f6"
+          "id": "f3",
+          "tipe": "bagian",
+          "x": "adat",
+          "y": "budaya",
+          "ya": true,
+          "nama": {
+           "x": "upacara adat"
+          },
+          "penanda": "tergolong",
+          "teks": "Yang tergolong wisata budaya antara lain upacara adat, kelas membatik, dan pertunjukan tari tradisional, tetapi tidak termasuk penjelajahan hutan."
+         },
+         {
+          "id": "f4",
+          "tipe": "bagian",
+          "x": "batik",
+          "y": "budaya",
+          "ya": true,
+          "nama": {
+           "x": "kelas membatik"
+          },
+          "penanda": "tergolong",
+          "teks": "Yang tergolong wisata budaya antara lain upacara adat, kelas membatik, dan pertunjukan tari tradisional, tetapi tidak termasuk penjelajahan hutan."
+         },
+         {
+          "id": "f5",
+          "tipe": "bagian",
+          "x": "tari",
+          "y": "budaya",
+          "ya": true,
+          "nama": {
+           "x": "pertunjukan tari tradisional"
+          },
+          "penanda": "tergolong",
+          "teks": "Yang tergolong wisata budaya antara lain upacara adat, kelas membatik, dan pertunjukan tari tradisional, tetapi tidak termasuk penjelajahan hutan."
+         },
+         {
+          "id": "f6",
+          "tipe": "bagian",
+          "x": "hutan",
+          "y": "budaya",
+          "ya": false,
+          "nama": {
+           "x": "penjelajahan hutan"
+          },
+          "penanda": "tidak termasuk",
+          "teks": "Yang tergolong wisata budaya antara lain upacara adat, kelas membatik, dan pertunjukan tari tradisional, tetapi tidak termasuk penjelajahan hutan."
+         },
+         {
+          "id": "f7",
+          "tipe": "latar",
+          "teks": "Model ini dinilai mampu menggerakkan ekonomi desa tanpa merusak kekhasan budayanya."
+         },
+         {
+          "id": "f8",
+          "tipe": "sebab",
+          "dari": "datang",
+          "ke": "peduli",
+          "arah": "naik",
+          "nama": {
+           "dari": "kedatangan wisatawan",
+           "ke": "kepedulian warga"
+          },
+          "penanda": "meningkatkan kepedulian warga",
+          "teks": "Kedatangan wisatawan meningkatkan kepedulian warga terhadap kebersihan desa, dan kepedulian itu pada gilirannya memperbaiki kualitas lingkungan."
+         },
+         {
+          "id": "f9",
+          "tipe": "sebab",
+          "dari": "peduli",
+          "ke": "lingkungan",
+          "arah": "naik",
+          "nama": {
+           "dari": "kepedulian warga",
+           "ke": "kualitas lingkungan"
+          },
+          "penanda": "memperbaiki kualitas lingkungan",
+          "teks": "Kedatangan wisatawan meningkatkan kepedulian warga terhadap kebersihan desa, dan kepedulian itu pada gilirannya memperbaiki kualitas lingkungan."
+         },
+         {
+          "id": "f10",
+          "tipe": "daftar",
+          "subjek": "desa",
+          "himp": "pendapatan",
+          "anggota": [
+           "kuliner",
+           "pemandu",
+           "parkir",
+           "sepeda"
+          ],
+          "lengkap": false,
+          "nama": {
+           "kuliner": "paket kuliner lokal",
+           "pemandu": "jasa pemandu wisata",
+           "parkir": "parkir kendaraan",
+           "sepeda": "sewa sepeda"
+          },
+          "penanda": "seperti",
+          "teks": "Pendapatan desa wisata berasal dari berbagai sumber, seperti paket kuliner lokal, jasa pemandu wisata, parkir kendaraan, dan sewa sepeda."
+         },
+         {
+          "id": "f11",
+          "tipe": "status",
+          "hal": "urban",
+          "status": "belum",
+          "teks": "Secara teori, desa wisata dapat menahan laju perpindahan pemuda desa ke kota, tetapi dampak itu belum terbukti dalam praktik."
+         },
+         {
+          "id": "f12",
+          "tipe": "kuantor",
+          "kelompok": "warga",
+          "sifat": "kuantor:sebagian",
+          "q": "sebagian",
+          "nama": {
+           "kelompok": "warga"
+          },
+          "teks": "Sebagian warga bahkan membuka rumahnya sebagai tempat menginap bagi wisatawan."
+         },
+         {
+          "id": "f13",
+          "tipe": "daftar",
+          "subjek": "desa",
+          "himp": "hambatan",
+          "anggota": [
+           "promosi",
+           "saing",
+           "sinyal"
+          ],
+          "lengkap": false,
+          "nama": {
+           "promosi": "promosi yang belum gencar",
+           "saing": "persaingan dengan desa wisata lain",
+           "sinyal": "sinyal telepon yang lemah"
+          },
+          "penanda": "antara lain",
+          "teks": "Meski demikian, ada sejumlah kendala yang perlu diatasi, antara lain promosi yang belum gencar, persaingan dengan desa wisata lain, dan sinyal telepon yang lemah."
+         },
+         {
+          "id": "f14",
+          "tipe": "syarat",
+          "aksi": "dana",
+          "jenis": "perlu",
+          "ambang": 8,
+          "teks": "Dana pengembangan dari pemerintah daerah hanya diberikan kepada desa wisata yang dikunjungi sekurang-kurangnya 8 ribu wisatawan per tahun."
          }
         ],
         "klaim": {
-         "tipe": "banding",
-         "a": "Provinsi Riau",
-         "b": "Provinsi Kalimantan Timur",
-         "attr": "agen",
-         "rel": ">",
-         "teks": "Provinsi Riau memiliki penyuluh keuangan yang lebih banyak daripada Provinsi Kalimantan Timur."
+         "tipe": "sebab",
+         "dari": "datang",
+         "ke": "peduli",
+         "arah": "naik",
+         "nama": {
+          "dari": "kedatangan wisatawan",
+          "ke": "kepedulian warga"
+         },
+         "penanda": "kepedulian warga terhadap kebersihan desa meningkat",
+         "teks": "Kepedulian warga terhadap kebersihan desa meningkat berkat kedatangan wisatawan."
         },
-        "tipeKlaim": "banding-B",
-        "tema": "literasi",
-        "perlu": null,
-        "paragraf": "Tingkat literasi keuangan berbeda-beda di setiap daerah. Provinsi Riau mencatat 250 ribu peserta pelatihan literasi. Provinsi Bali memiliki indeks literasi keuangan sebesar 46 persen. Provinsi Riau memulai program literasi keuangan pada tahun 2015. Provinsi Kalimantan Timur memiliki 20 penyuluh keuangan. Provinsi Kalimantan Timur hanya mengajarkan mengatur anggaran, dana pensiun, dan pinjaman daring yang aman. Provinsi Riau memiliki 290 penyuluh keuangan. Hasil survei akan dipakai untuk menyusun program berikutnya."
+        "tipeKlaim": "sebab-langsung",
+        "paragraf": "Banyak desa kini mengembangkan diri menjadi desa wisata yang menawarkan pengalaman hidup bersama warga. Kegiatan di desa wisata dibedakan menjadi dua jenis, yaitu wisata alam dan wisata budaya. Yang tergolong wisata budaya antara lain upacara adat, kelas membatik, dan pertunjukan tari tradisional, tetapi tidak termasuk penjelajahan hutan. Model ini dinilai mampu menggerakkan ekonomi desa tanpa merusak kekhasan budayanya. Kedatangan wisatawan meningkatkan kepedulian warga terhadap kebersihan desa, dan kepedulian itu pada gilirannya memperbaiki kualitas lingkungan. Pendapatan desa wisata berasal dari berbagai sumber, seperti paket kuliner lokal, jasa pemandu wisata, parkir kendaraan, dan sewa sepeda. Secara teori, desa wisata dapat menahan laju perpindahan pemuda desa ke kota, tetapi dampak itu belum terbukti dalam praktik. Sebagian warga bahkan membuka rumahnya sebagai tempat menginap bagi wisatawan. Meski demikian, ada sejumlah kendala yang perlu diatasi, antara lain promosi yang belum gencar, persaingan dengan desa wisata lain, dan sinyal telepon yang lemah. Dana pengembangan dari pemerintah daerah hanya diberikan kepada desa wisata yang dikunjungi sekurang-kurangnya 8 ribu wisatawan per tahun."
        },
        "sidik": {
-        "inti": "verbal|literasi|banding-B|Provinsi Riau mencatat 250 ribu peserta pelatihan literasi.|Provinsi Bali memiliki indeks literasi keuangan sebesar 46 persen.|Provinsi Riau memulai program literasi keuangan pada tahun 2015.|Provinsi Kalimantan Timur memiliki 20 penyuluh keuangan.|Provinsi Kalimantan Timur hanya mengajarkan mengatur anggaran, dana pensiun, dan pinjaman daring yang aman.|Provinsi Riau memiliki 290 penyuluh keuangan.|Provinsi Riau memiliki penyuluh keuangan yang lebih banyak daripada Provinsi Kalimantan Timur.",
+        "inti": "verbal|desawisata|sebab-langsung|Banyak desa kini mengembangkan diri menjadi desa wisata yang menawarkan pengalaman hidup bersama warga. Kegiatan di desa wisata dibedakan menjadi dua jenis, yaitu wisata alam dan wisata budaya. Yang tergolong wisata budaya antara lain upacara adat, kelas membatik, dan pertunjukan tari tradisional, tetapi tidak termasuk penjelajahan hutan. Model ini dinilai mampu menggerakkan ekonomi desa tanpa merusak kekhasan budayanya. Kedatangan wisatawan meningkatkan kepedulian warga terhadap kebersihan desa, dan kepedulian itu pada gilirannya memperbaiki kualitas lingkungan. Pendapatan desa wisata berasal dari berbagai sumber, seperti paket kuliner lokal, jasa pemandu wisata, parkir kendaraan, dan sewa sepeda. Secara teori, desa wisata dapat menahan laju perpindahan pemuda desa ke kota, tetapi dampak itu belum terbukti dalam praktik. Sebagian warga bahkan membuka rumahnya sebagai tempat menginap bagi wisatawan. Meski demikian, ada sejumlah kendala yang perlu diatasi, antara lain promosi yang belum gencar, persaingan dengan desa wisata lain, dan sinyal telepon yang lemah. Dana pengembangan dari pemerintah daerah hanya diberikan kepada desa wisata yang dikunjungi sekurang-kurangnya 8 ribu wisatawan per tahun.|Kepedulian warga terhadap kebersihan desa meningkat berkat kedatangan wisatawan.",
         "param": [],
-        "entitas": "literasiProvinsi Riau,Provinsi Kalimantan Timur,Provinsi Bali"
+        "entitas": "desawisata"
        }
       },
       {
@@ -7328,15 +7629,15 @@
        "tingkat": "Sedang",
        "benih": 422221188,
        "jenis": "pg",
-       "soal": "Tingkat literasi keuangan berbeda-beda di setiap daerah. Provinsi Jawa Tengah menjalankan program literasi keuangan di sekolah menengah. Provinsi Jawa Tengah hanya mengajarkan asuransi, berinvestasi, dan menabung. Provinsi Sumatra Barat tidak menyediakan modul belajar keuangan secara daring. Provinsi Jawa Tengah mencatat 85 ribu peserta pelatihan literasi. Provinsi Jawa Tengah memiliki 250 penyuluh keuangan. Provinsi Jawa Tengah menjangkau desa terpencil melalui penyuluhan keliling.\nPernyataan: Provinsi Jawa Tengah membuka materi literasi keuangan lewat internet.",
+       "soal": "Hutan mangrove tumbuh di wilayah pasang surut sepanjang pantai tropis. Manfaat hutan mangrove dapat dibedakan menjadi dua golongan, yaitu manfaat ekologis dan manfaat ekonomi. Manfaat ekologis mencakup peredaman gelombang, penyediaan tempat berkembang biak ikan, dan pencegahan abrasi, sedangkan penyelenggaraan wisata perahu tergolong manfaat ekonomi. Para ahli lingkungan menilai pelestariannya sama pentingnya dengan pelestarian hutan di daratan. Secara teori, hutan mangrove dapat menyimpan karbon berlipat-lipat lebih banyak daripada hutan daratan dengan luas yang sama, tetapi perkiraan itu belum terbukti melalui pengukuran langsung. Sebuah kelompok perempuan pesisir hanya mengolah buah mangrove menjadi teh herbal, keripik, pewarna batik alami, dan tepung kue. Sebagian bibit yang ditanam relawan lima tahun lalu kini sudah setinggi orang dewasa. Namun, hutan mangrove terus terancam oleh berbagai hal, seperti sampah plastik yang tersangkut di akar dan penebangan liar. Setiap kelompok nelayan yang menjaga kawasan mangrove seluas 4 hektare atau lebih otomatis memperoleh bantuan perahu.\nPernyataan: Sebagian besar bibit yang ditanam relawan lima tahun lalu kini sudah setinggi orang dewasa.",
        "stimulus": {
-        "judul": "Literasi Keuangan Daerah",
+        "judul": "Hutan Mangrove",
         "teks": [
-         "Tingkat literasi keuangan berbeda-beda di setiap daerah. Provinsi Jawa Tengah menjalankan program literasi keuangan di sekolah menengah. Provinsi Jawa Tengah hanya mengajarkan asuransi, berinvestasi, dan menabung. Provinsi Sumatra Barat tidak menyediakan modul belajar keuangan secara daring. Provinsi Jawa Tengah mencatat 85 ribu peserta pelatihan literasi. Provinsi Jawa Tengah memiliki 250 penyuluh keuangan. Provinsi Jawa Tengah menjangkau desa terpencil melalui penyuluhan keliling."
+         "Hutan mangrove tumbuh di wilayah pasang surut sepanjang pantai tropis. Manfaat hutan mangrove dapat dibedakan menjadi dua golongan, yaitu manfaat ekologis dan manfaat ekonomi. Manfaat ekologis mencakup peredaman gelombang, penyediaan tempat berkembang biak ikan, dan pencegahan abrasi, sedangkan penyelenggaraan wisata perahu tergolong manfaat ekonomi. Para ahli lingkungan menilai pelestariannya sama pentingnya dengan pelestarian hutan di daratan. Secara teori, hutan mangrove dapat menyimpan karbon berlipat-lipat lebih banyak daripada hutan daratan dengan luas yang sama, tetapi perkiraan itu belum terbukti melalui pengukuran langsung. Sebuah kelompok perempuan pesisir hanya mengolah buah mangrove menjadi teh herbal, keripik, pewarna batik alami, dan tepung kue. Sebagian bibit yang ditanam relawan lima tahun lalu kini sudah setinggi orang dewasa. Namun, hutan mangrove terus terancam oleh berbagai hal, seperti sampah plastik yang tersangkut di akar dan penebangan liar. Setiap kelompok nelayan yang menjaga kawasan mangrove seluas 4 hektare atau lebih otomatis memperoleh bantuan perahu."
         ],
         "gambar": []
        },
-       "pertanyaan": "Provinsi Jawa Tengah membuka materi literasi keuangan lewat internet.",
+       "pertanyaan": "Sebagian besar bibit yang ditanam relawan lima tahun lalu kini sudah setinggi orang dewasa.",
        "perintah": "Berdasarkan bacaan di atas, apakah pernyataan berikut Benar, Salah, atau Tidak Diketahui?",
        "opsi": [
         {
@@ -7365,84 +7666,170 @@
        "langkah": [],
        "pembahasan": [
         "Jenis soal: Verbal (Verbal Reasoning).",
-        "Bacaan tidak menyebut apakah hal itu berlaku bagi Provinsi Jawa Tengah; pernyataan tidak dapat dipastikan benar atau salah.",
+        "Bacaan menyebut: \"Sebagian bibit yang ditanam relawan lima tahun lalu kini sudah setinggi orang dewasa\".",
+        "Bacaan hanya menyebut \"sebagian\" tanpa menyebut berapa banyak. Apakah jumlahnya mencapai \"sebagian besar\" tidak dapat dipastikan.",
         "Jadi pernyataan tersebut TIDAK DIKETAHUI.",
         "Jawaban: C (Tidak Diketahui)"
        ],
        "gambarPembahasan": [],
        "model": {
         "topik": "Verbal",
+        "tema": "mangrove",
         "fakta": [
          {
-          "tipe": "sifat",
-          "teks": "Provinsi Jawa Tengah menjalankan program literasi keuangan di sekolah menengah.",
-          "ent": "Provinsi Jawa Tengah",
-          "prop": "sekolah",
-          "ada": true,
-          "id": "f1"
+          "id": "f1",
+          "tipe": "latar",
+          "teks": "Hutan mangrove tumbuh di wilayah pasang surut sepanjang pantai tropis."
          },
          {
-          "tipe": "daftar",
-          "teks": "Provinsi Jawa Tengah hanya mengajarkan asuransi, berinvestasi, dan menabung.",
-          "ent": "Provinsi Jawa Tengah",
-          "himp": "materi",
+          "id": "f2",
+          "tipe": "golongan",
+          "induk": "manfaat",
           "anggota": [
-           "asuransi",
-           "berinvestasi",
-           "menabung"
+           "ekologis",
+           "ekonomi"
+          ],
+          "nama": {
+           "ekologis": "manfaat ekologis",
+           "ekonomi": "manfaat ekonomi"
+          },
+          "teks": "Manfaat hutan mangrove dapat dibedakan menjadi dua golongan, yaitu manfaat ekologis dan manfaat ekonomi."
+         },
+         {
+          "id": "f3",
+          "tipe": "bagian",
+          "x": "gelombang",
+          "y": "ekologis",
+          "ya": true,
+          "nama": {
+           "x": "peredaman gelombang"
+          },
+          "penanda": "mencakup",
+          "teks": "Manfaat ekologis mencakup peredaman gelombang, penyediaan tempat berkembang biak ikan, dan pencegahan abrasi, sedangkan penyelenggaraan wisata perahu tergolong manfaat ekonomi."
+         },
+         {
+          "id": "f4",
+          "tipe": "bagian",
+          "x": "ikan",
+          "y": "ekologis",
+          "ya": true,
+          "nama": {
+           "x": "penyediaan tempat berkembang biak ikan"
+          },
+          "penanda": "mencakup",
+          "teks": "Manfaat ekologis mencakup peredaman gelombang, penyediaan tempat berkembang biak ikan, dan pencegahan abrasi, sedangkan penyelenggaraan wisata perahu tergolong manfaat ekonomi."
+         },
+         {
+          "id": "f5",
+          "tipe": "bagian",
+          "x": "abrasi",
+          "y": "ekologis",
+          "ya": true,
+          "nama": {
+           "x": "pencegahan abrasi"
+          },
+          "penanda": "mencakup",
+          "teks": "Manfaat ekologis mencakup peredaman gelombang, penyediaan tempat berkembang biak ikan, dan pencegahan abrasi, sedangkan penyelenggaraan wisata perahu tergolong manfaat ekonomi."
+         },
+         {
+          "id": "f6",
+          "tipe": "bagian",
+          "x": "perahu",
+          "y": "ekonomi",
+          "ya": true,
+          "nama": {
+           "x": "penyelenggaraan wisata perahu"
+          },
+          "penanda": "tergolong",
+          "teks": "Manfaat ekologis mencakup peredaman gelombang, penyediaan tempat berkembang biak ikan, dan pencegahan abrasi, sedangkan penyelenggaraan wisata perahu tergolong manfaat ekonomi."
+         },
+         {
+          "id": "f7",
+          "tipe": "latar",
+          "teks": "Para ahli lingkungan menilai pelestariannya sama pentingnya dengan pelestarian hutan di daratan."
+         },
+         {
+          "id": "f8",
+          "tipe": "status",
+          "hal": "karbon",
+          "status": "belum",
+          "teks": "Secara teori, hutan mangrove dapat menyimpan karbon berlipat-lipat lebih banyak daripada hutan daratan dengan luas yang sama, tetapi perkiraan itu belum terbukti melalui pengukuran langsung."
+         },
+         {
+          "id": "f9",
+          "tipe": "daftar",
+          "subjek": "buah",
+          "himp": "olahan",
+          "anggota": [
+           "teh",
+           "keripik",
+           "pewarna",
+           "tepung"
           ],
           "lengkap": true,
-          "id": "f2"
+          "nama": {
+           "teh": "teh herbal",
+           "keripik": "keripik",
+           "pewarna": "pewarna batik alami",
+           "tepung": "tepung kue"
+          },
+          "penanda": "hanya",
+          "teks": "Sebuah kelompok perempuan pesisir hanya mengolah buah mangrove menjadi teh herbal, keripik, pewarna batik alami, dan tepung kue."
          },
          {
-          "tipe": "sifat",
-          "teks": "Provinsi Sumatra Barat tidak menyediakan modul belajar keuangan secara daring.",
-          "ent": "Provinsi Sumatra Barat",
-          "prop": "daring",
-          "ada": false,
-          "id": "f3"
+          "id": "f10",
+          "tipe": "kuantor",
+          "kelompok": "bibitRelawan",
+          "sifat": "kuantor:sebagian",
+          "q": "sebagian",
+          "nama": {
+           "kelompok": "bibit"
+          },
+          "teks": "Sebagian bibit yang ditanam relawan lima tahun lalu kini sudah setinggi orang dewasa."
          },
          {
-          "tipe": "nilai",
-          "teks": "Provinsi Jawa Tengah mencatat 85 ribu peserta pelatihan literasi.",
-          "ent": "Provinsi Jawa Tengah",
-          "attr": "peserta",
-          "v": 85,
-          "id": "f4"
+          "id": "f11",
+          "tipe": "daftar",
+          "subjek": "mangrove",
+          "himp": "hambatan",
+          "anggota": [
+           "plastik",
+           "tebang"
+          ],
+          "lengkap": false,
+          "nama": {
+           "plastik": "sampah plastik yang tersangkut di akar",
+           "tebang": "penebangan liar"
+          },
+          "penanda": "seperti",
+          "teks": "Namun, hutan mangrove terus terancam oleh berbagai hal, seperti sampah plastik yang tersangkut di akar dan penebangan liar."
          },
          {
-          "tipe": "nilai",
-          "teks": "Provinsi Jawa Tengah memiliki 250 penyuluh keuangan.",
-          "ent": "Provinsi Jawa Tengah",
-          "attr": "agen",
-          "v": 250,
-          "id": "f5"
-         },
-         {
-          "tipe": "sifat",
-          "teks": "Provinsi Jawa Tengah menjangkau desa terpencil melalui penyuluhan keliling.",
-          "ent": "Provinsi Jawa Tengah",
-          "prop": "desa",
-          "ada": true,
-          "id": "f6"
+          "id": "f12",
+          "tipe": "syarat",
+          "aksi": "bantuanPerahu",
+          "jenis": "cukup",
+          "ambang": 4,
+          "teks": "Setiap kelompok nelayan yang menjaga kawasan mangrove seluas 4 hektare atau lebih otomatis memperoleh bantuan perahu."
          }
         ],
         "klaim": {
-         "tipe": "sifat",
-         "ent": "Provinsi Jawa Tengah",
-         "prop": "daring",
-         "ada": true,
-         "teks": "Provinsi Jawa Tengah membuka materi literasi keuangan lewat internet."
+         "tipe": "kuantor",
+         "kelompok": "bibitRelawan",
+         "sifat": "kuantor:sebagian",
+         "q": "sebagian-besar",
+         "nama": {
+          "kelompok": "bibit"
+         },
+         "teks": "Sebagian besar bibit yang ditanam relawan lima tahun lalu kini sudah setinggi orang dewasa."
         },
-        "tipeKlaim": "sifat-TD",
-        "tema": "literasi",
-        "perlu": null,
-        "paragraf": "Tingkat literasi keuangan berbeda-beda di setiap daerah. Provinsi Jawa Tengah menjalankan program literasi keuangan di sekolah menengah. Provinsi Jawa Tengah hanya mengajarkan asuransi, berinvestasi, dan menabung. Provinsi Sumatra Barat tidak menyediakan modul belajar keuangan secara daring. Provinsi Jawa Tengah mencatat 85 ribu peserta pelatihan literasi. Provinsi Jawa Tengah memiliki 250 penyuluh keuangan. Provinsi Jawa Tengah menjangkau desa terpencil melalui penyuluhan keliling."
+        "tipeKlaim": "kuantor-sebagian-besar",
+        "paragraf": "Hutan mangrove tumbuh di wilayah pasang surut sepanjang pantai tropis. Manfaat hutan mangrove dapat dibedakan menjadi dua golongan, yaitu manfaat ekologis dan manfaat ekonomi. Manfaat ekologis mencakup peredaman gelombang, penyediaan tempat berkembang biak ikan, dan pencegahan abrasi, sedangkan penyelenggaraan wisata perahu tergolong manfaat ekonomi. Para ahli lingkungan menilai pelestariannya sama pentingnya dengan pelestarian hutan di daratan. Secara teori, hutan mangrove dapat menyimpan karbon berlipat-lipat lebih banyak daripada hutan daratan dengan luas yang sama, tetapi perkiraan itu belum terbukti melalui pengukuran langsung. Sebuah kelompok perempuan pesisir hanya mengolah buah mangrove menjadi teh herbal, keripik, pewarna batik alami, dan tepung kue. Sebagian bibit yang ditanam relawan lima tahun lalu kini sudah setinggi orang dewasa. Namun, hutan mangrove terus terancam oleh berbagai hal, seperti sampah plastik yang tersangkut di akar dan penebangan liar. Setiap kelompok nelayan yang menjaga kawasan mangrove seluas 4 hektare atau lebih otomatis memperoleh bantuan perahu."
        },
        "sidik": {
-        "inti": "verbal|literasi|sifat-TD|Provinsi Jawa Tengah menjalankan program literasi keuangan di sekolah menengah.|Provinsi Jawa Tengah hanya mengajarkan asuransi, berinvestasi, dan menabung.|Provinsi Sumatra Barat tidak menyediakan modul belajar keuangan secara daring.|Provinsi Jawa Tengah mencatat 85 ribu peserta pelatihan literasi.|Provinsi Jawa Tengah memiliki 250 penyuluh keuangan.|Provinsi Jawa Tengah menjangkau desa terpencil melalui penyuluhan keliling.|Provinsi Jawa Tengah membuka materi literasi keuangan lewat internet.",
+        "inti": "verbal|mangrove|kuantor-sebagian-besar|Hutan mangrove tumbuh di wilayah pasang surut sepanjang pantai tropis. Manfaat hutan mangrove dapat dibedakan menjadi dua golongan, yaitu manfaat ekologis dan manfaat ekonomi. Manfaat ekologis mencakup peredaman gelombang, penyediaan tempat berkembang biak ikan, dan pencegahan abrasi, sedangkan penyelenggaraan wisata perahu tergolong manfaat ekonomi. Para ahli lingkungan menilai pelestariannya sama pentingnya dengan pelestarian hutan di daratan. Secara teori, hutan mangrove dapat menyimpan karbon berlipat-lipat lebih banyak daripada hutan daratan dengan luas yang sama, tetapi perkiraan itu belum terbukti melalui pengukuran langsung. Sebuah kelompok perempuan pesisir hanya mengolah buah mangrove menjadi teh herbal, keripik, pewarna batik alami, dan tepung kue. Sebagian bibit yang ditanam relawan lima tahun lalu kini sudah setinggi orang dewasa. Namun, hutan mangrove terus terancam oleh berbagai hal, seperti sampah plastik yang tersangkut di akar dan penebangan liar. Setiap kelompok nelayan yang menjaga kawasan mangrove seluas 4 hektare atau lebih otomatis memperoleh bantuan perahu.|Sebagian besar bibit yang ditanam relawan lima tahun lalu kini sudah setinggi orang dewasa.",
         "param": [],
-        "entitas": "literasiProvinsi Jawa Tengah,Provinsi Sumatra Barat,Provinsi Kalimantan Timur"
+        "entitas": "mangrove"
        }
       },
       {

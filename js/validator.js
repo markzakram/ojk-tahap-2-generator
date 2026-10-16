@@ -354,108 +354,363 @@
   }
 
   // ------------------------------------------------------------------ verbal
+  //
+  // Bacaan verbal dirakit dari fakta berstruktur (lihat verbal.js). Di sini kebenaran
+  // pernyataan diturunkan ulang dari fakta itu dengan aturan validator sendiri, lalu
+  // diperiksa bahwa fakta memang tertulis: bacaan tersusun tepat dari kalimat fakta, dan
+  // kata penanda tiap fakta ("tidak termasuk", "hanya", "secara teori", "tidak semua",
+  // "sekurang-kurangnya", arah "menaikkan/menurunkan", ...) ada di kalimatnya. Daftar
+  // penanda di bawah ini milik validator; tidak diambil dari penyusun.
 
-  /** Turunkan 'B' | 'S' | 'TD' dari fakta dan pernyataan. */
-  function turunkanVerbal(fakta, klaim) {
-    function cari(tipe, pred) { return fakta.filter(function (x) { return x.tipe === tipe && pred(x); }); }
-    function nilaiDari(ent, attr) {
-      var r = cari('nilai', function (x) { return x.ent === ent && x.attr === attr; });
-      return r.length ? r[0].v : null;
-    }
-    var k = klaim, v;
-    if (k.tipe === 'nilai') {
-      v = nilaiDari(k.ent, k.attr);
-      if (v === null) return 'TD';
-      var ok = k.op === '=' ? v === k.v : (k.op === '>' ? v > k.v : v < k.v);
-      return ok ? 'B' : 'S';
-    }
-    if (k.tipe === 'jumlah') {
-      var jml = 0;
-      for (var i = 0; i < k.ents.length; i++) { var vi = nilaiDari(k.ents[i], k.attr); if (vi === null) return 'TD'; jml += vi; }
-      return (k.op === '>' ? jml > k.v : jml < k.v) ? 'B' : 'S';
-    }
-    if (k.tipe === 'banding') {
-      // graf urutan: tepi a -> b berarti a > b; nilai numerik juga membentuk tepi
-      var tepi = [], ents = {};
-      cari('lebih', function (x) { return x.attr === k.attr; }).forEach(function (x) { tepi.push([x.a, x.b]); ents[x.a] = 1; ents[x.b] = 1; });
-      var bernilai = [];
-      fakta.forEach(function (x) { if (x.tipe === 'nilai' && x.attr === k.attr) bernilai.push(x); });
-      bernilai.forEach(function (x) { bernilai.forEach(function (y) { if (x.v > y.v) tepi.push([x.ent, y.ent]); }); });
-      function bisa(dari, ke) {
-        var antre = [dari], lihat = {}; lihat[dari] = 1;
-        while (antre.length) {
-          var n = antre.shift();
-          if (n === ke) return true;
-          tepi.forEach(function (e) { if (e[0] === n && !lihat[e[1]]) { lihat[e[1]] = 1; antre.push(e[1]); } });
-        }
-        return false;
+  var V_YA = ['mencakup', 'meliputi', 'termasuk', 'tergolong', 'masuk golongan', 'bagian dari', 'berlaku bagi'];
+  var V_TIDAK = ['tidak termasuk', 'tidak tergolong', 'tidak mencakup', 'bukan bagian', 'kecuali', 'di luar'];
+  var V_TUTUP = ['hanya', 'terbatas pada'];
+  var V_BUKA = ['seperti', 'antara lain', 'misalnya', 'di antaranya'];
+  var V_NAIK = ['meningkat', 'menaikkan', 'mendorong', 'memperbesar', 'memperluas', 'menambah', 'mempercepat', 'memperkuat', 'memperbaiki',
+    'menggerakkan', 'bertambah', 'lebih tinggi', 'lebih banyak', 'lebih besar', 'lebih baik', 'lebih luas', 'lebih cepat'];
+  var V_TURUN = ['menurun', 'mengurangi', 'menekan', 'memangkas', 'memperkecil', 'mempersempit', 'menghambat', 'memperlambat', 'memperburuk',
+    'melemahkan', 'berkurang', 'lebih rendah', 'lebih sedikit', 'lebih kecil', 'lebih buruk', 'lebih sempit', 'lebih lambat'];
+  var V_AWAL = ['pertama kali', 'mula-mula', 'pada mulanya', 'awalnya'];
+  var V_LANJUT = ['kemudian', 'lalu', 'setelah itu', 'selanjutnya'];
+  var V_BILANGAN = { 2: 'dua', 3: 'tiga', 4: 'empat' };
+  var V_TIPE = ['latar', 'golongan', 'bagian', 'daftar', 'sebab', 'kuantor', 'status', 'syarat', 'urutan', 'banding'];
+
+  function kecilV(s) { return String(s == null ? '' : s).toLowerCase(); }
+  function polaKata(kata) { return new RegExp('(^|[^a-z-])' + kata.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?=[^a-z-]|$)'); }
+  /** Posisi kata/frasa utuh pertama di teks, atau -1. */
+  function posKata(teks, kata) { var r = polaKata(kata).exec(kecilV(teks)); return r ? r.index + r[1].length : -1; }
+  function adaKata(teks, kata) { return posKata(teks, kata) >= 0; }
+  function adaSalahSatu(teks, daftar) { var t = kecilV(teks); return daftar.some(function (p) { return t.indexOf(p) >= 0; }); }
+  function posAwal(teks, daftar) { var p = -1; daftar.forEach(function (d) { var i = posKata(teks, d); if (i >= 0 && (p < 0 || i < p)) p = i; }); return p; }
+  function tanpaNama(teks, nama) { var t = kecilV(teks); Object.keys(nama || {}).forEach(function (r) { if (nama[r]) t = t.split(kecilV(nama[r])).join(' '); }); return t; }
+  function klausaV(teks) { return String(teks).split(/,|;|\bsedangkan\b|\btetapi\b|\bnamun\b/i); }
+  function negasiV(teks) { return /(^|[^a-z])(tidak|bukan|belum)([^a-z]|$)/.test(kecilV(teks)); }
+  function angkaId(v) { return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  function adaAngka(teks, v) { return new RegExp('(^|[^\\d.,])' + angkaId(v).replace(/\./g, '\\.') + '(?!\\d|[.,]\\d)').test(String(teks)); }
+  function arahCocok(teks, arah) { var n = adaSalahSatu(teks, V_NAIK), d = adaSalahSatu(teks, V_TURUN); return arah === 'naik' ? n && !d : (arah === 'turun' ? d && !n : false); }
+
+  /** Kuantor yang tertulis: semua, tidak-semua, tidak-ada, sebagian-besar, sebagian, ada, ada-tidak. */
+  function kuantorDariTeks(teks) {
+    var t = kecilV(teks).trim();
+    if (/(^|[^a-z])(tidak|belum) (semua|seluruh)([^a-z]|$)/.test(t)) return 'tidak-semua';
+    if (/(^|[^a-z])(tidak ada|belum ada|tak satu pun|tidak satu pun)([^a-z]|$)/.test(t)) return 'tidak-ada';
+    if (/(^|[^a-z])(sebagian besar|kebanyakan)([^a-z]|$)/.test(t)) return 'sebagian-besar';
+    if (/(^|[^a-z])(semua|seluruh|setiap)([^a-z]|$)/.test(t)) return 'semua';
+    var awalAda = /^(ada|sebagian|beberapa)([^a-z]|$)/.test(t);
+    if (awalAda && negasiV(t)) return 'ada-tidak';
+    if (/(^|[^a-z])(sebagian|beberapa)([^a-z]|$)/.test(t)) return 'sebagian';
+    return awalAda ? 'ada' : null;
+  }
+  /** teori ("secara teori"), belum ("secara teori ..., tetapi belum terbukti"), terbukti ("membuktikan"). */
+  function statusDariTeks(teks) {
+    var t = kecilV(teks), teori = /(^|[^a-z])(secara teori|secara teoretis|pada prinsipnya)([^a-z]|$)/.test(t);
+    var belum = /belum (terbukti|pernah dibuktikan|dapat dibuktikan)/.test(t), bukti = /(terbukti|membuktikan)/.test(t);
+    if (teori && belum) return 'belum';
+    if (teori && !bukti) return 'teori';
+    return !teori && bukti && !belum ? 'terbukti' : null;
+  }
+  function statusKlaimDariTeks(teks) {
+    var t = kecilV(teks);
+    if (/belum (terbukti|pernah dibuktikan)/.test(t)) return 'belum';
+    if (/terbukti/.test(t)) return 'terbukti';
+    return /(^|[^a-z])(dapat|bisa|mungkin|memungkinkan)([^a-z]|$)/.test(t) ? 'mungkin' : null;
+  }
+  /** perlu ("hanya ... sekurang-kurangnya") atau cukup ("setiap ... atau lebih otomatis ..."). */
+  function syaratDariTeks(teks) {
+    var t = kecilV(teks), hanya = adaKata(t, 'hanya'), minimal = /(sekurang-kurangnya|minimal|paling sedikit|paling tidak)/.test(t);
+    var otomatis = /(^|[^a-z])(otomatis|selalu|pasti)([^a-z]|$)/.test(t), setiap = /(^|[^a-z])(setiap|semua|siapa pun)([^a-z]|$)/.test(t);
+    if (hanya && minimal && !otomatis) return 'perlu';
+    return !hanya && otomatis && setiap && /atau lebih/.test(t) ? 'cukup' : null;
+  }
+  function syaratKlaimDariTeks(teks) {
+    var t = kecilV(teks), pasti = /(^|[^a-z])(pasti|tentu|dipastikan|otomatis)([^a-z]|$)/.test(t);
+    var tidak = /(^|[^a-z])(tidak|belum) (dapat|bisa|akan|berhak)([^a-z]|$)/.test(t);
+    if (pasti && !tidak) return 'pasti';
+    return tidak && !pasti ? 'tidak' : null;
+  }
+  /** Ada klausa dengan susunan "<a> ... lebih <sifat> ... daripada ... <b>". */
+  function susunanBanding(teks, na, nb, sifat) {
+    return klausaV(teks).some(function (k) {
+      k = kecilV(k);
+      var ia = k.indexOf(kecilV(na)), il = k.indexOf('lebih ' + kecilV(sifat)), id = k.indexOf('daripada'), ib = k.lastIndexOf(kecilV(nb));
+      return ia >= 0 && il > ia && id > il && ib > id;
+    });
+  }
+
+  /** Himpunan dari fakta golongan dan bagian: termuat(x, y) dan terpisah(x, y). */
+  function modelBagian(fakta) {
+    var sub = [], pisah = [];
+    fakta.forEach(function (f) {
+      if (f.tipe === 'bagian') (f.ya ? sub : pisah).push([f.x, f.y]);
+      if (f.tipe === 'golongan') {
+        (f.anggota || []).forEach(function (g, i) {
+          sub.push([g, f.induk]);
+          f.anggota.forEach(function (h, j) { if (i < j) pisah.push([g, h]); });
+        });
       }
-      var aLebih = k.a !== k.b && bisa(k.a, k.b), bLebih = k.a !== k.b && bisa(k.b, k.a);
-      if (aLebih && bLebih) return 'KONTRADIKSI';
-      if (aLebih) return k.rel === '>' ? 'B' : 'S';
-      if (bLebih) return k.rel === '>' ? 'S' : 'B';
-      return 'TD';
+    });
+    function atas(x) {
+      var hasil = {}, antre = [x];
+      hasil[x] = 1;
+      while (antre.length) {
+        var n = antre.shift();
+        sub.forEach(function (e) { if (e[0] === n && !hasil[e[1]]) { hasil[e[1]] = 1; antre.push(e[1]); } });
+      }
+      return hasil;
     }
-    if (k.tipe === 'sifat') {
-      var s = cari('sifat', function (x) { return x.ent === k.ent && x.prop === k.prop; });
-      if (!s.length) return 'TD';
-      return s[0].ada === k.ada ? 'B' : 'S';
+    function termuat(x, y) { return !!atas(x)[y]; }
+    function terpisah(x, y) { var ax = atas(x), ay = atas(y); return pisah.some(function (p) { return (ax[p[0]] && ay[p[1]]) || (ax[p[1]] && ay[p[0]]); }); }
+    // pelengkap golongan: x di dalam induk dan lepas dari semua golongannya kecuali satu -> x termasuk golongan itu
+    var gol = fakta.filter(function (f) { return f.tipe === 'golongan'; }), ids = {};
+    sub.concat(pisah).forEach(function (e) { ids[e[0]] = 1; ids[e[1]] = 1; });
+    for (var putar = 0, berubah = true; berubah && putar < 6; putar++) {
+      berubah = false;
+      gol.forEach(function (g) {
+        Object.keys(ids).forEach(function (x) {
+          if (x === g.induk || g.anggota.indexOf(x) >= 0 || !termuat(x, g.induk)) return;
+          var sisa = g.anggota.filter(function (h) { return !terpisah(x, h); });
+          if (sisa.length === 1 && !termuat(x, sisa[0])) { sub.push([x, sisa[0]]); berubah = true; }
+        });
+      });
     }
-    if (k.tipe === 'daftar') {
-      var d = cari('daftar', function (x) { return x.ent === k.ent && x.himp === k.himp; });
+    return { termuat: termuat, terpisah: terpisah, ids: ids };
+  }
+
+  var TABEL_KUANTOR = {
+    semua: { semua: 'B', 'tidak-semua': 'S', 'ada-tidak': 'S', 'tidak-ada': 'S', ada: 'AMBIGU', 'sebagian-besar': 'AMBIGU' },
+    'tidak-semua': { semua: 'S', 'tidak-semua': 'B', 'ada-tidak': 'B', 'tidak-ada': 'AMBIGU', ada: 'AMBIGU', 'sebagian-besar': 'AMBIGU' },
+    sebagian: { semua: 'AMBIGU', 'tidak-semua': 'AMBIGU', 'ada-tidak': 'AMBIGU', 'tidak-ada': 'S', ada: 'B', 'sebagian-besar': 'TD' },
+    'tidak-ada': { semua: 'S', 'tidak-semua': 'AMBIGU', 'ada-tidak': 'AMBIGU', 'tidak-ada': 'B', ada: 'S', 'sebagian-besar': 'S' },
+    'sebagian-besar': { semua: 'AMBIGU', 'tidak-semua': 'AMBIGU', 'ada-tidak': 'AMBIGU', 'tidak-ada': 'S', ada: 'B', 'sebagian-besar': 'B' }
+  };
+  var TABEL_STATUS = {
+    teori: { terbukti: 'TD', mungkin: 'B', belum: 'TD' },
+    belum: { terbukti: 'S', mungkin: 'B', belum: 'B' },
+    terbukti: { terbukti: 'B', mungkin: 'B', belum: 'S' }
+  };
+
+  /**
+   * Turunkan 'B' | 'S' | 'TD' dari fakta dan pernyataan. Selain itu bisa keluar kode masalah:
+   * AMBIGU (jawaban bergantung pada makna tersirat), KONTRADIKSI, GANDA, TIDAK-DIKENAL.
+   */
+  function turunkanVerbal(fakta, klaim) {
+    var k = klaim;
+    function cari(tipe, pred) { return fakta.filter(function (x) { return x.tipe === tipe && pred(x); }); }
+    if (k.tipe === 'bagian') {
+      var mb = modelBagian(fakta), ya = mb.termuat(k.x, k.y), tidak = mb.terpisah(k.x, k.y);
+      if (ya && tidak) return 'KONTRADIKSI';
+      if (k.ya) return ya ? 'B' : (tidak ? 'S' : 'TD');
+      return tidak ? 'B' : (ya ? 'S' : 'TD');
+    }
+    if (k.tipe === 'daftar' || k.tipe === 'tunggal') {
+      var d = cari('daftar', function (x) { return x.subjek === k.subjek && x.himp === k.himp; });
       if (!d.length) return 'TD';
-      var anggota = d[0].anggota.indexOf(k.x) >= 0;
-      if (anggota) return k.termasuk ? 'B' : 'S';
+      if (d.length > 1) return 'GANDA';
+      var ada = d[0].anggota.indexOf(k.x) >= 0;
+      if (k.tipe === 'tunggal') {
+        if (d[0].anggota.some(function (y) { return y !== k.x; })) return 'S';
+        return ada && d[0].lengkap ? 'B' : 'TD';
+      }
+      if (ada) return k.termasuk ? 'B' : 'S';
       if (d[0].lengkap) return k.termasuk ? 'S' : 'B';
       return 'TD';
     }
-    if (k.tipe === 'tahun') {
-      var ta = cari('tahun', function (x) { return x.ent === k.a && x.peristiwa === k.peristiwa; }), tb = cari('tahun', function (x) { return x.ent === k.b && x.peristiwa === k.peristiwa; });
-      if (!ta.length || !tb.length) return 'TD';
-      return ta[0].t < tb[0].t ? 'B' : 'S';
+    if (k.tipe === 'sebab') {
+      var tepi = cari('sebab', function () { return true; }), tanda = {};
+      var jalan = function (n, s, lihat) {
+        tepi.forEach(function (e) {
+          if (e.dari !== n || lihat.indexOf(e.ke) >= 0) return;
+          var s2 = s * (e.arah === 'naik' ? 1 : -1);
+          if (e.ke === k.ke) tanda[s2] = 1; else jalan(e.ke, s2, lihat.concat([e.ke]));
+        });
+      };
+      jalan(k.dari, 1, [k.dari]);
+      if (tanda[1] && tanda[-1]) return 'KONTRADIKSI';
+      if (!tanda[1] && !tanda[-1]) return 'TD';
+      return (tanda[1] ? 'naik' : 'turun') === k.arah ? 'B' : 'S';
     }
-    if (k.tipe === 'perlu') {
-      var syarat = cari('perlu', function (x) { return x.aksi === k.aksi; });
-      var nilaiOrang = nilaiDari(k.ent, 'perlu:' + k.aksi);
-      if (!syarat.length || nilaiOrang === null) return 'TD';
-      if (nilaiOrang < syarat[0].ambang) return k.jenis === 'tidak' ? 'B' : 'S';
-      return 'TD';
+    if (k.tipe === 'kuantor') {
+      var q = cari('kuantor', function (x) { return x.kelompok === k.kelompok && x.sifat === k.sifat; });
+      if (!q.length) return 'TD';
+      if (q.length > 1) return 'GANDA';
+      return (TABEL_KUANTOR[q[0].q] || {})[k.q] || 'TIDAK-DIKENAL';
+    }
+    if (k.tipe === 'status') {
+      var st = cari('status', function (x) { return x.hal === k.hal; });
+      if (!st.length) return 'TD';
+      if (st.length > 1) return 'GANDA';
+      return (TABEL_STATUS[st[0].status] || {})[k.jenis] || 'TIDAK-DIKENAL';
+    }
+    if (k.tipe === 'syarat') {
+      var sy = cari('syarat', function (x) { return x.aksi === k.aksi; });
+      if (!sy.length) return 'TD';
+      if (sy.length > 1) return 'GANDA';
+      var t = sy[0].ambang, v = k.v;
+      if (sy[0].jenis === 'perlu') return v < t ? (k.jenis === 'tidak' ? 'B' : 'S') : 'TD';
+      if (sy[0].jenis === 'cukup') return v >= t ? (k.jenis === 'pasti' ? 'B' : 'S') : 'TD';
+      return 'TIDAK-DIKENAL';
+    }
+    if (k.tipe === 'urutan') {
+      var u = cari('urutan', function (x) { return x.subjek === k.subjek; });
+      if (!u.length) return 'TD';
+      if (u.length > 1) return 'GANDA';
+      var pertama = u[0].pertama, lanjut = u[0].lanjut;
+      if (k.jenis === 'pertama') return k.x === pertama ? 'B' : 'S';
+      if (k.jenis === 'diterapkan') return k.x === pertama || lanjut.indexOf(k.x) >= 0 ? 'B' : 'TD';
+      if (k.jenis === 'sebelum') {
+        if (k.x === pertama && lanjut.indexOf(k.y) >= 0) return 'B';
+        if (k.y === pertama && k.x !== pertama) return 'S';     // tidak ada yang mendahului yang pertama
+        return k.x === pertama || (lanjut.indexOf(k.x) >= 0 && lanjut.indexOf(k.y) >= 0) ? 'AMBIGU' : 'TD';
+      }
+      return 'TIDAK-DIKENAL';
+    }
+    if (k.tipe === 'banding') {
+      var tb = cari('banding', function (x) { return x.sifat === k.sifat; });
+      var lebih = function (dari, ke) {
+        var antre = [dari], lihat = {};
+        lihat[dari] = 1;
+        while (antre.length) {
+          var n = antre.shift();
+          if (n === ke) return true;
+          tb.forEach(function (e) { if (e.a === n && !lihat[e.b]) { lihat[e.b] = 1; antre.push(e.b); } });
+        }
+        return false;
+      };
+      var aL = k.a !== k.b && lebih(k.a, k.b), bL = k.a !== k.b && lebih(k.b, k.a);
+      if (aL && bL) return 'KONTRADIKSI';
+      return aL ? 'B' : (bL ? 'S' : 'TD');
     }
     return 'TIDAK-DIKENAL';
   }
 
+  /** Kata penanda tiap fakta harus tertulis di kalimatnya dan sesuai polaritas faktanya. */
+  function cekFaktaVerbal(f, m) {
+    var t = kecilV(f.teks), pelaku = 'fakta ' + f.tipe + ' "' + String(f.teks).slice(0, 50) + '..."';
+    Object.keys(f.nama || {}).forEach(function (r) { if (t.indexOf(kecilV(f.nama[r])) < 0) m.push(pelaku + ': "' + f.nama[r] + '" tidak tertulis'); });
+    if (f.tipe === 'golongan') {
+      var bil = V_BILANGAN[(f.anggota || []).length];
+      if (!bil || !adaKata(t, bil)) m.push(pelaku + ': jumlah golongan tidak tertulis');
+      if ((f.anggota || []).some(function (id) { return !f.nama || !f.nama[id]; })) m.push(pelaku + ': nama golongan tidak lengkap');
+    } else if (f.tipe === 'bagian') {
+      var nm = f.nama && f.nama.x, kl = nm ? klausaV(f.teks).filter(function (k) { return kecilV(k).indexOf(kecilV(nm)) >= 0; })[0] : null;
+      if (kl == null) { m.push(pelaku + ': anggota tidak tertulis'); return; }
+      var sisa = tanpaNama(kl, { x: nm });
+      if (!f.penanda || t.indexOf(f.penanda) < 0) m.push(pelaku + ': penanda "' + f.penanda + '" tidak tertulis');
+      if (f.ya) {
+        if (V_YA.indexOf(f.penanda) < 0 || !adaSalahSatu(t, V_YA)) m.push(pelaku + ': "' + nm + '" termasuk, tetapi tidak ditandai kata "mencakup/termasuk/tergolong"');
+        if (/(^|[^a-z])(tidak|bukan|kecuali)([^a-z]|$)/.test(sisa)) m.push(pelaku + ': "' + nm + '" dinyatakan termasuk, tetapi klausanya menyangkal');
+      } else if (V_TIDAK.indexOf(f.penanda) < 0 || !adaSalahSatu(sisa, V_TIDAK)) m.push(pelaku + ': "' + nm + '" dinyatakan tidak termasuk, tetapi klausanya tidak menyangkal');
+    } else if (f.tipe === 'daftar') {
+      var tutup = V_TUTUP.some(function (p) { return adaKata(t, p); }), buka = V_BUKA.some(function (p) { return adaKata(t, p); });
+      if (f.lengkap && (!tutup || buka)) m.push(pelaku + ': daftar lengkap tanpa penanda "hanya"');
+      if (!f.lengkap && (!buka || tutup)) m.push(pelaku + ': daftar terbuka tanpa penanda "seperti/antara lain"');
+      var pos = f.penanda ? posKata(t, f.penanda) : -1;
+      if (pos < 0 || (f.lengkap ? V_TUTUP : V_BUKA).indexOf(f.penanda) < 0) m.push(pelaku + ': penanda daftar "' + f.penanda + '" tidak sesuai');
+      (f.anggota || []).forEach(function (id) {
+        var n = f.nama && f.nama[id];
+        if (!n || t.indexOf(kecilV(n), Math.max(pos, 0)) < 0) m.push(pelaku + ': anggota "' + (n || id) + '" tidak tertulis setelah penandanya');
+      });
+    } else if (f.tipe === 'sebab') {
+      var p = kecilV(f.penanda);
+      if (!p || t.indexOf(p) < 0) m.push(pelaku + ': penanda "' + f.penanda + '" tidak tertulis');
+      else {
+        if (!f.nama || p.indexOf(kecilV(f.nama.ke)) < 0) m.push(pelaku + ': akibatnya tidak ada pada penanda "' + f.penanda + '"');
+        if (!arahCocok(p, f.arah)) m.push(pelaku + ': kata pada "' + f.penanda + '" tidak menunjukkan arah ' + f.arah);
+      }
+    } else if (f.tipe === 'kuantor') {
+      var q = kuantorDariTeks(f.teks);
+      if (q !== f.q) m.push(pelaku + ': kuantor tertulis "' + q + '", model "' + f.q + '"');
+    } else if (f.tipe === 'status') {
+      var st = statusDariTeks(f.teks);
+      if (st !== f.status) m.push(pelaku + ': status tertulis "' + st + '", model "' + f.status + '"');
+    } else if (f.tipe === 'syarat') {
+      if (!adaAngka(f.teks, f.ambang)) m.push(pelaku + ': batas ' + f.ambang + ' tidak tercetak');
+      var sj = syaratDariTeks(f.teks);
+      if (sj !== f.jenis) m.push(pelaku + ': syarat tertulis "' + sj + '", model "' + f.jenis + '"');
+    } else if (f.tipe === 'urutan') {
+      var pa = posAwal(t, V_AWAL), pl = posAwal(t, V_LANJUT), np = f.nama && f.nama[f.pertama] ? t.indexOf(kecilV(f.nama[f.pertama])) : -1;
+      if (pa < 0 || pl <= pa || np <= pa || np >= pl) m.push(pelaku + ': yang pertama tidak ditandai "pertama kali ... kemudian"');
+      (f.lanjut || []).forEach(function (id) { if (!f.nama || t.indexOf(kecilV(f.nama[id]), pl) < pl) m.push(pelaku + ': "' + id + '" tidak tertulis setelah "kemudian"'); });
+    } else if (f.tipe === 'banding') {
+      if (!f.nama || !susunanBanding(f.teks, f.nama.a, f.nama.b, f.sifat)) m.push(pelaku + ': susunan "a lebih ' + f.sifat + ' daripada b" tidak tertulis');
+    }
+  }
+
+  /** Pernyataan: nama tertulis, dan polaritas/kuantor/status/syarat/arahnya tertulis sesuai model. */
+  function cekKlaimVerbal(k, m) {
+    var t = kecilV(k.teks), sisa = tanpaNama(k.teks, k.nama), salah = function (s) { m.push('pernyataan "' + k.teks + '": ' + s); };
+    Object.keys(k.nama || {}).forEach(function (r) { if (t.indexOf(kecilV(k.nama[r])) < 0) salah('"' + k.nama[r] + '" tidak tertulis'); });
+    if (k.tipe === 'bagian' && negasiV(sisa) === !!k.ya) salah('polaritas tidak sesuai model');
+    else if (k.tipe === 'daftar' && negasiV(sisa) === !!k.termasuk) salah('polaritas tidak sesuai model');
+    else if (k.tipe === 'tunggal' && !/satu-satunya/.test(t)) salah('tidak memuat "satu-satunya"');
+    else if (k.tipe === 'sebab') {
+      var p = kecilV(k.penanda);
+      if (!p || t.indexOf(p) < 0 || !k.nama || p.indexOf(kecilV(k.nama.ke)) < 0 || !arahCocok(p, k.arah)) salah('arah sebab-akibat tidak tertulis sesuai model');
+    } else if (k.tipe === 'kuantor') {
+      var q = kuantorDariTeks(k.teks);
+      if (!(q === k.q || (k.q === 'ada' && q === 'sebagian'))) salah('kuantor tertulis "' + q + '", model "' + k.q + '"');
+    } else if (k.tipe === 'status' && statusKlaimDariTeks(k.teks) !== k.jenis) salah('status tertulis "' + statusKlaimDariTeks(k.teks) + '", model "' + k.jenis + '"');
+    else if (k.tipe === 'syarat' && (!adaAngka(k.teks, k.v) || syaratKlaimDariTeks(k.teks) !== k.jenis)) salah('angka atau jenis kepastian tidak sesuai model');
+    else if (k.tipe === 'urutan') {
+      var ada = /pertama/.test(t), sebelum = posAwal(t, ['lebih dahulu', 'lebih awal']);
+      if (k.jenis === 'pertama' && !ada) salah('tidak memuat "pertama"');
+      if (k.jenis === 'diterapkan' && (ada || sebelum >= 0)) salah('memuat penanda urutan');
+      if (k.jenis === 'sebelum' && !(k.nama && t.indexOf(kecilV(k.nama.x)) >= 0 && t.indexOf(kecilV(k.nama.x)) < sebelum && t.indexOf(kecilV(k.nama.y), sebelum) > sebelum)) salah('susunan "x lebih dahulu daripada y" tidak tertulis');
+    } else if (k.tipe === 'banding' && !(k.nama && susunanBanding(k.teks, k.nama.a, k.nama.b, k.sifat))) salah('susunan "a lebih ' + k.sifat + ' daripada b" tidak tertulis');
+  }
+
+  function disebutVerbal(fakta, id) {
+    return fakta.some(function (f) {
+      return [f.x, f.y, f.dari, f.ke, f.kelompok, f.induk, f.pertama, f.a, f.b].indexOf(id) >= 0 ||
+        (f.anggota || []).indexOf(id) >= 0 || (f.lanjut || []).indexOf(id) >= 0;
+    });
+  }
+
+  /** Tidak ada dua fakta untuk hal yang sama, golongan yang bertentangan, arah sebab ganda, atau perbandingan berputar. */
+  function cekKonsistenVerbal(fakta, m) {
+    var mb = modelBagian(fakta);
+    Object.keys(mb.ids).forEach(function (x) { if (mb.terpisah(x, x)) m.push('fakta golongan bertentangan: "' + x + '" berada di dua golongan yang saling lepas'); });
+    var kunci = {};
+    fakta.forEach(function (f) {
+      var kk = { daftar: 'daftar ' + f.subjek + '/' + f.himp, kuantor: 'kuantor ' + f.kelompok + '/' + f.sifat, status: 'status ' + f.hal, syarat: 'syarat ' + f.aksi, urutan: 'urutan ' + f.subjek }[f.tipe];
+      if (!kk) return;
+      if (kunci[kk]) m.push('dua fakta untuk hal yang sama: ' + kk);
+      kunci[kk] = 1;
+    });
+    fakta.forEach(function (f) {
+      if (f.tipe === 'sebab' && turunkanVerbal(fakta, { tipe: 'sebab', dari: f.dari, ke: f.ke, arah: f.arah }) !== 'B') m.push('fakta sebab-akibat bertentangan: ' + f.dari + ' -> ' + f.ke);
+      if (f.tipe === 'banding' && turunkanVerbal(fakta, { tipe: 'banding', a: f.a, b: f.b, sifat: f.sifat }) !== 'B') m.push('perbandingan berputar: ' + f.a + ' / ' + f.b);
+    });
+  }
+
   function periksaVerbal(b, m) {
     if (!periksaPilihan(b, m, 3)) return;
-    var mod = b.model;
-    var tgt = ['Benar', 'Salah', 'Tidak Diketahui'];
+    var mod = b.model || {}, tgt = ['Benar', 'Salah', 'Tidak Diketahui'];
     b.opsi.forEach(function (o, i) { if (o.teks !== tgt[i]) m.push('opsi ' + HURUF[i] + ' seharusnya "' + tgt[i] + '"'); });
-    var turunan = turunkanVerbal(mod.fakta, mod.klaim);
-    var peta = { B: 0, S: 1, TD: 2 };
-    if (peta[turunan] === undefined) { m.push('kebenaran pernyataan tidak dapat diturunkan: ' + turunan); return; }
-    if (peta[turunan] !== b.kunci) m.push('kebenaran yang diturunkan dari fakta adalah "' + tgt[peta[turunan]] + '", kunci tercetak "' + tgt[b.kunci] + '"');
-    // semua fakta tertulis di bacaan, dan pernyataan = kalimat tanya
-    var bacaan = (b.stimulus.teks || []).join(' ');
-    mod.fakta.forEach(function (x) { if (bacaan.indexOf(x.teks) < 0) m.push('fakta tidak tertulis di bacaan: ' + x.teks); });
+    if (!Array.isArray(mod.fakta) || !mod.fakta.length || !mod.klaim) { m.push('model verbal tanpa fakta atau pernyataan'); return; }
+    var turunan = turunkanVerbal(mod.fakta, mod.klaim), peta = { B: 0, S: 1, TD: 2 };
+    if (peta[turunan] === undefined) m.push('kebenaran pernyataan tidak dapat diturunkan: ' + turunan);
+    else if (peta[turunan] !== b.kunci) m.push('kebenaran yang diturunkan dari fakta adalah "' + tgt[peta[turunan]] + '", kunci tercetak "' + tgt[b.kunci] + '"');
+    // bacaan tersusun tepat dari kalimat fakta: tidak ada kalimat tanpa fakta, tidak ada fakta tanpa kalimat
+    var bacaan = (b.stimulus.teks || []).join(' '), urut = [];
+    mod.fakta.forEach(function (f) { if (urut[urut.length - 1] !== f.teks) urut.push(f.teks); });
+    if (urut.join(' ') !== bacaan) m.push('bacaan tidak tersusun tepat dari kalimat fakta');
     if (mod.klaim.teks !== b.pertanyaan) m.push('kalimat pernyataan pada butir tidak sama dengan pernyataan yang diperiksa');
-    // tidak ada fakta yang bertentangan
-    var nilai = {};
-    mod.fakta.forEach(function (x) {
-      if (x.tipe === 'nilai') { var kk = x.ent + '|' + x.attr; if (nilai[kk] !== undefined && nilai[kk] !== x.v) m.push('dua fakta bertentangan untuk ' + kk); nilai[kk] = x.v; }
-    });
-    var sifat = {};
-    mod.fakta.forEach(function (x) {
-      if (x.tipe === 'sifat') { var kk = x.ent + '|' + x.prop; if (sifat[kk] !== undefined && sifat[kk] !== x.ada) m.push('dua fakta bertentangan untuk ' + kk); sifat[kk] = x.ada; }
-    });
-    // panjang bacaan wajar
+    if (kecilV(bacaan).indexOf(kecilV(mod.klaim.teks).replace(/\.$/, '')) >= 0) m.push('pernyataan menyalin kalimat bacaan apa adanya');
     var kata = bacaan.split(/\s+/).length;
-    if (kata < 30 || kata > 170) m.push('panjang bacaan ' + kata + ' kata di luar rentang 30-170');
-    // semua nilai fakta numerik harus tercetak sebagai angka di kalimatnya
-    mod.fakta.forEach(function (x) {
-      if (x.tipe === 'nilai' && x.attr.indexOf('perlu:') !== 0) {
-        var angka = String(x.v).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        if (x.teks.indexOf(angka) < 0) m.push('nilai ' + x.v + ' tidak tercetak pada kalimat faktanya');
-      }
+    if (kata < 120 || kata > 180) m.push('panjang bacaan ' + kata + ' kata di luar rentang 120-180');
+    mod.fakta.forEach(function (f) {
+      if (V_TIPE.indexOf(f.tipe) < 0) m.push('jenis fakta tidak dikenal: ' + f.tipe);
+      else if (typeof f.teks !== 'string' || !f.teks) m.push('fakta ' + f.tipe + ' tanpa kalimat');
+      else cekFaktaVerbal(f, m);
     });
+    cekKlaimVerbal(mod.klaim, m);
+    // hal yang tidak disebut fakta mana pun tidak boleh tertulis di bacaan (kalau tertulis, "tidak diketahui" belum tentu benar)
+    ['x', 'y', 'a', 'b'].forEach(function (r) {
+      var id = mod.klaim[r], nm = mod.klaim.nama && mod.klaim.nama[r];
+      if (typeof id === 'string' && nm && !disebutVerbal(mod.fakta, id) && kecilV(bacaan).indexOf(kecilV(nm)) >= 0) m.push('"' + nm + '" tidak disebut fakta mana pun, tetapi tertulis di bacaan');
+    });
+    cekKonsistenVerbal(mod.fakta, m);
   }
 
   // ------------------------------------------------------------------ figural
