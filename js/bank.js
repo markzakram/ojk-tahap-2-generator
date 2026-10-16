@@ -14,15 +14,17 @@
   var api;
   if (typeof module === 'object' && module.exports) {
     api = factory(require('./verbal.js'), require('./cerita.js'), require('./tabelku.js'), require('./grafikku.js'),
-      require('./figural.js'), require('./serial-putar.js'),
+      require('./figural.js'), require('./serial-putar.js'), require('./serial-ganda.js'),
+      require('./matriks-latin.js'), require('./matriks-isi.js'), require('./matriks-sekat.js'),
       require('./pn-bar.js'), require('./pn-tabel.js'), require('./pn-garis.js'), require('./pn-pie.js'));
     module.exports = api;
   } else {
-    api = factory(root.Verbal, root.Cerita, root.TabelKu, root.GrafikKu, root.Figural, root.SerialPutar,
-      root.PnBar, root.PnTabel, root.PnGaris, root.PnPie);
+    api = factory(root.Verbal, root.Cerita, root.TabelKu, root.GrafikKu, root.Figural, root.SerialPutar, root.SerialGanda,
+      root.MatriksLatin, root.MatriksIsi, root.MatriksSekat, root.PnBar, root.PnTabel, root.PnGaris, root.PnPie);
     root.Bank = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Verbal, Cerita, TabelKu, GrafikKu, Figural, SerialPutar, PnBar, PnTabel, PnGaris, PnPie) {
+})(typeof self !== 'undefined' ? self : this, function (Verbal, Cerita, TabelKu, GrafikKu, Figural, SerialPutar, SerialGanda,
+  MatriksLatin, MatriksIsi, MatriksSekat, PnBar, PnTabel, PnGaris, PnPie) {
   'use strict';
 
   function dari(mod, kel) {
@@ -48,11 +50,13 @@
     grafik: { subtes: 'ku', submateri: 'grafik', nama: 'Numerik - Grafik Batang', label: 'Numerik: Grafik Batang', keluarga: GrafikKu.KELUARGA.map(function (k) { return dari(GrafikKu, k); }) },
     serial: {
       subtes: 'ku', submateri: 'figural', nama: 'Figural - Serial', label: 'Figural: Serial',
-      keluarga: [dari(Figural, Figural.KELUARGA[0]), dari(SerialPutar, SerialPutar.KELUARGA[0])]
+      keluarga: [dari(Figural, Figural.KELUARGA[0]), dari(SerialPutar, SerialPutar.KELUARGA[0]), dari(SerialGanda, SerialGanda.KELUARGA[0])]
     },
+    // matriks 3x3 muncul dua kali (bobot ganda); urutannya membuat dua butir berurutan selalu beda keluarga
     matriks: {
       subtes: 'ku', submateri: 'figural', nama: 'Figural - Matriks', label: 'Figural: Matriks',
-      keluarga: [dari(Figural, Figural.KELUARGA[1]), dari(Figural, Figural.KELUARGA[1]), dari(Figural, Figural.KELUARGA[2])]
+      keluarga: [dari(Figural, Figural.KELUARGA[1]), dari(MatriksLatin, MatriksLatin.KELUARGA[0]), dari(Figural, Figural.KELUARGA[2]),
+        dari(MatriksIsi, MatriksIsi.KELUARGA[0]), dari(Figural, Figural.KELUARGA[1]), dari(MatriksSekat, MatriksSekat.KELUARGA[0])]
     },
     bar: { subtes: 'pn', submateri: 'bar', nama: 'Bar Chart', label: 'Bar Chart', keluarga: PnBar.KELUARGA.map(function (k) { return dari(PnBar, k); }) },
     'tabel-pn': { subtes: 'pn', submateri: 'tabel', nama: 'Table', label: 'Table', keluarga: PnTabel.KELUARGA.map(function (k) { return dari(PnTabel, k); }) },

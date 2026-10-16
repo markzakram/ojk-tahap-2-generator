@@ -14,7 +14,9 @@
  *               lalu menghitung
  *   verbal      menurunkan Benar/Salah/Tidak Diketahui dari fakta yang dirakit
  *   figural     menebak aturan tiap kanal dari kotak yang tampak (Inferensi) dan
- *               memastikan tepat satu opsi yang memenuhi semuanya
+ *               memastikan tepat satu opsi yang memenuhi semuanya; untuk matriks 5x5,
+ *               5x6, 2x2 bersekat, dan deret kotak ganda, aturannya disimpulkan dari
+ *               gambar soal yang tampil lalu dicocokkan dengan gambar tiap opsi
  *   interaktif  menghitung ulang kondisi akhir (batang, tab, titik, irisan)
  *
  * Satu butir lulus bila masalahnya kosong. Paket dan seluruh hasil generate
@@ -559,6 +561,119 @@
     else if (cocok[0] !== b.kunci) m.push('opsi yang memenuhi pola adalah ' + HURUF[cocok[0]] + ', kunci tercetak ' + HURUF[b.kunci]);
   }
 
+  // ------------------------------------------------- figural bentuk riset (5x5, 5x6, bersekat, kotak ganda)
+
+  function sj(x) { return JSON.stringify(x); }
+
+  /**
+   * Bagian bersama keempat bentuk riset: gambar soal dan gambar opsi yang TAMPIL dibaca dari
+   * deskriptornya (bukan dari salinan data penyusun), dicocokkan dengan data model, dan opsi
+   * harus berbeda satu sama lain, juga setelah digambar.
+   */
+  function bacaTampilan(b, m, jenisSoal, jenisOpsi, ambilOpsi) {
+    if (!periksaPilihan(b, m, 5)) return null;
+    var gd = (b.stimulus.gambar || [])[0];
+    if (!gd || gd.jenis !== jenisSoal || !gd.model) { m.push('gambar soal berjenis ' + jenisSoal + ' tidak ada'); return null; }
+    var opsi = b.opsi.map(function (o) { return o.gambar && o.gambar.jenis === jenisOpsi && o.gambar.model ? ambilOpsi(o.gambar.model) : null; });
+    if (opsi.some(function (x) { return x == null; })) { m.push('ada opsi tanpa gambar ' + jenisOpsi); return null; }
+    if (sj(opsi) !== sj(b.model.pilihan)) m.push('opsi yang tergambar berbeda dari data model');
+    if (b.model.kunciIndex !== b.kunci) m.push('indeks kunci pada model tidak sama dengan kunci butir');
+    var lihat = {}, gb = {};
+    opsi.forEach(function (x, i) { var s = sj(x); if (lihat[s] !== undefined) m.push('opsi ' + HURUF[lihat[s]] + ' dan ' + HURUF[i] + ' bergambar sama'); lihat[s] = i; });
+    b.opsi.forEach(function (o, i) {
+      try { var s = Gambar.svg(o.gambar).svg; if (gb[s] !== undefined) m.push('gambar opsi ' + HURUF[gb[s]] + ' dan ' + HURUF[i] + ' identik'); gb[s] = i; } catch (e) { m.push('gambar opsi ' + HURUF[i] + ' gagal digambar'); }
+    });
+    return { soal: gd.model, opsi: opsi };
+  }
+
+  function tepatSatu(b, m, cocok, nama) {
+    if (cocok.length !== 1) m.push('opsi yang memenuhi ' + nama + ' ada ' + cocok.length + (cocok.length ? ' (' + cocok.map(function (i) { return HURUF[i]; }).join(', ') + ')' : '') + ', seharusnya tepat satu');
+    else if (cocok[0] !== b.kunci) m.push('opsi yang memenuhi ' + nama + ' adalah ' + HURUF[cocok[0]] + ', kunci tercetak ' + HURUF[b.kunci]);
+  }
+
+  /** Kotak kosong (null) pada matriks harus persis daerah "?" yang digambar. */
+  function lubangSesuai(g, diLubang, m) {
+    for (var r = 0; r < g.length; r++) {
+      for (var c = 0; c < g[r].length; c++) {
+        if ((g[r][c] === null) !== diLubang(r, c)) { m.push('kotak kosong pada matriks tidak sama dengan daerah tanda tanya (baris ' + (r + 1) + ', kolom ' + (c + 1) + ')'); return false; }
+      }
+    }
+    return true;
+  }
+
+  /** Matriks 5x5: setiap baris dan kolom memuat kelima bentuk; lubang harus terisi dengan satu cara. */
+  function periksaLatin(b, m) {
+    var t = bacaTampilan(b, m, 'latin', 'latin-opsi', function (x) { return x.isi; });
+    if (!t) return;
+    var g = t.soal.grid, l = t.soal.lubang;
+    if (sj(g) !== sj(b.model.grid) || sj(l) !== sj(b.model.lubang)) m.push('matriks yang tergambar berbeda dari data model');
+    if (!l || !Array.isArray(g) || g.length !== 5) { m.push('matriks 5x5 tidak lengkap'); return; }
+    if (!lubangSesuai(g, function (r, c) { return r >= l.r && r < l.r + l.h && c >= l.c && c < l.c + l.w; }, m)) return;
+    var r = Inf.latinLubang(g, 5);
+    if (r.status !== 'unik') { m.push('matriks 5x5: ' + (r.status === 'ambigu' ? 'lubang dapat diisi dengan ' + r.semua.length + ' cara' : 'aturan tidak terbaca (' + (r.pesan || 'tak ada pengisian yang sah') + ')')); return; }
+    var cocok = [];
+    t.opsi.forEach(function (p, i) {
+      if (!Array.isArray(p) || p.length !== l.h || p.some(function (row) { return !Array.isArray(row) || row.length !== l.w; })) { m.push('opsi ' + HURUF[i] + ' tidak sebentuk dengan daerah tanda tanya'); return; }
+      if (sj([].concat.apply([], p)) === sj(r.nilai)) cocok.push(i);
+    });
+    tepatSatu(b, m, cocok, 'aturan baris dan kolom');
+  }
+
+  /** Matriks 5x6: aturan bentuk dan warna yang berlaku harus menentukan satu deret pengganti. */
+  function periksaIsi(b, m) {
+    var t = bacaTampilan(b, m, 'isi', 'isi-opsi', function (x) { return x.isi; });
+    if (!t) return;
+    var g = t.soal.grid, l = t.soal.lubang;
+    if (sj(g) !== sj(b.model.grid) || sj(l) !== sj(b.model.lubang)) m.push('matriks yang tergambar berbeda dari data model');
+    if (!l || !Array.isArray(g)) { m.push('matriks 5x6 tidak lengkap'); return; }
+    if (!lubangSesuai(g, function (r, c) { return r === l.r && c >= l.c && c < l.c + l.k; }, m)) return;
+    var r = Inf.bentukWarna(g, 4);
+    if (r.status !== 'unik') { m.push('matriks 5x6: ' + (r.status === 'ambigu' ? r.banyak + ' deret pengganti memenuhi aturan ' + r.aturan.join(', ') : 'aturan tidak terbaca' + (r.pesan ? ' (' + r.pesan + ')' : ''))); return; }
+    var harus = sj(r.nilai.map(function (x) { return [x.b, x.i]; })), cocok = [];
+    t.opsi.forEach(function (p, i) {
+      if (!Array.isArray(p) || p.length !== l.k || p.some(function (x) { return !x; })) { m.push('opsi ' + HURUF[i] + ' tidak sepanjang daerah tanda tanya'); return; }
+      if (sj(p.map(function (x) { return [x.b, x.i]; })) === harus) cocok.push(i);
+    });
+    tepatSatu(b, m, cocok, 'aturan bentuk dan warna');
+  }
+
+  /** Matriks 2x2 bersekat: asal tiap belahan gambar pojok dan bentuk pojok harus terbaca tunggal. */
+  function periksaSekat(b, m) {
+    var t = bacaTampilan(b, m, 'sekat', 'sekat-opsi', function (x) { return x.fig || null; });
+    if (!t) return;
+    var s = t.soal;
+    if (sj(s.pojok) !== sj(b.model.pojok) || sj(s.dalam) !== sj(b.model.dalam) || s.tanya !== b.model.tanya) m.push('gambar bersekat yang tergambar berbeda dari data model');
+    var r = Inf.sekat(s.pojok, s.dalam, s.tanya);
+    if (r.status !== 'unik') { m.push('matriks bersekat: ' + (r.status === 'ambigu' ? 'aturan ' + r.aturan.join(', ') + ' memberi gambar pojok berbeda' : (r.pesan || 'aturan tidak terbaca'))); return; }
+    var cocok = [];
+    b.opsi.forEach(function (o, i) {
+      if (o.gambar.model.q !== s.tanya) { m.push('opsi ' + HURUF[i] + ' digambar pada pojok yang bukan pojok tanda tanya'); return; }
+      var p = Inf.peranBelahan(t.opsi[i], s.tanya);
+      if (!p) { m.push('belahan opsi ' + HURUF[i] + ' tidak menghadap kedua tetangga pojok yang ditanyakan'); return; }
+      if (t.opsi[i].bentuk === r.nilai.bentuk && p.h === r.nilai.h && p.v === r.nilai.v) cocok.push(i);
+    });
+    tepatSatu(b, m, cocok, 'aturan belahan dan bentuk pojok');
+  }
+
+  /** Deret kotak ganda: arti tiap belah ketupat dibaca dari kotak 1-4, lalu kode kotak kelima diterapkan. */
+  function periksaGanda(b, m) {
+    var t = bacaTampilan(b, m, 'ganda', 'ganda-opsi', function (x) { return x.atas || null; });
+    if (!t) return;
+    var kotak = t.soal.kotak;
+    if (sj(kotak) !== sj(b.model.kotak)) m.push('deret yang tergambar berbeda dari data model');
+    if (!Array.isArray(kotak) || kotak.length !== 5) { m.push('deret kotak ganda harus berisi lima kotak'); return; }
+    if (kotak[4].atas !== null || kotak.slice(0, 4).some(function (k) { return !k.atas; })) { m.push('hanya bagian atas kotak kelima yang boleh diganti tanda tanya'); return; }
+    var r = Inf.ganda(kotak.slice(0, 4).map(function (k) { return k.atas; }), kotak.map(function (k) { return k.bawah; }));
+    if (r.status !== 'unik') {
+      var rinci = Object.keys(r.rinci || {}).filter(function (k) { return r.rinci[k].status !== 'unik'; }).map(function (k) { return k + ' ' + r.rinci[k].status; });
+      m.push('deret kotak ganda: ' + (rinci.length ? rinci.join(', ') : (r.pesan || 'aturan tidak terbaca')));
+      return;
+    }
+    var bentuk = function (a) { return sj([a.warna, a.panah, a.penanda, a.bingkai]); }, harus = bentuk(r.nilai), cocok = [];
+    t.opsi.forEach(function (a, i) { if (bentuk(a) === harus) cocok.push(i); });
+    tepatSatu(b, m, cocok, 'kode belah ketupat');
+  }
+
   // ------------------------------------------------------------------ interaktif
 
   function periksaTeksTampil(b, m, env) {
@@ -779,7 +894,13 @@
       if (b.jenis === 'isian') periksaIsian(b, m);
       else if (b.submateri === 'verbal') periksaVerbal(b, m);
       else if (b.submateri === 'figural') {
-        if (b.model.tipe === 'serial-putar') periksaSerialPutar(b, m); else periksaFiguralAtribut(b, m);
+        var tipe = b.model.tipe;
+        if (tipe === 'serial-putar') periksaSerialPutar(b, m);
+        else if (tipe === 'matriks-latin') periksaLatin(b, m);
+        else if (tipe === 'matriks-isi') periksaIsi(b, m);
+        else if (tipe === 'matriks-sekat') periksaSekat(b, m);
+        else if (tipe === 'serial-ganda') periksaGanda(b, m);
+        else periksaFiguralAtribut(b, m);
       } else periksaNumerik(b, m);
     } catch (e) { m.push('pemeriksaan gagal dijalankan: ' + (e && e.message ? e.message : e)); }
     return { lulus: m.length === 0, masalah: m };
@@ -818,14 +939,37 @@
   }
 
   function sidikFigural(b) {
-    var m = b.model;
+    var m = b.model, kunci = m.pilihan ? m.pilihan[m.kunciIndex] : null;
     if (m.tipe === 'serial') return m.sels.map(sidikSel);
     if (m.tipe === 'serial-putar') {
       // bentuk dasar (benihnya), pola putaran, dan letak tiap unsur pada kotak pertama
       return [m.keluarga + '#' + m.deret[0].benih + '#' + m.pola.delta + '#' + m.pola.tumbuh + '#' + m.pola.selang];
     }
+    // bentuk riset: gambar UTUH (lubang diisi kunci), jadi letak tanda tanya yang berbeda tidak membuat butir berbeda
+    if (m.tipe === 'matriks-latin') {
+      return [].concat.apply([], m.grid.map(function (row, r) {
+        return row.map(function (v, c) { return String(v === null ? kunci[r - m.lubang.r][c - m.lubang.c] : v); });
+      }));
+    }
+    if (m.tipe === 'matriks-isi') {
+      return [].concat.apply([], m.grid.map(function (row, r) {
+        return row.map(function (x, c) { var y = x === null ? kunci[c - m.lubang.c] : x; return y.b + '' + y.i; });
+      }));
+    }
+    if (m.tipe === 'matriks-sekat') {
+      // bentuk gambar dalam hanya hiasan; yang menentukan soal adalah corak belahannya
+      var belah = function (f) { return Object.keys(f.belahan).sort().map(function (k) { return k + '=' + f.belahan[k]; }).join(','); };
+      return m.dalam.map(belah).concat(m.pojok.map(function (f, q) { var g = f === null ? kunci : f; return g.bentuk + ':' + belah(g); }));
+    }
+    if (m.tipe === 'serial-ganda') {
+      return m.kotak.map(function (k) { var a = k.atas || kunci; return a.warna.join('') + a.panah + a.penanda + a.bingkai; })
+        .concat(m.kotak.map(function (k) { return k.bawah.join(''); }));
+    }
     return [].concat.apply([], m.grid.map(function (row) { return row.map(sidikSel); }));
   }
+
+  /** Banyak kotak/bagian berbeda yang masih dianggap "nyaris sama" per bentuk figural. */
+  var BATAS_FIGURAL = { serial: 1, 'matriks-3': 1, 'matriks-latin': 4, 'matriks-isi': 3, 'matriks-sekat': 1, 'serial-ganda': 1 };
 
   var AMBANG_KEMBAR = 0.85;
 
@@ -849,7 +993,8 @@
    * keterangan, atau null bila keduanya cukup berbeda.
    *
    *   sidik     sidik inti sama persis
-   *   figural   kotak yang tampak sama, paling banyak satu kotak yang berbeda
+   *   figural   kotak yang tampak sama, paling banyak BATAS_FIGURAL kotak yang berbeda (bentuk
+   *             riset dibandingkan dalam keadaan utuh, jadi letak "?" saja tidak membedakan)
    *   teks      kemiripan 3-gram kata (angka ikut dihitung) sekurang-kurangnya `ambang`
    *   param     kerangka dan pelaku sama, dan hanya satu angka (atau tak satu pun) yang berbeda
    */
@@ -861,7 +1006,7 @@
       if (!b.figural || a.figural.length !== b.figural.length || a.tipe !== b.tipe) return null;
       var beda = 0;
       for (var c = 0; c < a.figural.length; c++) if (a.figural[c] !== b.figural[c]) beda++;
-      var batas = (a.tipe === 'serial' || a.tipe === 'matriks-3') ? 1 : 0;
+      var batas = BATAS_FIGURAL[a.tipe] || 0;
       return beda <= batas ? { jenis: 'figural', beda: beda } : null;
     }
     var jc = jaccard(a.shingle, b.shingle, ambang);
