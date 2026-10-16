@@ -1,0 +1,261 @@
+{
+  "_keterangan": "Daftar pekerjaan tanpa token untuk Agent Office (project Tes OJK Generator Tahap 1). Meniru cli/generate.js dan layar pengaturan index.html. Kalau opsi atau perilaku bawaan cli/generate.js berubah, sesuaikan file ini di perubahan yang sama. Format: README Agent Office bagian \"agent-office.json\".",
+  "nama": "Tes OJK Generator Tahap 1",
+  "pekerjaan": [
+    {
+      "id": "paket",
+      "judul": "Buat paket OJK PCAM Tahap 1",
+      "singkat": "Buat paket OJK Tahap 1",
+      "tab": "Buat paket",
+      "tombol": "Generate paket",
+      "kata_kunci": [
+        "ojk",
+        "pcam",
+        "tahap 1",
+        "tahap1",
+        "tpd",
+        "potensi dasar",
+        "paket soal",
+        "buat paket",
+        "bikin paket",
+        "generate",
+        "generator",
+        "soal ojk",
+        "kemampuan umum",
+        "penalaran numerik"
+      ],
+      "wajib_salah_satu": [
+        "generate",
+        "generator",
+        "buat paket",
+        "bikin paket",
+        "paket soal",
+        "soal ojk",
+        "potensi dasar",
+        "tpd"
+      ],
+      "perintah": [
+        "cli/generate.js",
+        "--paket={jumlah}",
+        "--subtes={subtes}",
+        "--tingkat={tingkat}",
+        "--proporsi={proporsi}",
+        "--komposisi-ku={komposisi_ku}",
+        "--komposisi-pn={komposisi_pn}",
+        "--benih={benih}",
+        "{docx?--docx}",
+        "{pdf?--pdf}",
+        "{xlsx?--xlsx}",
+        "{json?--json}",
+        "{zip?--zip}"
+      ],
+      "parameter": {
+        "subtes": {
+          "jenis": "teks",
+          "label": "Subtes",
+          "bantuan": "ku = Kemampuan Umum (pilihan ganda A-E), pn = Penalaran Numerik (soal interaktif), semua = keduanya.",
+          "bawaan": "semua",
+          "contoh": "semua",
+          "pola": "^(ku|pn|semua)$",
+          "maks": 6,
+          "dari_tugas": "\\b(ku|pn)\\b"
+        },
+        "jumlah": {
+          "jenis": "teks",
+          "label": "Jumlah paket",
+          "bantuan": "1 sampai 500. Satu paket berisi 12 soal Kemampuan Umum dan 10 soal Penalaran Numerik (bisa diatur). Word dan PDF butuh sekitar 3 detik per paket; untuk ratusan paket pilih Excel dan JSON saja.",
+          "bawaan": "3",
+          "contoh": "3",
+          "pola": "^\\d{1,3}$",
+          "maks": 3,
+          "dari_tugas": "(\\d{1,3})\\s*paket"
+        },
+        "tingkat": {
+          "jenis": "teks",
+          "label": "Tingkat kesulitan",
+          "bantuan": "campur (mudah, sedang, sulit sesuai proporsi), atau mudah / sedang / sulit saja.",
+          "bawaan": "campur",
+          "contoh": "campur",
+          "pola": "^(campur|mudah|sedang|sulit)$",
+          "maks": 8,
+          "dari_tugas": "\\b(mudah|sedang|sulit)\\b"
+        },
+        "proporsi": {
+          "jenis": "teks",
+          "label": "Proporsi mudah:sedang:sulit (opsional, untuk tingkat campur)",
+          "bantuan": "Baku 3:5:2. Kosongkan untuk memakai proporsi baku.",
+          "contoh": "3:5:2",
+          "pola": "^\\d+(\\.\\d+)?:\\d+(\\.\\d+)?:\\d+(\\.\\d+)?$",
+          "maks": 24
+        },
+        "komposisi_ku": {
+          "jenis": "teks",
+          "label": "Soal Kemampuan Umum per submateri (opsional)",
+          "bantuan": "Baku verbal=2,cerita=2,tabel=3,grafik=1,serial=2,matriks=2. Submateri yang tidak disebut memakai nilai baku; isi 0 untuk meniadakan.",
+          "contoh": "verbal=4,cerita=2",
+          "pola": "^[a-z]+=\\d{1,2}(,[a-z]+=\\d{1,2})*$",
+          "maks": 80
+        },
+        "komposisi_pn": {
+          "jenis": "teks",
+          "label": "Soal Penalaran Numerik per submateri (opsional)",
+          "bantuan": "Baku bar=3,tabel=3,garis=2,pie=2. Submateri yang tidak disebut memakai nilai baku; isi 0 untuk meniadakan.",
+          "contoh": "bar=4,pie=1",
+          "pola": "^[a-z]+=\\d{1,2}(,[a-z]+=\\d{1,2})*$",
+          "maks": 80
+        },
+        "benih": {
+          "jenis": "teks",
+          "label": "Benih (kosongkan = acak)",
+          "bantuan": "Bilangan bulat 0 sampai 4294967295. Benih dan pengaturan yang sama menghasilkan paket yang sama persis. Kosong: diacak, nilainya ditulis di ringkasan.",
+          "contoh": "2026",
+          "pola": "^\\d{1,10}$",
+          "maks": 10,
+          "dari_tugas": "benih\\s*(\\d{1,10})"
+        },
+        "docx": {
+          "jenis": "tanda",
+          "label": "Word (.docx)",
+          "kelompok": "Format",
+          "bawaan": true,
+          "jika_disebut": [
+            "word",
+            "docx"
+          ],
+          "jika_tanpa": [
+            "tanpa word",
+            "tanpa docx"
+          ],
+          "hanya_yang_disebut": true
+        },
+        "pdf": {
+          "jenis": "tanda",
+          "label": "PDF",
+          "kelompok": "Format",
+          "bawaan": true,
+          "jika_disebut": [
+            "pdf"
+          ],
+          "jika_tanpa": [
+            "tanpa pdf"
+          ],
+          "hanya_yang_disebut": true
+        },
+        "xlsx": {
+          "jenis": "tanda",
+          "label": "Excel (.xlsx)",
+          "kelompok": "Format",
+          "bawaan": true,
+          "jika_disebut": [
+            "excel",
+            "xlsx"
+          ],
+          "jika_tanpa": [
+            "tanpa excel",
+            "tanpa xlsx"
+          ],
+          "hanya_yang_disebut": true
+        },
+        "json": {
+          "jenis": "tanda",
+          "label": "JSON",
+          "kelompok": "Format",
+          "bawaan": true,
+          "jika_disebut": [
+            "json"
+          ],
+          "jika_tanpa": [
+            "tanpa json"
+          ],
+          "hanya_yang_disebut": true
+        },
+        "zip": {
+          "jenis": "tanda",
+          "label": "Bungkus semua jadi satu ZIP",
+          "bantuan": "Menambah berkas soal-ojk-tahap1.zip berisi semua hasil (tidak lebih dari sekitar 4 GB).",
+          "jika_disebut": [
+            "zip"
+          ],
+          "jika_tanpa": [
+            "tanpa zip"
+          ]
+        }
+      },
+      "catatan": [
+        "tanpa internet dan tanpa instalasi apa pun (Node.js 20 atau lebih baru)",
+        "hasil ditulis ke output/<waktu>/ di folder project: Word, PDF, dan gambar PNG per paket, ditambah Excel dan JSON untuk semua paket",
+        "setiap soal dicek ulang oleh validator lebih dulu; kalau ada yang gagal, tidak satu berkas pun ditulis",
+        "tanpa centang format sama sekali, semua format dibuat; ratusan paket sebaiknya Excel dan JSON saja",
+        "benih yang sama dengan pengaturan yang sama menghasilkan paket yang sama persis"
+      ],
+      "hasil": "(?:BERKAS -> |HASIL:\\s*)(.+)$",
+      "gagal": "GAGAL:\\s*(.+)",
+      "ringkasan": "Paket OJK Tahap 1 selesai dibuat",
+      "batas_menit": 60
+    },
+    {
+      "id": "uji",
+      "judul": "Uji generator OJK Tahap 1",
+      "singkat": "Uji generator",
+      "tab": "Uji generator",
+      "tombol": "Jalankan uji",
+      "kata_kunci": [
+        "uji generator",
+        "tes generator",
+        "cek generator",
+        "uji ojk",
+        "uji validator",
+        "uji coba generator"
+      ],
+      "wajib_salah_satu": [
+        "uji generator",
+        "tes generator",
+        "cek generator",
+        "uji ojk",
+        "uji validator"
+      ],
+      "perintah": [
+        "uji/semua.js",
+        "{cepat?--cepat}",
+        "{besar?--besar}",
+        "{tanpa_peramban?--tanpa-peramban}"
+      ],
+      "parameter": {
+        "cepat": {
+          "jenis": "tanda",
+          "label": "Mode cepat (paket lebih sedikit, sekitar 30 detik)",
+          "bantuan": "Tanpa centang: uji lengkap (60 paket per subtes dengan tiga benih berbeda, validator negatif, ekspor, CLI, agent-office.json, dan antarmuka), sekitar 1 menit.",
+          "jika_disebut": [
+            "cepat"
+          ]
+        },
+        "besar": {
+          "jenis": "tanda",
+          "label": "Tambah uji kapasitas (500 paket ku, pn, dan keduanya; 250 paket tingkat mudah)",
+          "bantuan": "Menambah sekitar 3 menit.",
+          "jika_disebut": [
+            "besar",
+            "kapasitas"
+          ]
+        },
+        "tanpa_peramban": {
+          "jenis": "tanda",
+          "label": "Lewati uji antarmuka di Chrome/Edge",
+          "jika_disebut": [
+            "tanpa peramban",
+            "tanpa browser"
+          ]
+        }
+      },
+      "catatan": [
+        "memeriksa generator dari nol: bank soal, validator (juga dengan soal yang sengaja dirusak), ekspor Word/PDF/Excel/JSON/ZIP, CLI, agent-office.json, dan antarmuka",
+        "uji antarmuka memakai Chrome atau Edge yang sudah terpasang; kalau tidak ada, bagian itu dilewati",
+        "tidak mengubah apa pun di folder project (hasil sementara ditulis ke folder sementara)"
+      ],
+      "hasil": "HASIL:\\s*(.+)$",
+      "gagal": "GAGAL:\\s*(.+)",
+      "ringkasan": "Uji generator selesai",
+      "batas_menit": 30
+    }
+  ]
+}

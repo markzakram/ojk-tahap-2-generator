@@ -1,0 +1,241 @@
+/*
+ * paket.js — perakit paket: komposisi, tingkat kesulitan, kunci merata, anti-kembar.
+ *
+ * Satu paket = subtes yang dipilih, masing-masing berisi butir menurut komposisi
+ * submateri. Untuk tiap butir:
+ *
+ *   1. tingkat kesulitan ditetapkan lebih dulu (kuota per subtes, diacak),
+ *   2. keluarga soal berputar di dalam submateri supaya tidak ada dua butir
+ *      sekeluarga pada satu paket selama keluarganya masih cukup,
+ *   3. posisi kunci A-E ditetapkan lebih dulu (tiap huruf hampir sama banyak per
+ *      paket); penyusun diminta memenuhinya dan, bila belum, diulang dengan
+ *      benih lain beberapa kali,
+ *   4. setiap calon butir lewat VALIDATOR (hitung ulang dari nol) dan PENJAGA
+ *      KEMBAR (tidak sama atau nyaris sama dengan butir mana pun yang sudah
+ *      masuk, baik di paket ini maupun paket sebelumnya pada kali generate
+ *      yang sama).
+ *
+ * Seluruh benih diturunkan dari benih utama, nomor paket, subtes, nomor butir,
+ * dan nomor percobaan, jadi hasilnya dapat diulang persis dan paket nomor N
+ * tidak bergantung pada banyaknya paket yang diminta (paket 1..N-1 yang sama
+ * selalu dibuat lebih dulu).
+ */
+(function (root, factory) {
+  var api;
+  if (typeof module === 'object' && module.exports) {
+    api = factory(require('./rng.js'), require('./bank.js'), require('./validator.js'), require('./format.js'));
+    module.exports = api;
+  } else {
+    api = factory(root.Rng, root.Bank, root.Validator, root.Fmt);
+    root.Paket = api;
+  }
+})(typeof self !== 'undefined' ? self : this, function (Rng, Bank, Validator, Fmt) {
+  'use strict';
+
+  var VERSI = 1;
+  var MAKS_PAKET = 500;
+  var LEVEL = ['mudah', 'sedang', 'sulit'];
+  var PROPORSI_BAKU = { mudah: 3, sedang: 5, sulit: 2 };
+
+  // ---------------------------------------------------------------- opsi
+
+  function salinKomposisi(k) { var o = {}; Object.keys(k).forEach(function (x) { o[x] = k[x]; }); return o; }
+
+  /**
+   * Lengkapi dan periksa opsi. Melempar galat berpesan jelas untuk opsi yang tak sah.
+   *
+   *   benih, jumlahPaket, subtes (['ku','pn']), tingkat ('campur' atau satu tingkat),
+   *   proporsi {mudah, sedang, sulit}, komposisi { ku: {...}, pn: {...} }
+   */
+  function normalisasi(opsi) {
+    opsi = opsi || {};
+    var o = {};
+    o.benih = opsi.benih == null ? 2026 : Number(opsi.benih);
+    if (!isFinite(o.benih) || o.benih % 1 !== 0 || o.benih < 0 || o.benih > 4294967295) throw new Error('benih harus bilangan bulat 0 sampai 4294967295');
+    o.jumlahPaket = opsi.jumlahPaket == null ? 1 : Number(opsi.jumlahPaket);
+    if (!isFinite(o.jumlahPaket) || o.jumlahPaket % 1 !== 0 || o.jumlahPaket < 1 || o.jumlahPaket > MAKS_PAKET) throw new Error('jumlah paket harus bilangan bulat 1 sampai ' + MAKS_PAKET);
+    var subtes = opsi.subtes == null ? ['ku', 'pn'] : opsi.subtes;
+    if (typeof subtes === 'string') subtes = subtes === 'semua' ? ['ku', 'pn'] : subtes.split(/[,+]/);
+    subtes = subtes.map(function (s) { return String(s).trim().toLowerCase(); }).filter(Boolean);
+    subtes.forEach(function (s) { if (s !== 'ku' && s !== 'pn') throw new Error('subtes tidak dikenal: "' + s + '" (pilih ku, pn, atau semua)'); });
+    o.subtes = ['ku', 'pn'].filter(function (s) { return subtes.indexOf(s) >= 0; });
+    if (!o.subtes.length) throw new Error('pilih sedikitnya satu subtes');
+    o.tingkat = String(opsi.tingkat || 'campur').toLowerCase();
+    if (o.tingkat !== 'campur' && LEVEL.indexOf(o.tingkat) < 0) throw new Error('tingkat harus campur, mudah, sedang, atau sulit');
+    o.proporsi = {};
+    LEVEL.forEach(function (l) {
+      var p = opsi.proporsi && opsi.proporsi[l] != null ? Number(opsi.proporsi[l]) : PROPORSI_BAKU[l];
+      if (!isFinite(p) || p < 0) throw new Error('proporsi tingkat ' + l + ' tidak sah');
+      o.proporsi[l] = p;
+    });
+    if (o.proporsi.mudah + o.proporsi.sedang + o.proporsi.sulit <= 0) throw new Error('proporsi tingkat tidak boleh nol semua');
+    o.komposisi = {};
+    ['ku', 'pn'].forEach(function (st) {
+      var baku = Bank.SUBTES[st].komposisiBaku, k = {};
+      Bank.URUTAN[st].forEach(function (kunci) {
+        var v = opsi.komposisi && opsi.komposisi[st] && opsi.komposisi[st][kunci] != null ? Number(opsi.komposisi[st][kunci]) : baku[kunci];
+        if (!isFinite(v) || v % 1 !== 0 || v < 0 || v > 60) throw new Error('jumlah butir ' + st + '/' + kunci + ' tidak sah: ' + v);
+        k[kunci] = v;
+      });
+      o.komposisi[st] = k;
+    });
+    o.subtes.forEach(function (st) {
+      var jml = Bank.URUTAN[st].reduce(function (s, k) { return s + o.komposisi[st][k]; }, 0);
+      if (jml < 1) throw new Error('subtes ' + st + ' tidak memiliki butir: isi komposisinya');
+    });
+    o.cobaMaks = opsi.cobaMaks == null ? 80 : Number(opsi.cobaMaks);
+    return o;
+  }
+
+  // ------------------------------------------------------------- pembantu
+
+  /** Bagi n butir ke tiga tingkat menurut bobot (sisa terbesar), lalu acak urutannya. */
+  function bagiTingkat(a, n, o) {
+    if (o.tingkat !== 'campur') return Array.apply(null, { length: n }).map(function () { return o.tingkat; });
+    var bobot = LEVEL.map(function (l) { return o.proporsi[l]; }), jml = bobot[0] + bobot[1] + bobot[2];
+    var jatah = bobot.map(function (b) { return b / jml * n; }), dasar = jatah.map(Math.floor);
+    var sisa = n - dasar.reduce(function (s, x) { return s + x; }, 0);
+    jatah.map(function (x, i) { return { i: i, f: x - Math.floor(x) }; }).sort(function (x, y) { return y.f - x.f || x.i - y.i; })
+      .slice(0, sisa).forEach(function (x) { dasar[x.i]++; });
+    var daftar = [];
+    LEVEL.forEach(function (l, i) { for (var k = 0; k < dasar[i]; k++) daftar.push(l); });
+    return a.kocok(daftar);
+  }
+
+  /** Posisi kunci A-E untuk n butir: tiap huruf hampir sama banyak, jarang tiga yang sama berturut-turut. */
+  function rencanaKunci(a, n) {
+    var daftar = [], geser = a.bulat(0, 4);
+    for (var i = 0; i < n; i++) daftar.push((i + geser) % 5);
+    var kocok = a.kocok(daftar);
+    for (var pass = 0; pass < 6; pass++) {
+      for (var j = 2; j < kocok.length; j++) {
+        if (kocok[j] === kocok[j - 1] && kocok[j] === kocok[j - 2]) {
+          var t = (j + 1) % kocok.length;
+          var s = kocok[j]; kocok[j] = kocok[t]; kocok[t] = s;
+        }
+      }
+    }
+    return kocok;
+  }
+
+  // -------------------------------------------------------------- penjaga
+
+  function buatPenjaga() {
+    return { kelompok: {}, jumlah: 0 };
+  }
+
+  /** Apakah sidik ini kembar/nyaris sama dengan yang sudah masuk? */
+  function cekKembar(penjaga, sd) {
+    var daftar = penjaga.kelompok[sd.kunci] || [];
+    for (var i = 0; i < daftar.length; i++) {
+      var r = Validator.mirip(daftar[i], sd);
+      if (r) return r;
+    }
+    return null;
+  }
+
+  function catat(penjaga, sd) {
+    (penjaga.kelompok[sd.kunci] = penjaga.kelompok[sd.kunci] || []).push(sd);
+    penjaga.jumlah++;
+  }
+
+  // ------------------------------------------------------------- pembangun
+
+  function nomor(n, lebar) { var s = String(n); while (s.length < lebar) s = '0' + s; return s; }
+
+  /**
+   * Pembangun paket satu per satu. Dipakai antarmuka (agar bisa memberi jeda dan
+   * kemajuan) maupun CLI.
+   */
+  function mulai(opsiMentah) {
+    var o = normalisasi(opsiMentah);
+    var penjaga = buatPenjaga();
+    var paket = [];
+    var statistik = { percobaan: 0, ditolakValidator: 0, ditolakKembar: 0, ditolakKosong: 0, kunciMeleset: 0, butir: 0 };
+    var sudah = 0;
+
+    function buatSatu(no) {
+      var p = { no: no, id: 'P' + nomor(no, 3), benih: Rng.turunan(o.benih, no), subtes: [] };
+      o.subtes.forEach(function (st) {
+        var info = Bank.SUBTES[st], komp = o.komposisi[st], a = Rng.alat(Rng.turunan(o.benih, no, st, 'rencana'));
+        var slot = [];
+        Bank.URUTAN[st].forEach(function (kunci) {
+          var c = komp[kunci] || 0, nFam = Bank.jumlahKeluarga(st, kunci), offset = a.bulat(0, nFam - 1);
+          for (var j = 0; j < c; j++) slot.push({ kunci: kunci, keluarga: (offset + j) % nFam });
+        });
+        var level = bagiTingkat(a, slot.length, o), kunciRencana = rencanaKunci(a, slot.length);
+        // butir verbal hanya punya tiga pilihan: letak D/E yang jatuh padanya ditukar dengan butir lain
+        slot.forEach(function (sl, i) {
+          if (sl.kunci !== 'verbal' || kunciRencana[i] < 3) return;
+          for (var j = 0; j < slot.length; j++) {
+            if (slot[j].kunci !== 'verbal' && kunciRencana[j] < 3 && st === 'ku') { var tmp = kunciRencana[i]; kunciRencana[i] = kunciRencana[j]; kunciRencana[j] = tmp; break; }
+          }
+        });
+        var butir = [], pakaiKel = {};
+        slot.forEach(function (sl, idx) {
+          var target = kunciRencana[idx], lv = level[idx], diterima = null, terbaik = null;
+          for (var coba = 0; coba < o.cobaMaks && !diterima; coba++) {
+            statistik.percobaan++;
+            var seed = Rng.turunan(o.benih, no, st, idx, coba);
+            var fam = sl.keluarga;
+            var b = null;
+            try { b = Bank.buat(st, sl.kunci, fam, lv, seed, { target: target }); } catch (e) { b = null; }
+            if (!b) { statistik.ditolakKosong++; continue; }
+            b.id = p.id + '-' + st.toUpperCase() + '-' + nomor(idx + 1, 2);
+            b.no = idx + 1; b.paket = no;
+            var r = Validator.periksaButir(b);
+            if (!r.lulus) { statistik.ditolakValidator++; continue; }
+            var sd = Validator.buatSidik(b);
+            if (cekKembar(penjaga, sd)) { statistik.ditolakKembar++; continue; }
+            // posisi kunci: dikejar pada percobaan awal saja
+            if (b.jenis === 'pg' && coba < 14 && b.kunci !== (b.opsi.length === 3 ? target % 3 : target)) {
+              statistik.kunciMeleset++;
+              if (!terbaik) terbaik = { b: b, sd: sd };
+              continue;
+            }
+            diterima = { b: b, sd: sd };
+          }
+          if (!diterima && terbaik) diterima = terbaik;
+          if (!diterima) throw new Error('butir ' + p.id + '-' + st.toUpperCase() + '-' + nomor(idx + 1, 2) + ' (' + sl.kunci + ', tingkat ' + lv + ') gagal disusun setelah ' + o.cobaMaks + ' percobaan; kapasitas bank untuk submateri ini mungkin habis, kurangi jumlah paket atau ganti benih');
+          catat(penjaga, diterima.sd);
+          statistik.butir++;
+          pakaiKel[diterima.b.keluarga] = (pakaiKel[diterima.b.keluarga] || 0) + 1;
+          diterima.b.tingkatNama = { mudah: 'Mudah', sedang: 'Sedang', sulit: 'Sulit' }[diterima.b.level];
+          butir.push(diterima.b);
+        });
+        p.subtes.push({
+          kode: st, nama: info.nama, jumlah: butir.length, menit: info.menit, komposisi: salinKomposisi(komp), butir: butir
+        });
+      });
+      return p;
+    }
+
+    return {
+      opsi: o,
+      total: o.jumlahPaket,
+      selesai: function () { return sudah; },
+      /** Bangun paket berikutnya; null bila semuanya sudah dibuat. */
+      berikut: function () {
+        if (sudah >= o.jumlahPaket) return null;
+        var p = buatSatu(sudah + 1);
+        paket.push(p);
+        sudah++;
+        return p;
+      },
+      hasil: function () {
+        return { meta: { versi: VERSI, benih: o.benih, jumlahPaket: paket.length, subtes: o.subtes, tingkat: o.tingkat, proporsi: o.proporsi, komposisi: o.komposisi }, paket: paket, statistik: statistik };
+      }
+    };
+  }
+
+  /** Bangun semua paket sekaligus lalu periksa seluruh hasil. */
+  function buat(opsi) {
+    var b = mulai(opsi);
+    while (b.berikut()) { /* terus */ }
+    var hasil = b.hasil();
+    var validasi = Validator.periksaHasil(hasil);
+    return { hasil: hasil, validasi: validasi };
+  }
+
+  return { VERSI: VERSI, MAKS_PAKET: MAKS_PAKET, PROPORSI_BAKU: PROPORSI_BAKU, normalisasi: normalisasi, mulai: mulai, buat: buat };
+});

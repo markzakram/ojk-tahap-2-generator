@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generator Soal OJK PCAM Tahap 1 &mdash; Tes Potensi Dasar</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <h1>Generator Soal OJK PCAM Tahap 1</h1>
+    <p class="sub">Tes Potensi Dasar &mdash; Kemampuan Umum &amp; Penalaran Numerik &middot; soal, kunci, dan pembahasan lengkap, dicek ulang validator</p>
+  </div>
+  <div class="topbar-actions">
+    <button id="btn-help" class="ghost" type="button">Cara pakai</button>
+  </div>
+</header>
+
+<div id="help" class="help" hidden>
+  <ol>
+    <li><b>Atur paket.</b> Pilih subtes, jumlah soal tiap submateri, tingkat kesulitan, jumlah paket (sampai 500), dan benih. Benih yang sama dengan pengaturan yang sama selalu menghasilkan paket yang sama persis.</li>
+    <li><b>Generate.</b> Setiap soal dibuat dari fakta dan angka yang dihitung ulang oleh <i>validator</i> dari nol. Hasil baru tampil bila lolos semua pemeriksaan (jawaban, pengecoh, dan tidak ada soal kembar).</li>
+    <li><b>Lihat paket.</b> Pilih paket dan subtes di tengah. Tombol <i>Tampilkan kunci &amp; pembahasan</i> membuka jawaban dan langkah penyelesaian. Klik pilihan A&ndash;E untuk berlatih.</li>
+    <li><b>Penalaran Numerik</b> berbentuk interaktif: tekan <i>Coba interaktif</i> pada soalnya, geser batang, titik, atau batas irisan (atau isi kolomnya), lalu tekan <i>Periksa jawaban</i>.</li>
+    <li><b>Unduh.</b> Word dan PDF per paket; Excel, JSON, dan ZIP untuk semua paket. Untuk puluhan sampai ratusan paket gunakan CLI (perintahnya ada di panel kanan).</li>
+  </ol>
+</div>
+
+<main class="layout">
+
+  <!-- ============ KIRI: PENGATURAN ============ -->
+  <section class="panel" id="panel-atur">
+    <h2><span class="step">1</span> Subtes</h2>
+    <div class="row wrap gap-s" id="pilih-subtes"></div>
+    <p class="hint" id="info-subtes"></p>
+
+    <h2><span class="step">2</span> Soal tiap submateri
+      <button id="btn-baku" class="ghost mode-btn" type="button" title="Kembalikan komposisi baku">Baku</button>
+    </h2>
+    <div id="komposisi"></div>
+
+    <h2><span class="step">3</span> Tingkat kesulitan</h2>
+    <label class="field">
+      <span>Tingkat</span>
+      <select id="tingkat">
+        <option value="campur" selected>Campur (mudah, sedang, sulit)</option>
+        <option value="mudah">Mudah semua</option>
+        <option value="sedang">Sedang semua</option>
+        <option value="sulit">Sulit semua</option>
+      </select>
+    </label>
+    <div class="row gap-s" id="baris-proporsi">
+      <label class="num-field" title="Perbandingan banyak soal mudah : sedang : sulit"><span>Mudah</span><input type="number" id="pr-mudah" value="3" min="0" max="100" step="1"></label>
+      <label class="num-field"><span>Sedang</span><input type="number" id="pr-sedang" value="5" min="0" max="100" step="1"></label>
+      <label class="num-field"><span>Sulit</span><input type="number" id="pr-sulit" value="2" min="0" max="100" step="1"></label>
+    </div>
+
+    <h2><span class="step">4</span> Jumlah paket &amp; benih</h2>
+    <div class="row gap-s wrap">
+      <label class="num-field" title="Jumlah paket yang dibuat sekaligus (1 sampai 500)"><span>Paket</span><input type="number" id="jumlah" value="3" min="1" max="500" step="1"></label>
+      <label class="num-field" title="Bilangan bulat 0 sampai 4294967295. Kosong atau tombol Acak = benih acak."><span>Benih</span><input type="number" id="benih" min="0" max="4294967295" step="1" placeholder="acak"></label>
+      <button class="ghost" id="btn-acak" type="button">Acak</button>
+    </div>
+
+    <div class="row gap-s" style="margin-top:12px">
+      <button class="primary wide-btn" id="btn-generate" type="button">Generate paket</button>
+    </div>
+    <progress id="kemajuan" value="0" max="100" hidden></progress>
+    <div class="status-line" id="status"></div>
+  </section>
+
+  <!-- ============ TENGAH: PRATINJAU ============ -->
+  <section class="panel wide" id="panel-lihat">
+    <h2><span class="step">5</span> Pratinjau paket</h2>
+
+    <div id="kosong" class="kosong">
+      <p>Belum ada paket. Atur pengaturan di kiri, lalu tekan <b>Generate paket</b>.</p>
+    </div>
+
+    <div id="lihat" hidden>
+      <div class="row gap-s wrap bar-alat">
+        <button class="ghost" id="btn-sebelum" type="button" title="Paket sebelumnya">&lsaquo;</button>
+        <select id="pilih-paket" class="sempit"></select>
+        <button class="ghost" id="btn-sesudah" type="button" title="Paket berikutnya">&rsaquo;</button>
+        <span class="spasi"></span>
+        <div class="row gap-s" id="tab-subtes"></div>
+        <label class="check"><input type="checkbox" id="tampil-kunci"> Tampilkan kunci &amp; pembahasan</label>
+      </div>
+      <p class="hint" id="info-paket"></p>
+      <div id="daftar-soal" class="daftar-soal"></div>
+    </div>
+  </section>
+
+  <!-- ============ KANAN: HASIL & EKSPOR ============ -->
+  <section class="panel" id="panel-ekspor">
+    <h2><span class="step">6</span> Hasil pemeriksaan</h2>
+    <div id="ringkasan" class="ringkasan"><p class="hint">Belum ada hasil.</p></div>
+
+    <h2><span class="step">7</span> Unduh</h2>
+    <p class="hint">Paket yang sedang dilihat:</p>
+    <div class="row wrap gap-s">
+      <button class="ghost" id="btn-docx" type="button" disabled>Word (.docx)</button>
+      <button class="ghost" id="btn-pdf" type="button" disabled>PDF</button>
+    </div>
+    <p class="hint">Semua paket:</p>
+    <div class="row wrap gap-s">
+      <button class="ghost" id="btn-xlsx" type="button" disabled>Excel (.xlsx)</button>
+      <button class="ghost" id="btn-json" type="button" disabled>JSON</button>
+    </div>
+    <p class="hint">ZIP semua paket berisi:</p>
+    <div class="row wrap gap-s cek-zip">
+      <label class="check"><input type="checkbox" id="z-docx" checked> Word</label>
+      <label class="check"><input type="checkbox" id="z-pdf" checked> PDF</label>
+      <label class="check"><input type="checkbox" id="z-xlsx" checked> Excel</label>
+      <label class="check"><input type="checkbox" id="z-json" checked> JSON</label>
+      <label class="check"><input type="checkbox" id="z-png" checked> Gambar PNG</label>
+    </div>
+    <div class="row gap-s" style="margin-top:6px">
+      <button class="primary" id="btn-zip" type="button" disabled>Unduh ZIP</button>
+    </div>
+    <progress id="kemajuan-unduh" value="0" max="100" hidden></progress>
+    <div class="status-line" id="status-unduh"></div>
+
+    <h3>Perintah CLI setara</h3>
+    <textarea id="perintah-cli" class="cli" rows="4" readonly></textarea>
+    <p class="hint">Untuk puluhan sampai ratusan paket, jalankan perintah ini di folder generator (Node.js 20+). Hasilnya ditulis ke <code>output/&lt;waktu&gt;/</code>.</p>
+  </section>
+
+</main>
+
+<script src="js/rng.js"></script>
+<script src="js/metrik.js"></script>
+<script src="js/format.js"></script>
+<script src="js/hitung.js"></script>
+<script src="js/svg.js"></script>
+<script src="js/font.js"></script>
+<script src="js/svgraster.js"></script>
+<script src="js/kempis.js"></script>
+<script src="js/png.js"></script>
+<script src="js/raster.js"></script>
+<script src="js/chart.js"></script>
+<script src="js/kamus.js"></script>
+<script src="js/pilihan.js"></script>
+<script src="js/butir.js"></script>
+<script src="js/cerita.js"></script>
+<script src="js/tabelku.js"></script>
+<script src="js/grafikku.js"></script>
+<script src="js/verbal.js"></script>
+<script src="js/inferensi.js"></script>
+<script src="js/figure.js"></script>
+<script src="js/families.js"></script>
+<script src="js/render.js"></script>
+<script src="js/figural.js"></script>
+<script src="js/serial-putar.js"></script>
+<script src="js/pn-bar.js"></script>
+<script src="js/pn-tabel.js"></script>
+<script src="js/pn-garis.js"></script>
+<script src="js/pn-pie.js"></script>
+<script src="js/gambar.js"></script>
+<script src="js/bank.js"></script>
+<script src="js/validator.js"></script>
+<script src="js/paket.js"></script>
+<script src="js/dokumen.js"></script>
+<script src="js/zip.js"></script>
+<script src="js/docx.js"></script>
+<script src="js/pdf.js"></script>
+<script src="js/xlsx.js"></script>
+<script src="js/ekspor.js"></script>
+<script src="js/coba.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
