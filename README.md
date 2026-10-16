@@ -76,7 +76,7 @@ ringkasan.txt                  ringkasan, hasil validator, dan perintah untuk me
 soal-ojk-tahap1.zip            semuanya, bila memakai --zip
 ```
 
-Sepasang Word, PDF, dan gambar satu paket memakan sekitar 3 detik; membuat paketnya sendiri jauh lebih cepat (500 paket sekitar 40 detik termasuk pemeriksaan validator). Contoh hasil dua paket ada di `contoh-keluaran/` (dibuat dengan `node cli/generate.js --paket 2 --benih 2026 --keluaran contoh-keluaran --tanpa-waktu`).
+Sepasang Word, PDF, dan gambar satu paket memakan sekitar 3 detik; membuat paketnya sendiri jauh lebih cepat (500 paket sekitar 45 detik termasuk pemeriksaan validator). Contoh hasil dua paket ada di `contoh-keluaran/` (dibuat dengan `node cli/generate.js --paket 2 --benih 2026 --keluaran contoh-keluaran --tanpa-waktu`).
 
 ### 3. Lewat Agent Office (tanpa token)
 
@@ -95,7 +95,7 @@ Tiap soal punya **stimulus, pertanyaan, pilihan A-E** (atau bentuk isian), **kun
 
 | Submateri | Bentuk | Keluarga soal |
 |---|---|---|
-| Verbal (2) | Bacaan pendek lalu satu pernyataan: **Benar / Salah / Tidak Diketahui** (tiga pilihan). Tujuh topik: perbankan digital, asuransi, pasar modal, pembiayaan berbasis teknologi, literasi keuangan daerah, energi terbarukan, transportasi. | 1 keluarga; jenis pernyataan: nilai, perbandingan, jumlah, sifat, daftar, tahun, syarat perlu |
+| Verbal (2) | Bacaan argumentatif 120-180 kata (definisi, penggolongan, sebab-akibat, pengecualian, klaim terbatas seperti "sebagian", "tidak termasuk", "secara teori", lalu hambatan) diikuti satu pernyataan yang harus **disimpulkan**: **Benar / Salah / Tidak Diketahui** (tiga pilihan). 14 topik: 10 umum (penerbangan sipil, upah minimum, bank sampah, pembelajaran jarak jauh, telemedisin, listrik surya atap, angkutan perkotaan, irigasi pertanian, desa wisata, hutan mangrove) dan 4 keuangan (literasi keuangan, asuransi mikro, pinjaman daring, perbankan digital). | 1 keluarga, 46 jenis pernyataan. Mudah: anggota daftar (juga dengan kata lain), daftar "hanya" atau "seperti", hambatan "salah satu" atau "satu-satunya", cakupan dan pengecualian. Sedang: kuantor ("tidak semua", "sebagian" vs "sebagian besar"), "secara teori" vs "terbukti", urutan "pertama kali", arah sebab-akibat. Sulit: golongan dua langkah, rantai sebab-akibat, syarat perlu dan syarat cukup (angka kasus di pernyataan), perbandingan berantai |
 | Numerik: Soal cerita (2) | Cerita hitungan, 5 pilihan angka | pecahan dan persen pada sisa zat, persentase peningkatan kecepatan, dua persamaan tiga benda, balik modal mesin, bulan lunas dengan laba naik, selisih pendapatan penjual, perbandingan campuran, diskon berlapis, konversi mata uang (£, €, $) |
 | Numerik: Tabel (3) | Tabel data (gambar) + pertanyaan | perbandingan dua baris, persentase gabungan dua kelompok, tahun sampai melampaui, biaya rata-rata per mesin, kenaikan laba produk, unit terjual yang hilang, harga per satuan dan konversi mata uang, persentase perubahan |
 | Numerik: Grafik batang (1) | Grafik batang (gambar) + pertanyaan | tim dengan hasil baik terbanyak, perubahan total dua seri, persen sumbangan batang, perbandingan dua batang |
@@ -125,13 +125,13 @@ Validator tidak memercayai kunci yang tersimpan dan tidak memanggil kode penyusu
 
 - **Soal cerita**: mengevaluasi ulang langkah hitung dengan parser rumus sendiri, mencocokkan setiap angka yang tercetak di soal dengan angka yang dihitung, dan memastikan **hanya satu opsi** yang bernilai sama dengan hasil.
 - **Tabel dan grafik**: membaca sel dan batang dari **SVG yang digambar** (batang diukur terhadap garis bantu), lalu menghitung.
-- **Verbal**: menurunkan Benar/Salah/Tidak Diketahui dari **fakta** yang dipakai merakit bacaan, dan memastikan fakta pengecoh tidak menyentuh atribut yang ditanyakan.
+- **Verbal**: menurunkan Benar/Salah/Tidak Diketahui dengan aturannya sendiri dari **fakta berstruktur** yang dipakai merakit bacaan (golongan, cakupan dan pengecualian, daftar terbuka/tertutup, sebab-akibat berantai, kuantor, "secara teori", syarat perlu/cukup, urutan, perbandingan). Pasangan yang jawabannya bergantung pada makna tersirat (mis. memakai "sebagian" untuk menyimpulkan "tidak semua") ditolak. Bacaan harus tersusun tepat dari kalimat fakta, kata penanda tiap fakta ("tidak termasuk", "hanya", "seperti", "tidak semua", "secara teori", "sekurang-kurangnya", kata kerja naik/turun) harus tertulis di kalimatnya, dan hal yang dinyatakan tidak diketahui tidak boleh tertulis di bacaan.
 - **Figural**: menebak aturan tiap kanal dari kotak yang tampak (`js/inferensi.js`, sengaja tidak berbagi kode dengan penyusun) dan memastikan **tepat satu opsi** memenuhi semua aturan; untuk deret berputar, yang diperiksa adalah gambar deret dan gambar opsi yang tampil.
 - **Interaktif**: menghitung ulang kondisi akhir (total dan persen batang, nilai tiap titik, persentase irisan lewat sistem persamaan linear eksak, keputusan tiap tab tabel), dan memastikan tampilan awal tidak sudah benar.
 - **Pengecoh**: semuanya berbeda satu sama lain dan dijamin salah.
 - **Paket dan hasil**: komposisi, nomor, dan id konsisten; **tidak ada butir kembar**.
 
-Validator juga diuji **terbalik** (`uji/negatif.js`): soal yang sengaja dirusak (kunci digeser, dua opsi sama-benar, angka tabel, grafik, atau parameter diubah, kondisi awal disamakan dengan kunci, id ganda, butir kembar) harus ditolak semuanya. Uji itu pernah menemukan dua celah (deret berputar dan pie), yang sudah ditutup.
+Validator juga diuji **terbalik** (`uji/negatif.js`): soal yang sengaja dirusak (kunci digeser, dua opsi sama-benar, angka tabel, grafik, atau parameter diubah, kondisi awal disamakan dengan kunci, fakta verbal dibuang atau polaritasnya dibalik, kalimat bacaan verbal dihapus, id ganda, butir kembar) harus ditolak semuanya. Uji itu pernah menemukan dua celah (deret berputar dan pie), yang sudah ditutup.
 
 ### Anti-kembar
 
@@ -151,12 +151,12 @@ Soal hanya menyimpan **model** gambar (data murni); SVG dirakit saat dibutuhkan.
 
 ## Kapasitas dan kecepatan
 
-Terukur di komputer pengembangan (Node.js 24):
+Terukur di komputer pengembangan (Node.js 24). Bacaan verbal gaya baru (16 Okt 2026) menambah sekitar 4 detik per 500 paket Kemampuan Umum; rentang waktu di bawah berasal dari pengukuran saat komputer sedang dipakai pekerjaan lain:
 
 | Pengaturan | Hasil |
 |---|---|
-| 500 paket `semua` (11.000 butir) | berhasil, validator lulus 11.000/11.000, 0 kembar, kunci A-E merata; sekitar 40 detik termasuk validator |
-| 500 paket `ku` (6.000 butir) dan `pn` (5.000 butir) | berhasil, 0 kembar; sekitar 13 dan 30 detik |
+| 500 paket `semua` (11.000 butir) | berhasil, validator lulus 11.000/11.000, 0 kembar, kunci A-E merata; sekitar 45-55 detik termasuk validator |
+| 500 paket `ku` (6.000 butir) dan `pn` (5.000 butir) | berhasil, 0 kembar; sekitar 18-22 dan 30-40 detik |
 | 500 paket dengan tingkat `sedang` saja atau `sulit` saja | berhasil (pembuatan sekitar 22 detik) |
 | tingkat `mudah` saja | 300 paket berhasil (250 paket, 5.500 butir, lulus validator tanpa kembar dalam sekitar 17 detik); batasnya sekitar 308 paket (Line graph tingkat mudah paling sempit), lebih dari itu berhenti dengan pesan jelas |
 | Word + PDF + gambar | sekitar 3 detik dan 6 MB per paket |
@@ -202,9 +202,9 @@ node uji/browser.js            # hanya antarmuka (perlu Chrome atau Edge dan Nod
 ## Batasan dan hal yang perlu dipertimbangkan
 
 - **Bentuk soal dipelajari dari riset**, bukan salinan soal OJK. Komposisi baku (12 soal Kemampuan Umum, 10 soal Penalaran Numerik; 10 dan 18 menit) adalah asumsi dari riset dan bisa diubah per paket; sebaiknya dicocokkan dengan kisi-kisi resmi terbaru.
-- **Verbal dirakit dari fakta dan templat**, bukan ditulis bebas. Kebenarannya pasti, tetapi gaya bahasanya cenderung seragam dan topiknya terbatas pada tujuh tema.
+- **Verbal dirakit dari kerangka kalimat dan fakta**, bukan ditulis bebas. Gayanya kini argumentatif seperti contoh riset dan kuncinya tetap pasti, tetapi tiap topik memakai kerangka yang sama (versi kalimat, anggota daftar, angka, dan kalimat yang dipakai diacak), sehingga bacaan setopik terasa mirip bila banyak paket dikerjakan berurutan. Kalimat pendapat ("dinilai", "berpendapat", "sejumlah studi menyimpulkan") hanya menjadi latar dan pernyataan tidak pernah bergantung pada makna tersirat; karena itu jebakan seperti menyimpulkan sikap atau motif dari kalimat pendapat sengaja tidak dibuat. Pernyataan Tidak Diketahui tetap menuntut peserta mengabaikan pengetahuan di luar bacaan (mis. kegunaan yang benar di dunia nyata tetapi tidak disebut).
 - **Huruf pada PNG buatan CLI** memakai font garis sendiri (mirip Helvetica), sedikit berbeda dari huruf sistem yang dipakai peramban. Isi Word dan PDF tidak terpengaruh: keduanya memuat gambar yang sama.
-- **Word dan PDF diuji strukturnya** (ZIP, XML, tabel xref, gambar) dan PDF dirender untuk pemeriksaan visual. Contoh Word di `contoh-keluaran/` juga sudah dibuka di Microsoft Word 16 (16 Okt 2026): terbuka tanpa perbaikan otomatis, dalam mode normal, dan tata letaknya (35 dan 34 halaman) diperiksa dari PDF ekspor Word. Uji otomatis tidak menjalankan Word. Beberapa halaman PDF/Word memuat ruang kosong karena soal dijaga agar tidak terpotong antarhalaman.
+- **Word dan PDF diuji strukturnya** (ZIP, XML, tabel xref, gambar) dan PDF dirender untuk pemeriksaan visual. Contoh Word versi sebelumnya sudah dibuka di Microsoft Word 16 (16 Okt 2026): terbuka tanpa perbaikan otomatis, dalam mode normal, dan tata letaknya (35 dan 34 halaman) diperiksa dari PDF ekspor Word. `contoh-keluaran/` kemudian dibuat ulang dengan benih 2026 setelah bacaan verbal berganti gaya (PDF buatan generator kini 38 dan 37 halaman) dan belum dibuka ulang di Word. Uji otomatis tidak menjalankan Word. Beberapa halaman PDF/Word memuat ruang kosong karena soal dijaga agar tidak terpotong antarhalaman.
 - **Soal interaktif** di Word/PDF tidak bisa diklik; yang interaktif hanya antarmuka peramban.
 - **Batas ZIP**: tanpa ZIP64, jadi ZIP semua Word, PDF, dan PNG untuk ratusan paket bisa mendekati batas 4 GB. Pakai `--format xlsx,json` untuk ratusan paket.
 - **Kapasitas bank** terbatas (lihat bagian Kapasitas); paket tingkat `mudah` saja dibatasi sekitar 308 paket.
