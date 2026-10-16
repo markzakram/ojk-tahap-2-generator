@@ -8,6 +8,12 @@
  * Perusakan jenis "mungkin" (mis. fakta verbal dibuang) hanya dilaporkan tingkat
  * deteksinya, karena kadang hasil perusakan kebetulan tetap benar.
  *
+ * Selain butir dari paket, setiap keluarga figural dibuat langsung dari bank pada ketiga
+ * tingkat, sehingga perusakan wajib (kunci digeser, dua opsi sama-benar) pasti mengenai
+ * semua bentuk figural, termasuk yang jarang terambil paket. Bentuk riset (matriks 5x5,
+ * 5x6, 2x2 bersekat, deret kotak ganda) juga dirusak isinya: kotak tampak diganti, warna
+ * dibalik, belahan ditukar, atau kode belah ketupat dibalik.
+ *
  *   node uji/negatif.js [jumlahPaket] [benih]
  */
 'use strict';
@@ -16,6 +22,11 @@ var path = require('path');
 var JS = path.join(__dirname, '..', 'js');
 var Paket = require(path.join(JS, 'paket.js'));
 var Validator = require(path.join(JS, 'validator.js'));
+var Bank = require(path.join(JS, 'bank.js'));
+var Rng = require(path.join(JS, 'rng.js'));
+
+/** Perusakan yang WAJIB diuji pada setiap keluarga figural (bukan hanya yang kebetulan terambil paket). */
+var WAJIB_FIGURAL = ['kunci digeser ke opsi lain', 'dua opsi bergambar sama-benar (figural)'];
 
 function salin(x) { return JSON.parse(JSON.stringify(x)); }
 
@@ -127,6 +138,47 @@ var MUTASI = [
     terapkan: function (b) { b.model.fakta = []; }
   },
   {
+    nama: 'matriks 5x5: satu kotak tampak diganti bentuk lain', pasti: true,
+    berlaku: function (b) { return b.submateri === 'figural' && b.model.tipe === 'matriks-latin'; },
+    terapkan: function (b) {
+      var g1 = b.stimulus.gambar[0].model.grid, g2 = b.model.grid;
+      for (var r = 0; r < g1.length; r++) for (var c = 0; c < g1[r].length; c++) if (g1[r][c] !== null) { g1[r][c] = g2[r][c] = (g1[r][c] + 1) % 5; return; }
+    }
+  },
+  {
+    nama: 'matriks 5x6: warna satu kotak tampak dibalik', pasti: true,
+    berlaku: function (b) { return b.submateri === 'figural' && b.model.tipe === 'matriks-isi'; },
+    terapkan: function (b) {
+      var g1 = b.stimulus.gambar[0].model.grid, g2 = b.model.grid, r = (b.model.lubang.r + 2) % g1.length;
+      g1[r][0].i = 1 - g1[r][0].i; g2[r][0].i = g1[r][0].i;
+    }
+  },
+  {
+    nama: 'matriks 5x6: bentuk satu kotak tampak diganti', pasti: true,
+    berlaku: function (b) { return b.submateri === 'figural' && b.model.tipe === 'matriks-isi'; },
+    terapkan: function (b) {
+      var g1 = b.stimulus.gambar[0].model.grid, g2 = b.model.grid, r = (b.model.lubang.r + 1) % g1.length;
+      g1[r][1].b = (g1[r][1].b + 1) % 4; g2[r][1].b = g1[r][1].b;
+    }
+  },
+  {
+    nama: 'matriks bersekat: dua belahan satu gambar dalam ditukar', pasti: true,
+    berlaku: function (b) { return b.submateri === 'figural' && b.model.tipe === 'matriks-sekat'; },
+    terapkan: function (b) {
+      [b.stimulus.gambar[0].model.dalam, b.model.dalam].forEach(function (dalam) {
+        var bl = dalam[(b.model.tanya + 1) % 4].belahan, k = Object.keys(bl), t = bl[k[0]];
+        bl[k[0]] = bl[k[1]]; bl[k[1]] = t;
+      });
+    }
+  },
+  {
+    nama: 'kotak ganda: satu belah ketupat kode kotak kelima dibalik', pasti: true,
+    berlaku: function (b) { return b.submateri === 'figural' && b.model.tipe === 'serial-ganda'; },
+    terapkan: function (b) {
+      [b.stimulus.gambar[0].model.kotak, b.model.kotak].forEach(function (k) { k[4].bawah[0] = 1 - k[4].bawah[0]; });
+    }
+  },
+  {
     nama: 'kotak terakhir deret figural diganti gambar opsi lain', pasti: false,
     berlaku: function (b) { return b.submateri === 'figural' && b.model.tipe === 'serial' && b.stimulus.gambar[0].model.sels.length > 2; },
     terapkan: function (b) {
@@ -145,15 +197,32 @@ function jalankan(opsi) {
   r.hasil.paket.forEach(function (p) { p.subtes.forEach(function (st) { st.butir.forEach(function (b) { butir.push(b); }); }); });
   var laporan = [], gagal = [];
 
+  // tiap keluarga figural, pada ketiga tingkat, dibuat langsung dari bank supaya pasti ikut diuji
+  var famFigural = [];
+  ['serial', 'matriks'].forEach(function (sub) {
+    Bank.ambil('ku', sub).keluarga.forEach(function (k, fi) {
+      if (famFigural.indexOf(k.id) >= 0) return;
+      famFigural.push(k.id);
+      ['mudah', 'sedang', 'sulit'].forEach(function (lv, li) {
+        var b = Bank.buat('ku', sub, fi, lv, Rng.turunan(benih, 'negatif', k.id, lv), { target: (li + fi) % 5 });
+        if (!b) { gagal.push('keluarga ' + k.id + ' tingkat ' + lv + ' gagal disusun untuk uji negatif'); return; }
+        b.id = 'NEG-' + k.id + '-' + lv; b.no = 1; b.paket = 0;
+        butir.push(b);
+      });
+    });
+  });
+
   // butir asli harus lulus (kontrol)
   var asliGagal = butir.filter(function (b) { return !Validator.periksaButir(b).lulus; });
-  if (asliGagal.length) gagal.push('butir asli yang tidak lulus: ' + asliGagal.length);
+  if (asliGagal.length) gagal.push('butir asli yang tidak lulus: ' + asliGagal.length + ' (mis. ' + asliGagal.slice(0, 3).map(function (b) { return b.id; }).join(', ') + ')');
 
+  var diujiPer = {};
   MUTASI.forEach(function (m) {
-    var coba = 0, tolak = 0, lolos = [];
+    var coba = 0, tolak = 0, lolos = [], per = diujiPer[m.nama] = {};
     butir.forEach(function (b) {
       if (!m.berlaku(b)) return;
       coba++;
+      if (b.submateri === 'figural') per[b.keluarga] = (per[b.keluarga] || 0) + 1;
       var ditolak = false;
       for (var v = 0; v < (m.varian || 1) && !ditolak; v++) {
         var c = salin(b);
@@ -165,6 +234,13 @@ function jalankan(opsi) {
     laporan.push({ nama: m.nama, pasti: m.pasti, coba: coba, tolak: tolak, lolos: lolos });
     if (m.pasti && lolos.length) gagal.push('"' + m.nama + '": ' + lolos.length + ' dari ' + coba + ' butir rusak lolos validator (mis. ' + lolos.slice(0, 3).join(', ') + ')');
     if (m.pasti && coba === 0) gagal.push('"' + m.nama + '": tidak ada butir yang bisa diuji');
+  });
+
+  // setiap keluarga figural harus terkena perusakan wajib (di semua tingkat yang dibuat di atas)
+  WAJIB_FIGURAL.forEach(function (nama) {
+    var per = diujiPer[nama] || {}, kurang = famFigural.filter(function (id) { return !(per[id] >= 3); });
+    laporan.push({ nama: '"' + nama + '" mencakup setiap keluarga figural (' + famFigural.join(', ') + ')', pasti: true, coba: famFigural.length, tolak: famFigural.length - kurang.length, lolos: [] });
+    if (kurang.length) gagal.push('"' + nama + '" belum diuji pada keluarga: ' + kurang.join(', '));
   });
 
   // tingkat paket dan hasil

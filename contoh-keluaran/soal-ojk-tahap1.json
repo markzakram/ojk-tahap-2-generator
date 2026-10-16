@@ -3195,76 +3195,321 @@
        "submateri": "figural",
        "submateriNama": "Figural - Matriks",
        "komposisi": "matriks",
-       "keluarga": "matriks-3",
+       "keluarga": "matriks-latin",
        "level": "sedang",
        "tingkat": "Sedang",
        "benih": 2367329677,
        "jenis": "pg",
        "soal": "Gunakan gambar di bagian atas untuk menentukan jawaban yang benar dari pilihan di bawah. Pilih jawaban yang menggantikan tanda tanya. Jika tidak ada tanda tanya, pilih jawaban yang merupakan kelanjutan dari urutan tersebut.",
        "stimulus": {
-        "judul": "Figural Matriks - Kotak 3x3",
+        "judul": "Figural Matriks - Kotak 5x5",
+        "teks": [],
+        "gambar": [
+         {
+          "id": "soal",
+          "jenis": "latin",
+          "judul": "Matriks 5x5",
+          "berkas": "paket-001/gambar/P001-KU-11-soal.png",
+          "model": {
+           "grid": [
+            [
+             2,
+             4,
+             1,
+             3,
+             0
+            ],
+            [
+             null,
+             null,
+             4,
+             2,
+             1
+            ],
+            [
+             1,
+             3,
+             2,
+             0,
+             4
+            ],
+            [
+             0,
+             1,
+             3,
+             4,
+             2
+            ],
+            [
+             4,
+             2,
+             0,
+             1,
+             3
+            ]
+           ],
+           "lubang": {
+            "r": 1,
+            "c": 0,
+            "h": 1,
+            "w": 2
+           }
+          }
+         }
+        ]
+       },
+       "pertanyaan": "",
+       "perintah": "Gunakan gambar di bagian atas untuk menentukan jawaban yang benar dari pilihan di bawah. Pilih jawaban yang menggantikan tanda tanya. Jika tidak ada tanda tanya, pilih jawaban yang merupakan kelanjutan dari urutan tersebut.",
+       "opsi": [
+        {
+         "huruf": "A",
+         "teks": "Gambar opsi A",
+         "alasan": "urutannya tertukar: kolom 1 sudah memuat hati (baris 4); kolom 2 sudah memuat segitiga (baris 3)",
+         "gambar": {
+          "id": "opsi-a",
+          "jenis": "latin-opsi",
+          "judul": "Opsi A",
+          "berkas": "paket-001/gambar/P001-KU-11-opsi-a.png",
+          "model": {
+           "isi": [
+            [
+             0,
+             3
+            ]
+           ]
+          }
+         }
+        },
+        {
+         "huruf": "B",
+         "teks": "Gambar opsi B",
+         "alasan": "kolom 1 sudah memuat hati (baris 4); baris 2 sudah memuat bintang (kolom 3)",
+         "gambar": {
+          "id": "opsi-b",
+          "jenis": "latin-opsi",
+          "judul": "Opsi B",
+          "berkas": "paket-001/gambar/P001-KU-11-opsi-b.png",
+          "model": {
+           "isi": [
+            [
+             0,
+             4
+            ]
+           ]
+          }
+         }
+        },
+        {
+         "huruf": "C",
+         "teks": "Gambar opsi C",
+         "alasan": null,
+         "gambar": {
+          "id": "opsi-c",
+          "jenis": "latin-opsi",
+          "judul": "Opsi C",
+          "berkas": "paket-001/gambar/P001-KU-11-opsi-c.png",
+          "model": {
+           "isi": [
+            [
+             3,
+             0
+            ]
+           ]
+          }
+         }
+        },
+        {
+         "huruf": "D",
+         "teks": "Gambar opsi D",
+         "alasan": "baris 2 sudah memuat lingkaran (kolom 5); kolom 1 sudah memuat lingkaran (baris 3)",
+         "gambar": {
+          "id": "opsi-d",
+          "jenis": "latin-opsi",
+          "judul": "Opsi D",
+          "berkas": "paket-001/gambar/P001-KU-11-opsi-d.png",
+          "model": {
+           "isi": [
+            [
+             1,
+             0
+            ]
+           ]
+          }
+         }
+        },
+        {
+         "huruf": "E",
+         "teks": "Gambar opsi E",
+         "alasan": "baris 2 sudah memuat bintang (kolom 3); kolom 1 sudah memuat bintang (baris 5)",
+         "gambar": {
+          "id": "opsi-e",
+          "jenis": "latin-opsi",
+          "judul": "Opsi E",
+          "berkas": "paket-001/gambar/P001-KU-11-opsi-e.png",
+          "model": {
+           "isi": [
+            [
+             4,
+             0
+            ]
+           ]
+          }
+         }
+        }
+       ],
+       "kunci": "C",
+       "jawabanBenar": "C",
+       "isian": null,
+       "bentukIsian": null,
+       "langkah": [],
+       "pembahasan": [
+        "Jenis soal: Figural Matriks - Kotak 5x5.",
+        "Setiap baris dan setiap kolom memuat kelima bentuk (hati, lingkaran, persegi, segitiga, bintang) tepat satu kali; tidak ada bentuk yang berulang dalam satu baris atau satu kolom.",
+        "Tanda tanya menutup dua kotak berdampingan (dibaca dari kiri ke kanan) mulai baris 2, kolom 1. Isi tiap kotaknya dengan bentuk yang belum ada di baris dan kolomnya:",
+        "• Baris 2, kolom 1: baris 2 belum memuat hati dan segitiga, kolom 1 belum memuat segitiga; jadi kotak ini berisi segitiga.",
+        "• Baris 2, kolom 2: baris 2 belum memuat hati dan segitiga, kolom 2 belum memuat hati; jadi kotak ini berisi hati.",
+        "Potongan yang tepat: dari kiri ke kanan segitiga, hati.",
+        "Pilihan lain yang menjebak:",
+        "• A: urutannya tertukar: kolom 1 sudah memuat hati (baris 4); kolom 2 sudah memuat segitiga (baris 3).",
+        "• B: kolom 1 sudah memuat hati (baris 4); baris 2 sudah memuat bintang (kolom 3).",
+        "• D: baris 2 sudah memuat lingkaran (kolom 5); kolom 1 sudah memuat lingkaran (baris 3).",
+        "• E: baris 2 sudah memuat bintang (kolom 3); kolom 1 sudah memuat bintang (baris 5).",
+        "Jawaban: C"
+       ],
+       "gambarPembahasan": [],
+       "model": {
+        "topik": "Figural",
+        "tipe": "matriks-latin",
+        "grid": [
+         [
+          2,
+          4,
+          1,
+          3,
+          0
+         ],
+         [
+          null,
+          null,
+          4,
+          2,
+          1
+         ],
+         [
+          1,
+          3,
+          2,
+          0,
+          4
+         ],
+         [
+          0,
+          1,
+          3,
+          4,
+          2
+         ],
+         [
+          4,
+          2,
+          0,
+          1,
+          3
+         ]
+        ],
+        "lubang": {
+         "r": 1,
+         "c": 0,
+         "h": 1,
+         "w": 2
+        },
+        "pilihan": [
+         [
+          [
+           0,
+           3
+          ]
+         ],
+         [
+          [
+           0,
+           4
+          ]
+         ],
+         [
+          [
+           3,
+           0
+          ]
+         ],
+         [
+          [
+           1,
+           0
+          ]
+         ],
+         [
+          [
+           4,
+           0
+          ]
+         ]
+        ],
+        "kunciIndex": 2
+       },
+       "sidik": {
+        "inti": "matriks-latin|24130/30421/13204/01342/42013|1012",
+        "param": [],
+        "entitas": "latin"
+       }
+      },
+      {
+       "id": "P001-KU-12",
+       "no": 12,
+       "paket": 1,
+       "subtes": "ku",
+       "submateri": "figural",
+       "submateriNama": "Figural - Matriks",
+       "komposisi": "matriks",
+       "keluarga": "matriks-2",
+       "level": "mudah",
+       "tingkat": "Mudah",
+       "benih": 2153255869,
+       "jenis": "pg",
+       "soal": "Gunakan gambar di bagian atas untuk menentukan jawaban yang benar dari pilihan di bawah. Pilih jawaban yang menggantikan tanda tanya. Jika tidak ada tanda tanya, pilih jawaban yang merupakan kelanjutan dari urutan tersebut.",
+       "stimulus": {
+        "judul": "Figural Matriks - Kotak 2x2",
         "teks": [],
         "gambar": [
          {
           "id": "soal",
           "jenis": "matriks",
-          "judul": "Matriks 3x3",
-          "berkas": "paket-001/gambar/P001-KU-11-soal.png",
+          "judul": "Matriks 2x2",
+          "berkas": "paket-001/gambar/P001-KU-12-soal.png",
           "model": {
            "grid": [
             [
              {
-              "titik": 0,
-              "penanda": 1,
-              "jumlah": 0
+              "bentuk": 0,
+              "isi": 1
              },
              {
-              "titik": 1,
-              "penanda": 3,
-              "jumlah": 4
-             },
-             {
-              "titik": 1,
-              "penanda": 2,
-              "jumlah": 1
+              "bentuk": 0,
+              "isi": 0
              }
             ],
             [
              {
-              "titik": 1,
-              "penanda": 3,
-              "jumlah": 0
+              "bentuk": 3,
+              "isi": 1
              },
              {
-              "titik": 0,
-              "penanda": 2,
-              "jumlah": 2
-             },
-             {
-              "titik": 1,
-              "penanda": 1,
-              "jumlah": 3
-             }
-            ],
-            [
-             {
-              "titik": 1,
-              "penanda": 2,
-              "jumlah": 3
-             },
-             {
-              "titik": 0,
-              "penanda": 1,
-              "jumlah": 1
-             },
-             {
-              "titik": 1,
-              "penanda": 3,
-              "jumlah": 1
+              "bentuk": 3,
+              "isi": 0
              }
             ]
            ],
-           "mr": 2,
+           "mr": 1,
            "mc": 1
           }
          }
@@ -3276,295 +3521,7 @@
         {
          "huruf": "A",
          "teks": "Gambar opsi A",
-         "alasan": "titik di pangkal panah dengan titik padahal seharusnya tanpa titik; jumlah kotak kecil 3 padahal seharusnya 1",
-         "gambar": {
-          "id": "opsi-a",
-          "jenis": "sel",
-          "judul": "Opsi A",
-          "berkas": "paket-001/gambar/P001-KU-11-opsi-a.png",
-          "model": {
-           "cell": {
-            "titik": 1,
-            "penanda": 1,
-            "jumlah": 3
-           }
-          }
-         }
-        },
-        {
-         "huruf": "B",
-         "teks": "Gambar opsi B",
-         "alasan": "jumlah kotak kecil 5 padahal seharusnya 1",
-         "gambar": {
-          "id": "opsi-b",
-          "jenis": "sel",
-          "judul": "Opsi B",
-          "berkas": "paket-001/gambar/P001-KU-11-opsi-b.png",
-          "model": {
-           "cell": {
-            "titik": 0,
-            "penanda": 1,
-            "jumlah": 5
-           }
-          }
-         }
-        },
-        {
-         "huruf": "C",
-         "teks": "Gambar opsi C",
-         "alasan": null,
-         "gambar": {
-          "id": "opsi-c",
-          "jenis": "sel",
-          "judul": "Opsi C",
-          "berkas": "paket-001/gambar/P001-KU-11-opsi-c.png",
-          "model": {
-           "cell": {
-            "titik": 0,
-            "penanda": 1,
-            "jumlah": 1
-           }
-          }
-         }
-        },
-        {
-         "huruf": "D",
-         "teks": "Gambar opsi D",
-         "alasan": "jumlah kotak kecil 3 padahal seharusnya 1",
-         "gambar": {
-          "id": "opsi-d",
-          "jenis": "sel",
-          "judul": "Opsi D",
-          "berkas": "paket-001/gambar/P001-KU-11-opsi-d.png",
-          "model": {
-           "cell": {
-            "titik": 0,
-            "penanda": 1,
-            "jumlah": 3
-           }
-          }
-         }
-        },
-        {
-         "huruf": "E",
-         "teks": "Gambar opsi E",
-         "alasan": "letak kotak kecil di pojok kanan-bawah padahal seharusnya kanan-atas",
-         "gambar": {
-          "id": "opsi-e",
-          "jenis": "sel",
-          "judul": "Opsi E",
-          "berkas": "paket-001/gambar/P001-KU-11-opsi-e.png",
-          "model": {
-           "cell": {
-            "titik": 0,
-            "penanda": 2,
-            "jumlah": 1
-           }
-          }
-         }
-        }
-       ],
-       "kunci": "C",
-       "jawabanBenar": "C",
-       "isian": null,
-       "bentukIsian": null,
-       "langkah": [],
-       "pembahasan": [
-        "Jenis soal: Figural Matriks - Kotak 3x3.",
-        "Setiap kanal pada kotak mengikuti satu aturan. Aturan yang terbaca dari delapan kotak yang terlihat:",
-        "• Titik di pangkal panah: kotak ketiga pada tiap baris ada titik bila tepat satu dari dua kotak pertamanya bertitik.",
-        "• Letak kotak kecil di pojok: setiap baris dan setiap kolom memuat ketiga nilai (kanan-atas, kiri-bawah, kanan-bawah) tepat satu kali.",
-        "• Jumlah kotak kecil: jumlah kotak kecil pada tiap baris selalu 5.",
-        "Kotak yang hilang berada pada baris 3, kolom 2. Menerapkan setiap aturan padanya memberi: tanpa titik, kanan-atas, 1.",
-        "Pilihan lain yang menjebak:",
-        "• A: titik di pangkal panah dengan titik padahal seharusnya tanpa titik; jumlah kotak kecil 3 padahal seharusnya 1.",
-        "• B: jumlah kotak kecil 5 padahal seharusnya 1.",
-        "• D: jumlah kotak kecil 3 padahal seharusnya 1.",
-        "• E: letak kotak kecil di pojok kanan-bawah padahal seharusnya kanan-atas.",
-        "Jawaban: C"
-       ],
-       "gambarPembahasan": [],
-       "model": {
-        "topik": "Figural",
-        "tipe": "matriks-3",
-        "kanal": [
-         "titik",
-         "penanda",
-         "jumlah"
-        ],
-        "aturan": "titik:xor-baris,penanda:latin,jumlah:jumlah-baris",
-        "sels": null,
-        "grid": [
-         [
-          {
-           "titik": 0,
-           "penanda": 1,
-           "jumlah": 0
-          },
-          {
-           "titik": 1,
-           "penanda": 3,
-           "jumlah": 4
-          },
-          {
-           "titik": 1,
-           "penanda": 2,
-           "jumlah": 1
-          }
-         ],
-         [
-          {
-           "titik": 1,
-           "penanda": 3,
-           "jumlah": 0
-          },
-          {
-           "titik": 0,
-           "penanda": 2,
-           "jumlah": 2
-          },
-          {
-           "titik": 1,
-           "penanda": 1,
-           "jumlah": 3
-          }
-         ],
-         [
-          {
-           "titik": 1,
-           "penanda": 2,
-           "jumlah": 3
-          },
-          {
-           "titik": 0,
-           "penanda": 1,
-           "jumlah": 1
-          },
-          {
-           "titik": 1,
-           "penanda": 3,
-           "jumlah": 1
-          }
-         ]
-        ],
-        "mr": 2,
-        "mc": 1,
-        "pilihan": [
-         {
-          "titik": 1,
-          "penanda": 1,
-          "jumlah": 3
-         },
-         {
-          "titik": 0,
-          "penanda": 1,
-          "jumlah": 5
-         },
-         {
-          "titik": 0,
-          "penanda": 1,
-          "jumlah": 1
-         },
-         {
-          "titik": 0,
-          "penanda": 1,
-          "jumlah": 3
-         },
-         {
-          "titik": 0,
-          "penanda": 2,
-          "jumlah": 1
-         }
-        ],
-        "kunciIndex": 2
-       },
-       "sidik": {
-        "inti": "figural|matriks-3|jumlah=0;penanda=1;titik=0/jumlah=4;penanda=3;titik=1/jumlah=1;penanda=2;titik=1//jumlah=0;penanda=3;titik=1/jumlah=2;penanda=2;titik=0/jumlah=3;penanda=1;titik=1//jumlah=3;penanda=2;titik=1/jumlah=1;penanda=1;titik=0/jumlah=1;penanda=3;titik=1|21",
-        "param": [],
-        "entitas": "titik,penanda,jumlahtitik:xor-baris,penanda:latin,jumlah:jumlah-baris"
-       }
-      },
-      {
-       "id": "P001-KU-12",
-       "no": 12,
-       "paket": 1,
-       "subtes": "ku",
-       "submateri": "figural",
-       "submateriNama": "Figural - Matriks",
-       "komposisi": "matriks",
-       "keluarga": "matriks-3",
-       "level": "mudah",
-       "tingkat": "Mudah",
-       "benih": 2153255869,
-       "jenis": "pg",
-       "soal": "Gunakan gambar di bagian atas untuk menentukan jawaban yang benar dari pilihan di bawah. Pilih jawaban yang menggantikan tanda tanya. Jika tidak ada tanda tanya, pilih jawaban yang merupakan kelanjutan dari urutan tersebut.",
-       "stimulus": {
-        "judul": "Figural Matriks - Kotak 3x3",
-        "teks": [],
-        "gambar": [
-         {
-          "id": "soal",
-          "jenis": "matriks",
-          "judul": "Matriks 3x3",
-          "berkas": "paket-001/gambar/P001-KU-12-soal.png",
-          "model": {
-           "grid": [
-            [
-             {
-              "penanda": 0,
-              "isi": 2
-             },
-             {
-              "penanda": 1,
-              "isi": 2
-             },
-             {
-              "penanda": 2,
-              "isi": 2
-             }
-            ],
-            [
-             {
-              "penanda": 0,
-              "isi": 0
-             },
-             {
-              "penanda": 1,
-              "isi": 0
-             },
-             {
-              "penanda": 2,
-              "isi": 0
-             }
-            ],
-            [
-             {
-              "penanda": 0,
-              "isi": 0
-             },
-             {
-              "penanda": 1,
-              "isi": 0
-             },
-             {
-              "penanda": 2,
-              "isi": 0
-             }
-            ]
-           ],
-           "mr": 1,
-           "mc": 2
-          }
-         }
-        ]
-       },
-       "pertanyaan": "",
-       "perintah": "Gunakan gambar di bagian atas untuk menentukan jawaban yang benar dari pilihan di bawah. Pilih jawaban yang menggantikan tanda tanya. Jika tidak ada tanda tanya, pilih jawaban yang merupakan kelanjutan dari urutan tersebut.",
-       "opsi": [
-        {
-         "huruf": "A",
-         "teks": "Gambar opsi A",
-         "alasan": "letak kotak kecil di pojok kiri-bawah padahal seharusnya kanan-bawah",
+         "alasan": "bentuk wadah lingkaran padahal seharusnya belah ketupat",
          "gambar": {
           "id": "opsi-a",
           "jenis": "sel",
@@ -3572,7 +3529,7 @@
           "berkas": "paket-001/gambar/P001-KU-12-opsi-a.png",
           "model": {
            "cell": {
-            "penanda": 3,
+            "bentuk": 0,
             "isi": 0
            }
           }
@@ -3581,7 +3538,7 @@
         {
          "huruf": "B",
          "teks": "Gambar opsi B",
-         "alasan": "warna wadah hitam padahal seharusnya putih; letak kotak kecil di pojok kiri-atas padahal seharusnya kanan-bawah",
+         "alasan": "bentuk wadah lingkaran padahal seharusnya belah ketupat; warna wadah hitam padahal seharusnya putih",
          "gambar": {
           "id": "opsi-b",
           "jenis": "sel",
@@ -3589,7 +3546,7 @@
           "berkas": "paket-001/gambar/P001-KU-12-opsi-b.png",
           "model": {
            "cell": {
-            "penanda": 0,
+            "bentuk": 0,
             "isi": 2
            }
           }
@@ -3598,7 +3555,7 @@
         {
          "huruf": "C",
          "teks": "Gambar opsi C",
-         "alasan": "letak kotak kecil di pojok kiri-atas padahal seharusnya kanan-bawah",
+         "alasan": "bentuk wadah lingkaran padahal seharusnya belah ketupat; warna wadah abu-abu padahal seharusnya putih",
          "gambar": {
           "id": "opsi-c",
           "jenis": "sel",
@@ -3606,8 +3563,8 @@
           "berkas": "paket-001/gambar/P001-KU-12-opsi-c.png",
           "model": {
            "cell": {
-            "penanda": 0,
-            "isi": 0
+            "bentuk": 0,
+            "isi": 1
            }
           }
          }
@@ -3623,7 +3580,7 @@
           "berkas": "paket-001/gambar/P001-KU-12-opsi-d.png",
           "model": {
            "cell": {
-            "penanda": 2,
+            "bentuk": 3,
             "isi": 0
            }
           }
@@ -3632,7 +3589,7 @@
         {
          "huruf": "E",
          "teks": "Gambar opsi E",
-         "alasan": "warna wadah hitam padahal seharusnya putih",
+         "alasan": "warna wadah abu-abu padahal seharusnya putih",
          "gambar": {
           "id": "opsi-e",
           "jenis": "sel",
@@ -3640,8 +3597,8 @@
           "berkas": "paket-001/gambar/P001-KU-12-opsi-e.png",
           "model": {
            "cell": {
-            "penanda": 2,
-            "isi": 2
+            "bentuk": 3,
+            "isi": 1
            }
           }
          }
@@ -3653,102 +3610,79 @@
        "bentukIsian": null,
        "langkah": [],
        "pembahasan": [
-        "Jenis soal: Figural Matriks - Kotak 3x3.",
-        "Setiap kanal pada kotak mengikuti satu aturan. Aturan yang terbaca dari delapan kotak yang terlihat:",
-        "• Letak kotak kecil di pojok: bergeser 1 langkah pada urutannya setiap pindah satu kolom ke kanan.",
-        "• Warna wadah: nilainya sama di seluruh satu baris dan berganti antarbaris (hitam, putih, putih dari atas ke bawah).",
-        "Kotak yang hilang berada pada baris 2, kolom 3. Menerapkan setiap aturan padanya memberi: kanan-bawah, putih.",
+        "Jenis soal: Figural Matriks - Kotak 2x2.",
+        "Perhatikan perubahan dari kotak kiri ke kotak kanan (baris yang sama) dan dari kotak atas ke kotak bawah (kolom yang sama). Perubahan yang sama diterapkan pada kotak yang hilang:",
+        "• Bentuk wadah: ke kanan (tetap lingkaran), ke bawah (lingkaran menjadi belah ketupat). Kotak kanan-bawah = belah ketupat.",
+        "• Warna wadah: ke kanan (abu-abu menjadi putih), ke bawah (tetap abu-abu). Kotak kanan-bawah = putih.",
         "Pilihan lain yang menjebak:",
-        "• A: letak kotak kecil di pojok kiri-bawah padahal seharusnya kanan-bawah.",
-        "• B: warna wadah hitam padahal seharusnya putih; letak kotak kecil di pojok kiri-atas padahal seharusnya kanan-bawah.",
-        "• C: letak kotak kecil di pojok kiri-atas padahal seharusnya kanan-bawah.",
-        "• E: warna wadah hitam padahal seharusnya putih.",
+        "• A: bentuk wadah lingkaran padahal seharusnya belah ketupat.",
+        "• B: bentuk wadah lingkaran padahal seharusnya belah ketupat; warna wadah hitam padahal seharusnya putih.",
+        "• C: bentuk wadah lingkaran padahal seharusnya belah ketupat; warna wadah abu-abu padahal seharusnya putih.",
+        "• E: warna wadah abu-abu padahal seharusnya putih.",
         "Jawaban: D"
        ],
        "gambarPembahasan": [],
        "model": {
         "topik": "Figural",
-        "tipe": "matriks-3",
+        "tipe": "matriks-2",
         "kanal": [
-         "penanda",
+         "bentuk",
          "isi"
         ],
-        "aturan": "penanda:langkah-baris,isi:baris-tetap",
+        "aturan": "bentuk:tambah(0,1),isi:tambah(-1,0)",
         "sels": null,
         "grid": [
          [
           {
-           "penanda": 0,
-           "isi": 2
+           "bentuk": 0,
+           "isi": 1
           },
           {
-           "penanda": 1,
-           "isi": 2
-          },
-          {
-           "penanda": 2,
-           "isi": 2
-          }
-         ],
-         [
-          {
-           "penanda": 0,
-           "isi": 0
-          },
-          {
-           "penanda": 1,
-           "isi": 0
-          },
-          {
-           "penanda": 2,
+           "bentuk": 0,
            "isi": 0
           }
          ],
          [
           {
-           "penanda": 0,
-           "isi": 0
+           "bentuk": 3,
+           "isi": 1
           },
           {
-           "penanda": 1,
-           "isi": 0
-          },
-          {
-           "penanda": 2,
+           "bentuk": 3,
            "isi": 0
           }
          ]
         ],
         "mr": 1,
-        "mc": 2,
+        "mc": 1,
         "pilihan": [
          {
-          "penanda": 3,
+          "bentuk": 0,
           "isi": 0
          },
          {
-          "penanda": 0,
+          "bentuk": 0,
           "isi": 2
          },
          {
-          "penanda": 0,
+          "bentuk": 0,
+          "isi": 1
+         },
+         {
+          "bentuk": 3,
           "isi": 0
          },
          {
-          "penanda": 2,
-          "isi": 0
-         },
-         {
-          "penanda": 2,
-          "isi": 2
+          "bentuk": 3,
+          "isi": 1
          }
         ],
         "kunciIndex": 3
        },
        "sidik": {
-        "inti": "figural|matriks-3|isi=2;penanda=0/isi=2;penanda=1/isi=2;penanda=2//isi=0;penanda=0/isi=0;penanda=1/isi=0;penanda=2//isi=0;penanda=0/isi=0;penanda=1/isi=0;penanda=2|12",
+        "inti": "figural|matriks-2|bentuk=0;isi=1/bentuk=0;isi=0//bentuk=3;isi=1/bentuk=3;isi=0|11",
         "param": [],
-        "entitas": "penanda,isipenanda:langkah-baris,isi:baris-tetap"
+        "entitas": "bentuk,isibentuk:tambah(0,1),isi:tambah(-1,0)"
        }
       }
      ]
@@ -11734,77 +11668,65 @@
        "submateri": "figural",
        "submateriNama": "Figural - Matriks",
        "komposisi": "matriks",
-       "keluarga": "matriks-3",
+       "keluarga": "matriks-latin",
        "level": "sedang",
        "tingkat": "Sedang",
        "benih": 3612008931,
        "jenis": "pg",
        "soal": "Gunakan gambar di bagian atas untuk menentukan jawaban yang benar dari pilihan di bawah. Pilih jawaban yang menggantikan tanda tanya. Jika tidak ada tanda tanya, pilih jawaban yang merupakan kelanjutan dari urutan tersebut.",
        "stimulus": {
-        "judul": "Figural Matriks - Kotak 3x3",
+        "judul": "Figural Matriks - Kotak 5x5",
         "teks": [],
         "gambar": [
          {
           "id": "soal",
-          "jenis": "matriks",
-          "judul": "Matriks 3x3",
+          "jenis": "latin",
+          "judul": "Matriks 5x5",
           "berkas": "paket-002/gambar/P002-KU-12-soal.png",
           "model": {
            "grid": [
             [
-             {
-              "titik": 1,
-              "jumlah": 1,
-              "arah": 7
-             },
-             {
-              "titik": 1,
-              "jumlah": 5,
-              "arah": 1
-             },
-             {
-              "titik": 1,
-              "jumlah": 3,
-              "arah": 3
-             }
+             2,
+             0,
+             3,
+             4,
+             1
             ],
             [
-             {
-              "titik": 1,
-              "jumlah": 5,
-              "arah": 1
-             },
-             {
-              "titik": 1,
-              "jumlah": 3,
-              "arah": 3
-             },
-             {
-              "titik": 1,
-              "jumlah": 1,
-              "arah": 5
-             }
+             3,
+             2,
+             4,
+             1,
+             0
             ],
             [
-             {
-              "titik": 0,
-              "jumlah": 3,
-              "arah": 5
-             },
-             {
-              "titik": 0,
-              "jumlah": 1,
-              "arah": 7
-             },
-             {
-              "titik": 0,
-              "jumlah": 5,
-              "arah": 1
-             }
+             4,
+             1,
+             0,
+             3,
+             2
+            ],
+            [
+             0,
+             4,
+             1,
+             2,
+             null
+            ],
+            [
+             1,
+             3,
+             2,
+             0,
+             null
             ]
            ],
-           "mr": 1,
-           "mc": 1
+           "lubang": {
+            "r": 3,
+            "c": 4,
+            "h": 2,
+            "w": 1
+           }
           }
          }
         ]
@@ -11815,72 +11737,84 @@
         {
          "huruf": "A",
          "teks": "Gambar opsi A",
-         "alasan": "jumlah kotak kecil 5 padahal seharusnya 3; titik di pangkal panah tanpa titik padahal seharusnya dengan titik",
+         "alasan": "baris 4 sudah memuat bintang (kolom 2); baris 5 sudah memuat persegi (kolom 3)",
          "gambar": {
           "id": "opsi-a",
-          "jenis": "sel",
+          "jenis": "latin-opsi",
           "judul": "Opsi A",
           "berkas": "paket-002/gambar/P002-KU-12-opsi-a.png",
           "model": {
-           "cell": {
-            "titik": 0,
-            "jumlah": 5,
-            "arah": 3
-           }
+           "isi": [
+            [
+             4
+            ],
+            [
+             2
+            ]
+           ]
           }
          }
         },
         {
          "huruf": "B",
          "teks": "Gambar opsi B",
-         "alasan": "titik di pangkal panah tanpa titik padahal seharusnya dengan titik",
+         "alasan": "baris 5 sudah memuat hati (kolom 4); kolom 5 sudah memuat hati (baris 2)",
          "gambar": {
           "id": "opsi-b",
-          "jenis": "sel",
+          "jenis": "latin-opsi",
           "judul": "Opsi B",
           "berkas": "paket-002/gambar/P002-KU-12-opsi-b.png",
           "model": {
-           "cell": {
-            "titik": 0,
-            "jumlah": 3,
-            "arah": 3
-           }
+           "isi": [
+            [
+             3
+            ],
+            [
+             0
+            ]
+           ]
           }
          }
         },
         {
          "huruf": "C",
          "teks": "Gambar opsi C",
-         "alasan": "arah panah atas padahal seharusnya kanan-bawah",
+         "alasan": "urutannya tertukar: baris 4 sudah memuat bintang (kolom 2); baris 5 sudah memuat segitiga (kolom 2)",
          "gambar": {
           "id": "opsi-c",
-          "jenis": "sel",
+          "jenis": "latin-opsi",
           "judul": "Opsi C",
           "berkas": "paket-002/gambar/P002-KU-12-opsi-c.png",
           "model": {
-           "cell": {
-            "titik": 1,
-            "jumlah": 3,
-            "arah": 0
-           }
+           "isi": [
+            [
+             4
+            ],
+            [
+             3
+            ]
+           ]
           }
          }
         },
         {
          "huruf": "D",
          "teks": "Gambar opsi D",
-         "alasan": "arah panah kanan-atas padahal seharusnya kanan-bawah",
+         "alasan": "baris 5 sudah memuat persegi (kolom 3); kolom 5 sudah memuat persegi (baris 3)",
          "gambar": {
           "id": "opsi-d",
-          "jenis": "sel",
+          "jenis": "latin-opsi",
           "judul": "Opsi D",
           "berkas": "paket-002/gambar/P002-KU-12-opsi-d.png",
           "model": {
-           "cell": {
-            "titik": 1,
-            "jumlah": 3,
-            "arah": 1
-           }
+           "isi": [
+            [
+             3
+            ],
+            [
+             2
+            ]
+           ]
           }
          }
         },
@@ -11890,15 +11824,18 @@
          "alasan": null,
          "gambar": {
           "id": "opsi-e",
-          "jenis": "sel",
+          "jenis": "latin-opsi",
           "judul": "Opsi E",
           "berkas": "paket-002/gambar/P002-KU-12-opsi-e.png",
           "model": {
-           "cell": {
-            "titik": 1,
-            "jumlah": 3,
-            "arah": 3
-           }
+           "isi": [
+            [
+             3
+            ],
+            [
+             4
+            ]
+           ]
           }
          }
         }
@@ -11909,118 +11846,114 @@
        "bentukIsian": null,
        "langkah": [],
        "pembahasan": [
-        "Jenis soal: Figural Matriks - Kotak 3x3.",
-        "Setiap kanal pada kotak mengikuti satu aturan. Aturan yang terbaca dari delapan kotak yang terlihat:",
-        "• Titik di pangkal panah: nilainya sama di seluruh satu baris dan berganti antarbaris (dengan titik, dengan titik, tanpa titik dari atas ke bawah).",
-        "• Jumlah kotak kecil: setiap baris dan setiap kolom memuat ketiga nilai (1, 5, 3) tepat satu kali.",
-        "• Arah panah: berputar 90 derajat searah jarum jam setiap pindah satu kolom ke kanan.",
-        "Kotak yang hilang berada pada baris 2, kolom 2. Menerapkan setiap aturan padanya memberi: dengan titik, 3, kanan-bawah.",
+        "Jenis soal: Figural Matriks - Kotak 5x5.",
+        "Setiap baris dan setiap kolom memuat kelima bentuk (hati, lingkaran, persegi, segitiga, bintang) tepat satu kali; tidak ada bentuk yang berulang dalam satu baris atau satu kolom.",
+        "Tanda tanya menutup dua kotak bertumpuk (dibaca dari atas ke bawah) mulai baris 4, kolom 5. Isi tiap kotaknya dengan bentuk yang belum ada di baris dan kolomnya:",
+        "• Baris 4, kolom 5: baris 4 belum memuat segitiga, kolom 5 belum memuat segitiga dan bintang; jadi kotak ini berisi segitiga.",
+        "• Baris 5, kolom 5: baris 5 belum memuat bintang, kolom 5 belum memuat segitiga dan bintang; jadi kotak ini berisi bintang.",
+        "Potongan yang tepat: dari atas ke bawah segitiga, bintang.",
         "Pilihan lain yang menjebak:",
-        "• A: jumlah kotak kecil 5 padahal seharusnya 3; titik di pangkal panah tanpa titik padahal seharusnya dengan titik.",
-        "• B: titik di pangkal panah tanpa titik padahal seharusnya dengan titik.",
-        "• C: arah panah atas padahal seharusnya kanan-bawah.",
-        "• D: arah panah kanan-atas padahal seharusnya kanan-bawah.",
+        "• A: baris 4 sudah memuat bintang (kolom 2); baris 5 sudah memuat persegi (kolom 3).",
+        "• B: baris 5 sudah memuat hati (kolom 4); kolom 5 sudah memuat hati (baris 2).",
+        "• C: urutannya tertukar: baris 4 sudah memuat bintang (kolom 2); baris 5 sudah memuat segitiga (kolom 2).",
+        "• D: baris 5 sudah memuat persegi (kolom 3); kolom 5 sudah memuat persegi (baris 3).",
         "Jawaban: E"
        ],
        "gambarPembahasan": [],
        "model": {
         "topik": "Figural",
-        "tipe": "matriks-3",
-        "kanal": [
-         "titik",
-         "jumlah",
-         "arah"
-        ],
-        "aturan": "titik:baris-tetap,jumlah:latin,arah:langkah-baris",
-        "sels": null,
+        "tipe": "matriks-latin",
         "grid": [
          [
-          {
-           "titik": 1,
-           "jumlah": 1,
-           "arah": 7
-          },
-          {
-           "titik": 1,
-           "jumlah": 5,
-           "arah": 1
-          },
-          {
-           "titik": 1,
-           "jumlah": 3,
-           "arah": 3
-          }
+          2,
+          0,
+          3,
+          4,
+          1
          ],
          [
-          {
-           "titik": 1,
-           "jumlah": 5,
-           "arah": 1
-          },
-          {
-           "titik": 1,
-           "jumlah": 3,
-           "arah": 3
-          },
-          {
-           "titik": 1,
-           "jumlah": 1,
-           "arah": 5
-          }
+          3,
+          2,
+          4,
+          1,
+          0
          ],
          [
-          {
-           "titik": 0,
-           "jumlah": 3,
-           "arah": 5
-          },
-          {
-           "titik": 0,
-           "jumlah": 1,
-           "arah": 7
-          },
-          {
-           "titik": 0,
-           "jumlah": 5,
-           "arah": 1
-          }
+          4,
+          1,
+          0,
+          3,
+          2
+         ],
+         [
+          0,
+          4,
+          1,
+          2,
+          null
+         ],
+         [
+          1,
+          3,
+          2,
+          0,
+          null
          ]
         ],
-        "mr": 1,
-        "mc": 1,
+        "lubang": {
+         "r": 3,
+         "c": 4,
+         "h": 2,
+         "w": 1
+        },
         "pilihan": [
-         {
-          "titik": 0,
-          "jumlah": 5,
-          "arah": 3
-         },
-         {
-          "titik": 0,
-          "jumlah": 3,
-          "arah": 3
-         },
-         {
-          "titik": 1,
-          "jumlah": 3,
-          "arah": 0
-         },
-         {
-          "titik": 1,
-          "jumlah": 3,
-          "arah": 1
-         },
-         {
-          "titik": 1,
-          "jumlah": 3,
-          "arah": 3
-         }
+         [
+          [
+           4
+          ],
+          [
+           2
+          ]
+         ],
+         [
+          [
+           3
+          ],
+          [
+           0
+          ]
+         ],
+         [
+          [
+           4
+          ],
+          [
+           3
+          ]
+         ],
+         [
+          [
+           3
+          ],
+          [
+           2
+          ]
+         ],
+         [
+          [
+           3
+          ],
+          [
+           4
+          ]
+         ]
         ],
         "kunciIndex": 4
        },
        "sidik": {
-        "inti": "figural|matriks-3|arah=7;jumlah=1;titik=1/arah=1;jumlah=5;titik=1/arah=3;jumlah=3;titik=1//arah=1;jumlah=5;titik=1/arah=3;jumlah=3;titik=1/arah=5;jumlah=1;titik=1//arah=5;jumlah=3;titik=0/arah=7;jumlah=1;titik=0/arah=1;jumlah=5;titik=0|11",
+        "inti": "matriks-latin|20341/32410/41032/04123/13204|3421",
         "param": [],
-        "entitas": "titik,jumlah,arahtitik:baris-tetap,jumlah:latin,arah:langkah-baris"
+        "entitas": "latin"
        }
       }
      ]

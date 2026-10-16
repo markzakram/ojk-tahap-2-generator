@@ -22,7 +22,7 @@ var Berkas = require('./berkas.js');
 
 var AKAR = path.resolve(__dirname, '..');
 var GLOBAL_WAJIB = ['Rng', 'Metrik', 'Fmt', 'Hitung', 'Svg', 'SvgRaster', 'Kempis', 'Png', 'Raster', 'Chart', 'Kamus', 'Pilihan', 'Butir', 'Cerita', 'TabelKu',
-  'GrafikKu', 'Verbal', 'Inferensi', 'Figural', 'SerialPutar', 'PnBar', 'PnTabel', 'PnGaris', 'PnPie', 'Gambar', 'Bank', 'Validator', 'Paket', 'Dokumen',
+  'GrafikKu', 'Verbal', 'Inferensi', 'Figural', 'SerialPutar', 'Bentuk', 'SerialGanda', 'MatriksLatin', 'MatriksIsi', 'MatriksSekat', 'PnBar', 'PnTabel', 'PnGaris', 'PnPie', 'Gambar', 'Bank', 'Validator', 'Paket', 'Dokumen',
   'Zip', 'Docx', 'Pdf', 'Xlsx', 'Ekspor', 'Coba', 'AppOjk'];
 
 /** Fungsi yang dijalankan DI DALAM halaman: cari butir menurut id. */

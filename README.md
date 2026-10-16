@@ -89,7 +89,7 @@ Kalau opsi CLI berubah, perbarui `agent-office.json` di perubahan yang sama (atu
 
 ## Bentuk soal per submateri
 
-Tiap soal punya **stimulus, pertanyaan, pilihan A-E** (atau bentuk isian), **kunci**, **pembahasan langkah demi langkah** dengan alasan mengapa tiap pengecoh keliru, dan **tingkat kesulitan** (mudah, sedang, sulit). Ada 32 keluarga soal.
+Tiap soal punya **stimulus, pertanyaan, pilihan A-E** (atau bentuk isian), **kunci**, **pembahasan langkah demi langkah** dengan alasan mengapa tiap pengecoh keliru, dan **tingkat kesulitan** (mudah, sedang, sulit). Ada 36 keluarga soal.
 
 ### Kemampuan Umum (12 soal baku, 10 menit)
 
@@ -99,8 +99,10 @@ Tiap soal punya **stimulus, pertanyaan, pilihan A-E** (atau bentuk isian), **kun
 | Numerik: Soal cerita (2) | Cerita hitungan, 5 pilihan angka | pecahan dan persen pada sisa zat, persentase peningkatan kecepatan, dua persamaan tiga benda, balik modal mesin, bulan lunas dengan laba naik, selisih pendapatan penjual, perbandingan campuran, diskon berlapis, konversi mata uang (£, €, $) |
 | Numerik: Tabel (3) | Tabel data (gambar) + pertanyaan | perbandingan dua baris, persentase gabungan dua kelompok, tahun sampai melampaui, biaya rata-rata per mesin, kenaikan laba produk, unit terjual yang hilang, harga per satuan dan konversi mata uang, persentase perubahan |
 | Numerik: Grafik batang (1) | Grafik batang (gambar) + pertanyaan | tim dengan hasil baik terbanyak, perubahan total dua seri, persen sumbangan batang, perbandingan dua batang |
-| Figural: Serial (2) | Deret kotak + "?" , pilihan A-E berupa gambar | deret atribut (bentuk wadah, warna, arah panah, titik, jumlah kotak kecil, penanda pojok) dan deret bentuk yang **berputar** ("The Next Box") |
-| Figural: Matriks (2) | Matriks dengan satu kotak "?", pilihan A-E berupa gambar | matriks 3x3 (latin, baris/kolom tetap, langkah, xor, jumlah) dan matriks 2x2 (penambahan) |
+| Figural: Serial (2) | Deret kotak + "?" , pilihan A-E berupa gambar | deret atribut (bentuk wadah, warna, arah panah, titik, jumlah kotak kecil, penanda pojok), deret bentuk yang **berputar** ("The Next Box"), dan **deret kotak ganda** ("The Next Double Box": bagian atas berisi empat lingkaran, panah, penanda, dan kadang bingkai; tiga belah ketupat di bagian bawah adalah kode perubahan, abu-abu berarti bagian itu berubah dibanding kotak sebelumnya; "?" di bagian atas kotak kelima) |
+| Figural: Matriks (2) | Matriks dengan daerah "?", pilihan A-E berupa gambar | matriks 3x3 (latin, baris/kolom tetap, langkah, xor, jumlah), matriks 2x2 (penambahan), **matriks 5x5** (hati, lingkaran, persegi, segitiga, bintang; tiap baris dan kolom memuat kelimanya; "?" menutup 1 kotak, 2 kotak, atau blok 2x2), **matriks 5x6** (segitiga, persegi, segi enam, lingkaran hitam/putih; tiap kolom memuat keempat bentuk ditambah satu bentuk yang sama di semua kolom, dan warna mengikuti bentuk, bergantian per baris/kolom menurut golongan bentuk, atau papan catur; "?" menutup 2-4 kotak sebaris), dan **matriks 2x2 bersekat** (tiap kuadran disekat menjadi segitiga dalam dan segitiga pojok; belahan bercorak gambar dalam pindah ke gambar pojok kuadran tetangga yang dihadapinya, bentuk pojok mengikuti pola 2x2; "?" di salah satu pojok) |
+
+Bentuk matriks 5x5, 5x6, 2x2 bersekat, dan deret kotak ganda mengikuti contoh riset BAB V (soal figural 2, 3, 4, dan 6). Aturan 5x6 dibaca dari contoh riset: setiap kolomnya memuat keempat bentuk ditambah satu persegi, dan baris ganjil menghitamkan persegi dan segi enam sedangkan baris genap menghitamkan segitiga dan lingkaran; menurut aturan itu kunci contoh riset adalah D, dan pengecohnya cocok dengan aturan tersebut (A bentuknya benar tetapi warnanya terbalik, B dan C warnanya benar tetapi bentuknya salah). Aturan 2x2 bersekat juga dibaca dari contoh riset (belahan gambar dalam pindah ke pojok tetangga). Logika "kode" kotak ganda pada contoh riset tidak dapat dipastikan dari satu soal, jadi generator memakai aturan kode perubahan yang dijelaskan di atas.
 
 ### Penalaran Numerik (10 soal baku, 18 menit), interaktif
 
@@ -126,20 +128,20 @@ Validator tidak memercayai kunci yang tersimpan dan tidak memanggil kode penyusu
 - **Soal cerita**: mengevaluasi ulang langkah hitung dengan parser rumus sendiri, mencocokkan setiap angka yang tercetak di soal dengan angka yang dihitung, dan memastikan **hanya satu opsi** yang bernilai sama dengan hasil.
 - **Tabel dan grafik**: membaca sel dan batang dari **SVG yang digambar** (batang diukur terhadap garis bantu), lalu menghitung.
 - **Verbal**: menurunkan Benar/Salah/Tidak Diketahui dari **fakta** yang dipakai merakit bacaan, dan memastikan fakta pengecoh tidak menyentuh atribut yang ditanyakan.
-- **Figural**: menebak aturan tiap kanal dari kotak yang tampak (`js/inferensi.js`, sengaja tidak berbagi kode dengan penyusun) dan memastikan **tepat satu opsi** memenuhi semua aturan; untuk deret berputar, yang diperiksa adalah gambar deret dan gambar opsi yang tampil.
+- **Figural**: menebak aturan tiap kanal dari kotak yang tampak (`js/inferensi.js`, sengaja tidak berbagi kode dengan penyusun) dan memastikan **tepat satu opsi** memenuhi semua aturan; untuk deret berputar, yang diperiksa adalah gambar deret dan gambar opsi yang tampil. Bentuk riset diperiksa dari gambar soal dan gambar opsi yang tampil: matriks 5x5 dengan mencoba **semua** cara mengisi daerah "?" (harus tepat satu); matriks 5x6 dengan pustaka aturan bentuk dan warna (aturan yang dapat dipenuhi kotak tampak dianggap berlaku, dan hanya satu deret pengganti boleh memenuhi semuanya); 2x2 bersekat dengan pustaka asal belahan (kiriman tetangga, tertukar, belahan yang menghadap ke tempat lain, salinan gambar dalam atau pojok lain) yang harus menunjuk gambar pojok yang sama; deret kotak ganda dengan menjelaskan tiap bagian gambar atas sebagai "tetap", "berubah tiap kotak", atau "berubah bila belah ketupat ke-d abu-abu" (semua penjelasan yang cocok harus memberi kotak kelima yang sama).
 - **Interaktif**: menghitung ulang kondisi akhir (total dan persen batang, nilai tiap titik, persentase irisan lewat sistem persamaan linear eksak, keputusan tiap tab tabel), dan memastikan tampilan awal tidak sudah benar.
 - **Pengecoh**: semuanya berbeda satu sama lain dan dijamin salah.
 - **Paket dan hasil**: komposisi, nomor, dan id konsisten; **tidak ada butir kembar**.
 
-Validator juga diuji **terbalik** (`uji/negatif.js`): soal yang sengaja dirusak (kunci digeser, dua opsi sama-benar, angka tabel, grafik, atau parameter diubah, kondisi awal disamakan dengan kunci, id ganda, butir kembar) harus ditolak semuanya. Uji itu pernah menemukan dua celah (deret berputar dan pie), yang sudah ditutup.
+Validator juga diuji **terbalik** (`uji/negatif.js`): soal yang sengaja dirusak (kunci digeser, dua opsi sama-benar, angka tabel, grafik, atau parameter diubah, kondisi awal disamakan dengan kunci, id ganda, butir kembar) harus ditolak semuanya. Setiap keluarga figural juga dibuat langsung dari bank pada ketiga tingkat, jadi "kunci digeser" dan "dua opsi sama-benar" pasti mengenai semua bentuk figural, dan bentuk riset dirusak isinya (kotak 5x5 diganti, warna atau bentuk 5x6 diubah, belahan gambar bersekat ditukar, kode belah ketupat kotak kelima dibalik). Uji itu pernah menemukan dua celah (deret berputar dan pie), yang sudah ditutup.
 
 ### Anti-kembar
 
-Dua butir dinyatakan kembar kalau: sidik inti sama persis; atau (figural) kotak yang tampak sama dengan paling banyak satu kotak berbeda; atau 3-gram kata teks (angka ikut dihitung) mirip sekurang-kurangnya 85%; atau kerangka dan pelaku sama dan hanya satu angka yang berbeda. Penjaga ini dijalankan **saat soal dipilih** (lintas paket dalam satu kali generate) dan sekali lagi oleh validator terhadap seluruh hasil.
+Dua butir dinyatakan kembar kalau: sidik inti sama persis; atau (figural) kotak yang tampak sama dengan paling banyak satu kotak berbeda (matriks 5x5: empat kotak, matriks 5x6: tiga kotak; bentuk riset dibandingkan dalam keadaan utuh, jadi gambar yang sama dengan letak "?" berbeda tetap dianggap kembar); atau 3-gram kata teks (angka ikut dihitung) mirip sekurang-kurangnya 85%; atau kerangka dan pelaku sama dan hanya satu angka yang berbeda. Penjaga ini dijalankan **saat soal dipilih** (lintas paket dalam satu kali generate) dan sekali lagi oleh validator terhadap seluruh hasil.
 
 ### Gambar tanpa dependensi
 
-Soal hanya menyimpan **model** gambar (data murni); SVG dirakit saat dibutuhkan. Untuk PNG, Word, dan PDF ada penggambar piksel sendiri (`js/svgraster.js`: penguraian SVG, isian, garis, teks dari font garis, anti-alias) dan penulis PNG sendiri. Di peramban, PNG dibuat oleh kanvas bawaan (huruf sistem). Word (`js/docx.js`), PDF (`js/pdf.js`, tata letak sendiri, font standar Helvetica), Excel (`js/xlsx.js`), dan ZIP (`js/zip.js`) ditulis tanpa pustaka.
+Soal hanya menyimpan **model** gambar (data murni); SVG dirakit saat dibutuhkan. Untuk PNG, Word, dan PDF ada penggambar piksel sendiri (`js/svgraster.js`: penguraian SVG, isian, garis, teks dari font garis, anti-alias) dan penulis PNG sendiri. Di peramban, PNG dibuat oleh kanvas bawaan (huruf sistem). Arsiran pada matriks bersekat (garis, titik, kotak-kotak, bintang) dihitung sendiri sebagai garis dan titik biasa yang dipotong ke dalam belahannya (`js/bentuk.js`), bukan pola SVG, sehingga PNG buatan CLI sama dengan tampilan peramban. Word (`js/docx.js`), PDF (`js/pdf.js`, tata letak sendiri, font standar Helvetica), Excel (`js/xlsx.js`), dan ZIP (`js/zip.js`) ditulis tanpa pustaka.
 
 ## Format ekspor
 
@@ -151,14 +153,14 @@ Soal hanya menyimpan **model** gambar (data murni); SVG dirakit saat dibutuhkan.
 
 ## Kapasitas dan kecepatan
 
-Terukur di komputer pengembangan (Node.js 24):
+Terukur di komputer pengembangan (Node.js 24), setelah keempat bentuk figural riset ditambahkan (16 Okt 2026):
 
 | Pengaturan | Hasil |
 |---|---|
-| 500 paket `semua` (11.000 butir) | berhasil, validator lulus 11.000/11.000, 0 kembar, kunci A-E merata; sekitar 40 detik termasuk validator |
-| 500 paket `ku` (6.000 butir) dan `pn` (5.000 butir) | berhasil, 0 kembar; sekitar 13 dan 30 detik |
-| 500 paket dengan tingkat `sedang` saja atau `sulit` saja | berhasil (pembuatan sekitar 22 detik) |
-| tingkat `mudah` saja | 300 paket berhasil (250 paket, 5.500 butir, lulus validator tanpa kembar dalam sekitar 17 detik); batasnya sekitar 308 paket (Line graph tingkat mudah paling sempit), lebih dari itu berhenti dengan pesan jelas |
+| 500 paket `semua` (11.000 butir) | berhasil, validator lulus 11.000/11.000, 0 kembar, kunci A-E merata; sekitar 41 detik termasuk validator |
+| 500 paket `ku` (6.000 butir) dan `pn` (5.000 butir) | berhasil, 0 kembar; sekitar 12 dan 27 detik |
+| 500 paket dengan tingkat `sedang` saja atau `sulit` saja | berhasil, 0 kembar (sekitar 45 detik termasuk validator) |
+| tingkat `mudah` saja | Kemampuan Umum saja: 500 paket berhasil. Bersama Penalaran Numerik: 250 paket (5.500 butir) lulus validator tanpa kembar dalam sekitar 16 detik; batasnya sekitar 300-312 paket menurut benih (terukur berhenti di paket 300, 309, dan 312 untuk benih 2026, 3, dan 23) karena Line graph tingkat mudah paling sempit, dan berhenti dengan pesan jelas |
 | Word + PDF + gambar | sekitar 3 detik dan 6 MB per paket |
 
 Komposisi kustom yang memusatkan banyak soal pada satu submateri, atau tingkat tunggal dengan paket sangat banyak, bisa menghabiskan bank soal lebih cepat. Pembuatan paket lalu berhenti dengan pesan `butir ... gagal disusun ... kapasitas bank untuk submateri ini mungkin habis`; kurangi jumlah paket, ganti benih, atau longgarkan komposisi.
@@ -173,6 +175,8 @@ js/                   modul (script klasik, bentuk UMD: jalan di peramban dan No
   svg.js font.js svgraster.js png.js kempis.js raster.js    gambar SVG dan PNG tanpa dependensi
   chart.js kamus.js pilihan.js butir.js    grafik/tabel SVG, perakit butir, pengecoh
   cerita.js tabelku.js grafikku.js verbal.js figural.js serial-putar.js inferensi.js
+  serial-ganda.js matriks-latin.js matriks-isi.js matriks-sekat.js bentuk.js
+                                           bentuk figural riset: kotak ganda, 5x5, 5x6, 2x2 bersekat, bentuk dasar
   figure.js families.js render.js          mesin bentuk figural (disalin dari Figural Kesesuaian Generator)
   pn-bar.js pn-tabel.js pn-garis.js pn-pie.js   Penalaran Numerik
   gambar.js bank.js paket.js               deskriptor gambar, daftar keluarga soal, perakit paket
@@ -204,8 +208,8 @@ node uji/browser.js            # hanya antarmuka (perlu Chrome atau Edge dan Nod
 - **Bentuk soal dipelajari dari riset**, bukan salinan soal OJK. Komposisi baku (12 soal Kemampuan Umum, 10 soal Penalaran Numerik; 10 dan 18 menit) adalah asumsi dari riset dan bisa diubah per paket; sebaiknya dicocokkan dengan kisi-kisi resmi terbaru.
 - **Verbal dirakit dari fakta dan templat**, bukan ditulis bebas. Kebenarannya pasti, tetapi gaya bahasanya cenderung seragam dan topiknya terbatas pada tujuh tema.
 - **Huruf pada PNG buatan CLI** memakai font garis sendiri (mirip Helvetica), sedikit berbeda dari huruf sistem yang dipakai peramban. Isi Word dan PDF tidak terpengaruh: keduanya memuat gambar yang sama.
-- **Word dan PDF diuji strukturnya** (ZIP, XML, tabel xref, gambar) dan PDF dirender untuk pemeriksaan visual. Contoh Word di `contoh-keluaran/` juga sudah dibuka di Microsoft Word 16 (16 Okt 2026): terbuka tanpa perbaikan otomatis, dalam mode normal, dan tata letaknya (35 dan 34 halaman) diperiksa dari PDF ekspor Word. Uji otomatis tidak menjalankan Word. Beberapa halaman PDF/Word memuat ruang kosong karena soal dijaga agar tidak terpotong antarhalaman.
+- **Word dan PDF diuji strukturnya** (ZIP, XML, tabel xref, gambar) dan PDF dirender untuk pemeriksaan visual. Contoh Word di `contoh-keluaran/` versi sebelum bentuk figural riset ditambahkan sudah dibuka di Microsoft Word 16 (16 Okt 2026): terbuka tanpa perbaikan otomatis, dalam mode normal, dan tata letaknya (35 dan 34 halaman) diperiksa dari PDF ekspor Word. Contoh yang sekarang dibuat ulang dengan penulis Word yang sama (kini memuat matriks 5x5) dan baru diperiksa oleh uji otomatis; halaman soal figural pada PDF-nya (36 dan 37 halaman) diperiksa secara visual, begitu juga halaman matriks 5x6, 2x2 bersekat, dan deret kotak ganda pada PDF paket 3 dan 4 benih 2026. Uji otomatis tidak menjalankan Word. Beberapa halaman PDF/Word memuat ruang kosong karena soal dijaga agar tidak terpotong antarhalaman.
 - **Soal interaktif** di Word/PDF tidak bisa diklik; yang interaktif hanya antarmuka peramban.
 - **Batas ZIP**: tanpa ZIP64, jadi ZIP semua Word, PDF, dan PNG untuk ratusan paket bisa mendekati batas 4 GB. Pakai `--format xlsx,json` untuk ratusan paket.
-- **Kapasitas bank** terbatas (lihat bagian Kapasitas); paket tingkat `mudah` saja dibatasi sekitar 308 paket.
+- **Kapasitas bank** terbatas (lihat bagian Kapasitas); paket tingkat `mudah` saja yang memuat Penalaran Numerik dibatasi sekitar 300 paket.
 - Uji antarmuka butuh Chrome atau Edge terpasang dan Node.js 22+ (WebSocket bawaan); kalau tidak ada, bagian itu dilewati.
