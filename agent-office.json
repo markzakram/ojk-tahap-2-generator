@@ -23,12 +23,13 @@
         "penalaran numerik"
       ],
       "wajib_salah_satu": [
-        "ojk",
-        "pcam",
         "paket ojk",
+        "paket tes ojk",
         "soal ojk",
+        "soal tes ojk",
         "potensi dasar",
-        "tpd"
+        "tpd",
+        "pcam"
       ],
       "perintah": [
         "cli/generate.js",
@@ -210,7 +211,9 @@
         "tes generator",
         "cek generator",
         "uji ojk",
-        "uji validator"
+        "uji validator",
+        "generator ojk",
+        "validator ojk"
       ],
       "perintah": [
         "uji/semua.js",
