@@ -143,7 +143,7 @@ Soal hanya menyimpan **model** gambar (data murni); SVG dirakit saat dibutuhkan.
 
 ## Format ekspor
 
-- **Word dan PDF** (per paket): naskah soal per subtes, **kunci jawaban** (tabel ringkas), lalu **pembahasan** langkah demi langkah dengan gambar kondisi kunci untuk soal interaktif.
+- **Word dan PDF** (per paket): naskah soal per subtes (tiap subtes mulai di halaman baru), **kunci jawaban** (tabel ringkas), lalu **pembahasan** langkah demi langkah dengan gambar kondisi kunci untuk soal interaktif. Word terbuka dalam mode normal, bukan Mode Kompatibilitas.
 - **Excel** (`soal-ojk-tahap1.xlsx`), lembar *Soal*, **satu baris per soal**. Kolom wajib: `no, paket, subtes, submateri, level, soal, opsi_a, opsi_b, opsi_c, opsi_d, opsi_e, jawaban_benar, pembahasan, berkas_gambar`. Tambahan: `id, benih, keluarga, bentuk_isian, kunci_isian, berkas_gambar_pembahasan`. Untuk soal bergambar, `berkas_gambar` dan opsi menuliskan nama berkas PNG yang ada di `paket-NNN/gambar/`. Lembar *Ringkasan* menghitung soal per paket, submateri, dan tingkat.
 - **JSON**: seluruh paket dan soal (stimulus, pertanyaan, opsi, kunci, langkah hitung, pembahasan, model gambar, bentuk isian dan nilai jawaban untuk soal interaktif) plus hasil validator.
 - **PNG**: gambar soal dan gambar kondisi kunci, diberi nama `<id soal>-<id gambar>.png`.
@@ -197,14 +197,14 @@ node uji/negatif.js            # hanya validator negatif
 node uji/browser.js            # hanya antarmuka (perlu Chrome atau Edge dan Node.js 22+)
 ```
 
-`uji/semua.js` memeriksa: (1) paket per subtes dengan beberapa benih berbeda (validator, kembar, komposisi, kunci A-E); (2) benih dan komposisi; (3) validator negatif; (4) logika mode coba; (5) isi berkas Word, PDF, PNG, Excel, JSON, dan ZIP (ZIP dibuka dan CRC dicocokkan, XML diperiksa, tabel xref PDF dicek, data PNG didekompresi); (6) CLI termasuk semua jalur gagal; (7) `agent-office.json`; (8) `contoh-keluaran/`; (9) antarmuka di Chrome/Edge tanpa kepala, termasuk menyeret widget dengan mouse sungguhan dan mengunduh semua jenis berkas. Hasil sementara ditulis ke folder sementara sistem, bukan ke project. Baris terakhir `HASIL: ...` atau `GAGAL: ...`.
+`uji/semua.js` memeriksa: (1) paket per subtes dengan beberapa benih berbeda (validator, kembar, komposisi, kunci A-E); (2) benih dan komposisi; (3) validator negatif; (4) logika mode coba; (5) isi berkas Word, PDF, PNG, Excel, JSON, dan ZIP (ZIP dibuka dan CRC dicocokkan, XML diperiksa, Word bukan Mode Kompatibilitas, subtes kedua mulai di halaman baru, tabel xref PDF dicek, data PNG didekompresi); (6) CLI termasuk semua jalur gagal; (7) `agent-office.json`; (8) `contoh-keluaran/`; (9) antarmuka di Chrome/Edge tanpa kepala, termasuk menyeret widget dengan mouse sungguhan dan mengunduh semua jenis berkas. Hasil sementara ditulis ke folder sementara sistem, bukan ke project. Baris terakhir `HASIL: ...` atau `GAGAL: ...`.
 
 ## Batasan dan hal yang perlu dipertimbangkan
 
 - **Bentuk soal dipelajari dari riset**, bukan salinan soal OJK. Komposisi baku (12 soal Kemampuan Umum, 10 soal Penalaran Numerik; 10 dan 18 menit) adalah asumsi dari riset dan bisa diubah per paket; sebaiknya dicocokkan dengan kisi-kisi resmi terbaru.
 - **Verbal dirakit dari fakta dan templat**, bukan ditulis bebas. Kebenarannya pasti, tetapi gaya bahasanya cenderung seragam dan topiknya terbatas pada tujuh tema.
 - **Huruf pada PNG buatan CLI** memakai font garis sendiri (mirip Helvetica), sedikit berbeda dari huruf sistem yang dipakai peramban. Isi Word dan PDF tidak terpengaruh: keduanya memuat gambar yang sama.
-- **Word dan PDF diuji strukturnya** (ZIP, XML, tabel xref, gambar) dan PDF dirender untuk pemeriksaan visual, tetapi tidak dibuka di Microsoft Word sungguhan. Beberapa halaman PDF/Word memuat ruang kosong karena soal dijaga agar tidak terpotong antarhalaman.
+- **Word dan PDF diuji strukturnya** (ZIP, XML, tabel xref, gambar) dan PDF dirender untuk pemeriksaan visual. Contoh Word di `contoh-keluaran/` juga sudah dibuka di Microsoft Word 16 (16 Okt 2026): terbuka tanpa perbaikan otomatis, dalam mode normal, dan tata letaknya (35 dan 34 halaman) diperiksa dari PDF ekspor Word. Uji otomatis tidak menjalankan Word. Beberapa halaman PDF/Word memuat ruang kosong karena soal dijaga agar tidak terpotong antarhalaman.
 - **Soal interaktif** di Word/PDF tidak bisa diklik; yang interaktif hanya antarmuka peramban.
 - **Batas ZIP**: tanpa ZIP64, jadi ZIP semua Word, PDF, dan PNG untuk ratusan paket bisa mendekati batas 4 GB. Pakai `--format xlsx,json` untuk ratusan paket.
 - **Kapasitas bank** terbatas (lihat bagian Kapasitas); paket tingkat `mudah` saja dibatasi sekitar 308 paket.

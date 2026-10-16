@@ -101,7 +101,7 @@ function lepasEntitas(t) {
   });
 }
 
-/** Periksa berkas .docx: ZIP utuh, semua XML benar, relasi dan gambar konsisten. */
+/** Periksa berkas .docx: ZIP utuh, semua XML benar, relasi dan gambar konsisten, bukan Mode Kompatibilitas. */
 function periksaDocx(buf) {
   var anggota = bacaZip(buf), peta = {};
   anggota.forEach(function (a) { peta[a.nama] = a; });
@@ -111,6 +111,11 @@ function periksaDocx(buf) {
   var xml = 0;
   anggota.forEach(function (a) { if (/\.(xml|rels)$/.test(a.nama)) { periksaXml(a.data.toString('utf8'), a.nama); xml++; } });
   var rels = peta['word/_rels/document.xml.rels'].data.toString('utf8'), doc = peta['word/document.xml'].data.toString('utf8');
+  // tanpa compatibilityMode 15 Word membuka berkas dalam Mode Kompatibilitas
+  var set = peta['word/settings.xml'], modus = set && /w:name="compatibilityMode"[^>]*w:val="(\d+)"/.exec(set.data.toString('utf8'));
+  if (!modus || +modus[1] < 15) throw new Error('DOCX: word/settings.xml tanpa compatibilityMode 15 (Word akan membuka dalam Mode Kompatibilitas)');
+  if (!/PartName="\/word\/settings\.xml"[^>]*settings\+xml/.test(peta['[Content_Types].xml'].data.toString('utf8'))) throw new Error('DOCX: tipe isi word/settings.xml tidak terdaftar');
+  if (!/<Relationship\b(?=[^>]*Type="[^"]*\/settings")(?=[^>]*Target="settings\.xml")[^>]*>/.test(rels)) throw new Error('DOCX: word/settings.xml tidak dirujuk relasi dokumen');
   var id = {}, mediaDirujuk = {};
   rels.replace(/<Relationship\b[^>]*>/g, function (r) {
     var i = /Id="([^"]+)"/.exec(r), t = /Target="([^"]+)"/.exec(r);
@@ -126,7 +131,7 @@ function periksaDocx(buf) {
   gambar.forEach(function (g) { periksaPng(g.data); });
   var paragraf = (doc.match(/<w:p[ >]/g) || []).length;
   if (paragraf < 50) throw new Error('DOCX: paragraf terlalu sedikit (' + paragraf + ')');
-  return { anggota: anggota.length, xml: xml, gambarUnik: gambar.length, gambarDipakai: embed, paragraf: paragraf, ukuran: buf.length };
+  return { anggota: anggota.length, xml: xml, gambarUnik: gambar.length, gambarDipakai: embed, paragraf: paragraf, ukuran: buf.length, modus: +modus[1] };
 }
 
 /** Baca satu lembar kerja .xlsx menjadi baris-baris teks. */

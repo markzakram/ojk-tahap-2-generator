@@ -3929,7 +3929,7 @@
         "Kuartal 2: total pendapatan penjualan naik 40%, jadi $200 juta × 1,4 = $280 juta.",
         "Pendapatan penjualan wilayah Timur 70% dari $280 juta = $196 juta; pendapatan penjualan wilayah Barat = $280 juta - $196 juta = $84 juta (30%).",
         "Kondisi akhir: Kuartal 1 total $200 juta (Wilayah Timur 20%, Wilayah Barat 80%); Kuartal 2 total $280 juta (Wilayah Timur 70%, Wilayah Barat 30%).",
-        "Pada tampilan awal, kedua batang masih berpembagian 50% / 50% dan total belum sesuai; atur ke kondisi akhir di atas.",
+        "Tampilan awal: Kuartal 1 total $200 juta (sudah sesuai) dan Kuartal 2 total $130 juta, keduanya berpembagian 50% / 50%. Atur yang belum sama dengan kondisi akhir di atas.",
         "Jawaban: Kuartal 1: total $200 juta, Wilayah Timur 20% ($40 juta), Wilayah Barat 80% ($160 juta). Kuartal 2: total $280 juta, Wilayah Timur 70% ($196 juta), Wilayah Barat 30% ($84 juta)."
        ],
        "gambarPembahasan": [
@@ -4166,7 +4166,7 @@
         "Kuartal 2: total dana kelolaan turun 25%, jadi $400 juta × 0,75 = $300 juta.",
         "Dana kelolaan reksa dana pasar uang 15% dari $300 juta = $45 juta; dana kelolaan reksa dana saham = $300 juta - $45 juta = $255 juta (85%).",
         "Kondisi akhir: Kuartal 1 total $400 juta (Pasar uang 35%, Saham 65%); Kuartal 2 total $300 juta (Pasar uang 15%, Saham 85%).",
-        "Pada tampilan awal, kedua batang masih berpembagian 50% / 50% dan total belum sesuai; atur ke kondisi akhir di atas.",
+        "Tampilan awal: Kuartal 1 total $400 juta (sudah sesuai) dan Kuartal 2 total $270 juta, keduanya berpembagian 50% / 50%. Atur yang belum sama dengan kondisi akhir di atas.",
         "Jawaban: Kuartal 1: total $400 juta, Pasar uang 35% ($140 juta), Saham 65% ($260 juta). Kuartal 2: total $300 juta, Pasar uang 15% ($45 juta), Saham 85% ($255 juta)."
        ],
        "gambarPembahasan": [
@@ -4407,7 +4407,7 @@
         "Semester 2: total dana pihak ketiga turun $140 juta, jadi $320 juta - $140 juta = $180 juta.",
         "Dana giro 55% dari $180 juta = $99 juta; dana tabungan = $180 juta - $99 juta = $81 juta (45%).",
         "Kondisi akhir: Semester 1 total $320 juta (Giro 15%, Tabungan 85%); Semester 2 total $180 juta (Giro 55%, Tabungan 45%).",
-        "Pada tampilan awal, kedua batang masih berpembagian 50% / 50% dan total belum sesuai; atur ke kondisi akhir di atas.",
+        "Tampilan awal: Semester 1 total $320 juta (sudah sesuai) dan Semester 2 total $220 juta, keduanya berpembagian 50% / 50%. Atur yang belum sama dengan kondisi akhir di atas.",
         "Jawaban: Semester 1: total $320 juta, Giro 15% ($48 juta), Tabungan 85% ($272 juta). Semester 2: total $180 juta, Giro 55% ($99 juta), Tabungan 45% ($81 juta)."
        ],
        "gambarPembahasan": [
@@ -12197,7 +12197,7 @@
         "Semester 2: total kredit naik 50%, jadi $280 juta × 1,5 = $420 juta.",
         "Kredit lancar 30% dari $420 juta = $126 juta; kredit bermasalah = $420 juta - $126 juta = $294 juta (70%).",
         "Kondisi akhir: Semester 1 total $280 juta (Kredit lancar 70%, Kredit bermasalah 30%); Semester 2 total $420 juta (Kredit lancar 30%, Kredit bermasalah 70%).",
-        "Pada tampilan awal, kedua batang masih berpembagian 50% / 50% dan total belum sesuai; atur ke kondisi akhir di atas.",
+        "Tampilan awal: Semester 1 total $280 juta (sudah sesuai) dan Semester 2 total $190 juta, keduanya berpembagian 50% / 50%. Atur yang belum sama dengan kondisi akhir di atas.",
         "Jawaban: Semester 1: total $280 juta, Kredit lancar 70% ($196 juta), Kredit bermasalah 30% ($84 juta). Semester 2: total $420 juta, Kredit lancar 30% ($126 juta), Kredit bermasalah 70% ($294 juta)."
        ],
        "gambarPembahasan": [
@@ -12438,7 +12438,7 @@
         "Bulan 2: total transaksi naik 400 ribu, jadi 1.100 ribu + 400 ribu = 1.500 ribu.",
         "Transaksi isi saldo 40% dari 1.500 ribu = 600 ribu; transaksi pembayaran = 1.500 ribu - 600 ribu = 900 ribu (60%).",
         "Kondisi akhir: Bulan 1 total 1.100 ribu (Isi saldo 50%, Pembayaran 50%); Bulan 2 total 1.500 ribu (Isi saldo 40%, Pembayaran 60%).",
-        "Pada tampilan awal, kedua batang masih berpembagian 50% / 50% dan total belum sesuai; atur ke kondisi akhir di atas.",
+        "Tampilan awal: Bulan 1 total 1.100 ribu (sudah sesuai) dan Bulan 2 total 700 ribu, keduanya berpembagian 50% / 50%. Atur yang belum sama dengan kondisi akhir di atas.",
         "Jawaban: Bulan 1: total 1.100 ribu, Isi saldo 50% (550 ribu), Pembayaran 50% (550 ribu). Bulan 2: total 1.500 ribu, Isi saldo 40% (600 ribu), Pembayaran 60% (900 ribu)."
        ],
        "gambarPembahasan": [
@@ -12675,7 +12675,7 @@
         "2026: total anggaran naik 25%, jadi $120 juta × 1,25 = $150 juta.",
         "Belanja pegawai 35% dari $150 juta = $52,5 juta; belanja operasional = $150 juta - $52,5 juta = $97,5 juta (65%).",
         "Kondisi akhir: 2025 total $120 juta (Belanja pegawai 20%, Belanja operasional 80%); 2026 total $150 juta (Belanja pegawai 35%, Belanja operasional 65%).",
-        "Pada tampilan awal, kedua batang masih berpembagian 50% / 50% dan total belum sesuai; atur ke kondisi akhir di atas.",
+        "Tampilan awal: 2025 total $120 juta (sudah sesuai) dan 2026 total $80 juta, keduanya berpembagian 50% / 50%. Atur yang belum sama dengan kondisi akhir di atas.",
         "Jawaban: 2025: total $120 juta, Belanja pegawai 20% ($24 juta), Belanja operasional 80% ($96 juta). 2026: total $150 juta, Belanja pegawai 35% ($52,5 juta), Belanja operasional 65% ($97,5 juta)."
        ],
        "gambarPembahasan": [

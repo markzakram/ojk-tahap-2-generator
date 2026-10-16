@@ -183,12 +183,16 @@
       var model = { kategori: f.kat, seri: [f.namaA, f.namaB], sumbuMaks: sumbuMaks, langkah: lg, awalan: f.sym, akhiran: f.akhiran, desimal: 1, judulY: '' };
       var kunci = { total: [T1, T2], persen: [pA1, pA2] };
       var awal = { total: awalTotal, persen: [50, 50] };
+      // total batang pertama sengaja sudah sama dengan keterangan (seperti contoh riset), jadi disebut apa adanya
+      var sesuai = function (ya) { return ya ? ' (sudah sesuai)' : ''; };
+      var kalimatAwal = 'Tampilan awal: ' + k1 + ' total ' + uang(f, awalTotal[0]) + sesuai(awalTotal[0] === T1) + ' dan ' + k2 + ' total ' + uang(f, awalTotal[1]) + sesuai(awalTotal[1] === T2) +
+        ', keduanya berpembagian 50% / 50%. Atur yang belum sama dengan kondisi akhir di atas.';
       var kunciTeks = f.kat[0] + ': total ' + uang(f, T1) + ', ' + f.namaA + ' ' + sebutan(pA1) + '% (' + uang(f, A1) + '), ' + f.namaB + ' ' + sebutan(100 - pA1) + '% (' + uang(f, B1) + '). ' +
         f.kat[1] + ': total ' + uang(f, T2) + ', ' + f.namaA + ' ' + sebutan(pA2) + '% (' + uang(f, A2) + '), ' + f.namaB + ' ' + sebutan(100 - pA2) + '% (' + uang(f, B2) + ').';
       return {
         f: f, fi: fi, teks: [f.pembuka].concat(butir), judul: f.judul + ' · Bar Chart',
         pertanyaan: 'Atur ' + f.total + ' dan persentase ' + f.A + ' serta ' + f.B + ' untuk setiap ' + f.jenis + '.',
-        model: model, awal: awal, kunci: kunci, kunciTeks: kunciTeks, langkahHitung: steps, param: param, tampil: tampil, pembahasan: pem,
+        model: model, awal: awal, kunci: kunci, kunciTeks: kunciTeks, langkahHitung: steps, param: param, tampil: tampil, pembahasan: pem, kalimatAwal: kalimatAwal,
         nilai: { T1: T1, T2: T2, A1: A1, A2: A2, B1: B1, B2: B2, jenisAwal: jenisAwal, jenisT: jenisT, jenisS: jenisS }, langkahTotal: langkah
       };
     }
@@ -216,7 +220,7 @@
       isian: { jenis: 'bar-tumpuk', kontrol: kontrol, awal: s.awal, kunci: s.kunci, model: s.model, kategori: s.f.kat, seri: [s.f.namaA, s.f.namaB] },
       kunciTeks: s.kunciTeks,
       langkah: s.langkahHitung,
-      pembahasan: s.pembahasan.concat(['Pada tampilan awal, kedua batang masih berpembagian 50% / 50% dan total belum sesuai; atur ke kondisi akhir di atas.']),
+      pembahasan: s.pembahasan.concat([s.kalimatAwal]),
       model: {
         param: s.param, tampil: s.tampil, toleransi: 1e-9, topik: 'Bar Chart',
         kunciLangkah: { total: ['T1', 'T2'], persen: ['pA1', 'pA2'] }, langkahTotal: s.langkahTotal, langkahPersen: 5, sumbuMaks: s.model.sumbuMaks

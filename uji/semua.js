@@ -210,7 +210,18 @@ async function ujiEkspor() {
   var berkas = await Ekspor.berkasPaket(hasil.hasil.paket[0], { docx: true, pdf: true, gambar: true, skala: 2, benih: 2026 });
   var docx = berkas.filter(function (b) { return b.jenis === 'docx'; })[0], pdf = berkas.filter(function (b) { return b.jenis === 'pdf'; })[0], png = berkas.filter(function (b) { return b.jenis === 'png'; });
   cetak('        satu paket Word + PDF + gambar: ' + detik(Date.now() - t0));
-  try { var d = Berkas.periksaDocx(docx.data); cek(d.gambarUnik >= 40 && d.paragraf > 300, 'Word: ZIP utuh, ' + d.xml + ' bagian XML benar, ' + d.gambarUnik + ' gambar PNG tertanam, ' + d.paragraf + ' paragraf'); } catch (e) { cek(false, 'Word utuh', e.message); }
+  try { var d = Berkas.periksaDocx(docx.data); cek(d.gambarUnik >= 40 && d.paragraf > 300, 'Word: ZIP utuh, ' + d.xml + ' bagian XML benar, ' + d.gambarUnik + ' gambar PNG tertanam, ' + d.paragraf + ' paragraf, compatibilityMode ' + d.modus + ' (bukan Mode Kompatibilitas)'); } catch (e) { cek(false, 'Word utuh', e.message); }
+  // naskah Word dan PDF berasal dari model blok yang sama: subtes berikutnya harus didahului lompatan halaman
+  var blk = Dokumen.dariPaket(hasil.hasil.paket[0], function () { return { lebar: 200, tinggi: 100, skala: 2, png: new Uint8Array(0) }; }, {}).blok;
+  var judulLanjut = [];
+  blk.forEach(function (x, i) { if ((x.t === 'h2' || x.t === 'h3') && /^Subtes [2-9] /.test(x.teks)) judulLanjut.push(blk[i - 1].t === 'jeda'); });
+  cek(judulLanjut.length === 2 && judulLanjut.every(Boolean), 'Word dan PDF: Subtes 2 mulai di halaman baru, di naskah soal dan di pembahasan', judulLanjut.join(','));
+  var bar = butir.filter(function (b) { return b.submateri === 'bar'; }), barSalah = bar.filter(function (b) {
+    var kal = b.pembahasan.filter(function (t) { return /^Tampilan awal: /.test(t); });
+    var harus = b.isian.awal.total.filter(function (v, i) { return v === b.isian.kunci.total[i]; }).length;
+    return kal.length !== 1 || (kal[0].match(/\(sudah sesuai\)/g) || []).length !== harus;
+  });
+  cek(bar.length > 0 && barSalah.length === 0, 'Bar chart: pembahasan menyebut tampilan awal apa adanya, total yang sudah sesuai ditandai (' + bar.length + ' butir)', barSalah.map(function (b) { return b.id; }).join(' '));
   try { var p = Berkas.periksaPdf(pdf.data); cek(p.halaman >= 20, 'PDF: tabel xref konsisten, ' + p.halaman + ' halaman, ' + p.objek + ' objek'); } catch (e) { cek(false, 'PDF utuh', e.message); }
   var gambarDiharapkan = 0;
   hasil.hasil.paket[0].subtes.forEach(function (st) { st.butir.forEach(function (b) { gambarDiharapkan += Dokumen.daftarSoal(b).length + Dokumen.daftarPembahasan(b).length; }); });

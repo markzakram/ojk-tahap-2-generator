@@ -189,6 +189,13 @@
       '</w:styles>';
   }
 
+  // Tanpa compatibilityMode 15, Word membuka berkas dalam Mode Kompatibilitas (Word 2007).
+  function settings() {
+    return KEPALA + '<w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:compat>' +
+      '<w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/>' +
+      '</w:compat></w:settings>';
+  }
+
   function kaki(teks) {
     return KEPALA + '<w:ftr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p><w:pPr><w:jc w:val="center"/></w:pPr>' +
       '<w:r><w:rPr><w:color w:val="667089"/><w:sz w:val="17"/></w:rPr><w:t xml:space="preserve">' + esc(teks) + ' · Halaman </w:t></w:r>' +
@@ -223,12 +230,14 @@
       '<Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/>' +
       '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
       '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>' +
+      '<Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>' +
       '<Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/></Types>';
     var rels = KEPALA + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
       '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
     var relsDok = KEPALA + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
       '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
       '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/>' +
+      '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/>' +
       w.gambar.map(function (g) { return '<Relationship Id="' + g.rid + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/' + g.nama + '"/>'; }).join('') +
       '</Relationships>';
 
@@ -237,6 +246,7 @@
       { nama: '_rels/.rels', data: enc.encode(rels) },
       { nama: 'word/_rels/document.xml.rels', data: enc.encode(relsDok) },
       { nama: 'word/styles.xml', data: enc.encode(styles()) },
+      { nama: 'word/settings.xml', data: enc.encode(settings()) },
       { nama: 'word/footer1.xml', data: enc.encode(kaki(model.kaki || '')) },
       { nama: 'word/document.xml', data: enc.encode(dokumen) }
     ];

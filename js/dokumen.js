@@ -251,7 +251,9 @@
     blok.push({ t: 'h1', teks: judul });
     blok.push(par('Paket ' + paket.id + ' · benih utama ' + (opsi.benih != null ? opsi.benih : '-') + ' · ' + paket.subtes.map(function (s) { return s.nama + ' ' + s.jumlah + ' soal / ' + s.menit + ' menit'; }).join(' · '), { ukuran: 9.5, warna: '667089', sesudah: 10 }));
     blok.push(par('Naskah soal', { tebal: true, ukuran: 13, sesudah: 4 }));
+    // subtes berikutnya mulai di halaman baru supaya judulnya tidak tertinggal di dasar halaman
     paket.subtes.forEach(function (st, i) {
+      if (i > 0) blok.push({ t: 'jeda' });
       blok.push({ t: 'h2', teks: 'Subtes ' + (i + 1) + ' — ' + st.nama });
       blok.push(par(st.jumlah + ' soal · ' + st.menit + ' menit' + (st.kode === 'pn' ? ' · tes interaktif: jawaban berupa kondisi akhir tampilan (batang, tab, titik, atau irisan)' : ' · pilihan ganda'), { ukuran: 9.5, warna: '667089', sesudah: 8 }));
       st.butir.forEach(function (b) { blok.push(blokSoal(b, img, opsi)); });
@@ -262,6 +264,7 @@
       blok.push({ t: 'jeda' });
       blok.push({ t: 'h2', teks: 'Pembahasan' });
       paket.subtes.forEach(function (st, i) {
+        if (i > 0) blok.push({ t: 'jeda' });
         blok.push({ t: 'h3', teks: 'Subtes ' + (i + 1) + ' — ' + st.nama });
         st.butir.forEach(function (b) { blok.push({ t: 'grup', anak: blokPembahasan(b, img) }); });
       });
