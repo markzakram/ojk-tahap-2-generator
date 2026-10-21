@@ -1,5 +1,5 @@
 Generator Soal OJK PCAM Tahap 1 - ringkasan (versi 1.1.0)
-Dibuat       : 2026-10-21 11:33:25 UTC
+Dibuat       : 2026-10-21 12:06:48 UTC
 Benih        : 2026
 Paket        : 2
 Subtes       : ku, pn

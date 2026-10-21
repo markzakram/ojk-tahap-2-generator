@@ -72,7 +72,7 @@ function pecahSoal(badan) {
  * Periksa satu berkas Word SiAdu terhadap butir asal (urutan sama).
  * @returns {string[]} daftar masalah (kosong bila sesuai)
  */
-function periksa(docx, butir) {
+function periksa(docx, butir, modeRumus) {
   var masalah = [], soal = pecahSoal(bacaBadan(docx));
   if (soal.length !== butir.length) masalah.push('jumlah "Soal N" ' + soal.length + ', seharusnya ' + butir.length);
   soal.forEach(function (s, i) {
@@ -100,9 +100,12 @@ function periksa(docx, butir) {
     if (iJawab < 0 || iPem < 0 || iPem < iJawab) { masalah.push(nama + ': baris Jawaban/Pembahasan tidak ada atau terbalik'); return; }
     var soalIsi = s.isi.slice(nId + 3, iJawab), jawaban = s.isi[iJawab].p.trim().replace(/^Jawaban:\s*/, '');
     var bagianPem = s.isi.slice(iPem + 1);
-    var jumlahRumus = bagianPem.reduce(function (n, x) { return n + (x.rumus || 0); }, 0);
+    // rumus Word: Equation Word (m:oMath) atau baris LaTeX "$$...$$" (baku)
+    var jumlahRumus = modeRumus === 'equation' ? bagianPem.reduce(function (n, x) { return n + (x.rumus || 0); }, 0)
+      : bagianPem.filter(function (x) { return x.p != null && !x.rumus && /^\$\$[\s\S]+\$\$$/.test(x.p.trim()); }).length;
+    if (modeRumus !== 'equation' && bagianPem.some(function (x) { return x.rumus; })) masalah.push(nama + ': mode LaTeX tetapi ada Equation Word');
     var harusRumus = (b.pembahasan || []).filter(function (t) { return /^§ /.test(t); }).length;
-    if (jumlahRumus !== harusRumus) masalah.push(nama + ': ' + jumlahRumus + ' persamaan Word di pembahasan, seharusnya ' + harusRumus);
+    if (jumlahRumus !== harusRumus) masalah.push(nama + ': ' + jumlahRumus + ' persamaan (' + (modeRumus || 'latex') + ') di pembahasan, seharusnya ' + harusRumus);
     if (bagianPem.some(function (x) { return x.p != null && /Pilihan lain yang menjebak/.test(x.p); })) masalah.push(nama + ': pembahasan masih mengulas pilihan yang salah');
     if (b.jenis === 'pg' && (b.gambarPembahasan || []).length !== bagianPem.reduce(function (n, x) { return n + (x.gambar || 0); }, 0)) masalah.push(nama + ': gambar pembahasan tidak lengkap');
     var tabel = soalIsi.filter(function (x) { return x.tabel; }).map(function (x) { return x.tabel; });
@@ -201,14 +204,14 @@ if (require.main === module) {
   var hasil = Paket.buat({ jumlahPaket: 2, benih: 2824819757, komposisi: komposisi });
   var gagal = 0, jalan = Promise.resolve();
   hasil.hasil.paket.forEach(function (p) {
-    jalan = jalan.then(function () { return Ekspor.berkasPaket(p, { docx: true, benih: 2824819757 }); }).then(function (berkas) {
+    ['latex', 'equation'].forEach(function (mode) { jalan = jalan.then(function () { return Ekspor.berkasPaket(p, { docx: true, benih: 2824819757, rumus: mode }); }).then(function (berkas) {
       berkas.filter(function (f) { return f.jenis === 'docx'; }).forEach(function (f) {
         var st = p.subtes.filter(function (s) { return s.kode === f.subtes; })[0];
-        var m = periksa(Buffer.from(f.data), st.butir);
-        console.log((m.length ? 'GAGAL ' : 'ok    ') + f.nama + ': ' + st.butir.length + ' soal' + (m.length ? ' - ' + m.slice(0, 5).join('; ') : ''));
+        var m = periksa(Buffer.from(f.data), st.butir, mode);
+        console.log((m.length ? 'GAGAL ' : 'ok    ') + f.nama + ' (rumus ' + mode + '): ' + st.butir.length + ' soal' + (m.length ? ' - ' + m.slice(0, 5).join('; ') : ''));
         if (m.length) gagal++;
       });
-    });
+    }); });
   });
   jalan.then(function () { console.log('HASIL: ' + gagal + ' berkas bermasalah'); process.exitCode = gagal ? 1 : 0; });
 }

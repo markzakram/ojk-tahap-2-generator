@@ -15,19 +15,19 @@
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
-    api = factory(require('./metrik.js'), require('./kempis.js'));
+    api = factory(require('./metrik.js'), require('./kempis.js'), require('./rumus.js'));
     module.exports = api;
   } else {
-    api = factory(root.Metrik, root.Kempis);
+    api = factory(root.Metrik, root.Kempis, root.Rumus);
     root.Pdf = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Metrik, Kempis) {
+})(typeof self !== 'undefined' ? self : this, function (Metrik, Kempis, Rumus) {
   'use strict';
 
   var LEBAR = 595.28, TINGGI = 841.89;
   var TEPI_KIRI = 56.7, TEPI_ATAS = 56.7, TEPI_BAWAH = 66;
   var ISI_W = LEBAR - 2 * TEPI_KIRI, ISI_H = TINGGI - TEPI_ATAS - TEPI_BAWAH;
-  var FONT = { 1: 'Helvetica', 2: 'Helvetica-Bold', 3: 'Helvetica-Oblique', 4: 'Helvetica-BoldOblique' };
+  var FONT = { 1: 'Helvetica', 2: 'Helvetica-Bold', 3: 'Helvetica-Oblique', 4: 'Helvetica-BoldOblique', 5: 'Symbol' };
 
   function biner(str) {
     var u = new Uint8Array(str.length);
@@ -106,6 +106,77 @@
     return { tinggi: baris.length * lead + sesudah, prim: prim, isiTinggi: baris.length * lead };
   }
 
+  // ------------------------------------------------------------------ rumus
+
+  /*
+   * Persamaan ditata dari pohon Rumus.urai sebagai kotak { w, a, d, gambar(x, garisDasar, prim) }:
+   * variabel miring, angka dan teks tegak, pecahan bertingkat (85%) dengan garis pecahan setinggi
+   * sumbu matematika, pangkat dan indeks 70% yang dinaikkan/diturunkan. Tanda relasi dan operasi
+   * memakai font Symbol bawaan PDF (kode di bawah), jadi ≈, ≤, ≥, ×, →, − tercetak sebagai tanda aslinya.
+   */
+  var SIMBOL_PDF = { '≈': [0xBB, 549], '≤': [0xA3, 549], '≥': [0xB3, 549], '≠': [0xB9, 549], '×': [0xB4, 549], '÷': [0xB8, 549],
+    '→': [0xAE, 987], '±': [0xB1, 549], '−': [0x2D, 549], '=': [0x3D, 549], '+': [0x2B, 549], '<': [0x3C, 549], '>': [0x3E, 549], '·': [0xD7, 250] };
+  var TINTA_RUMUS = '1B2130';
+
+  function kotakDeret(xs, s) {
+    // minus di awal atau setelah tanda lain/kurung buka adalah tanda bilangan negatif: tanpa jarak
+    var anak = xs.map(function (x, i) {
+      var sebelum = i ? xs[i - 1] : null;
+      var unari = x.t === 'atom' && x.v === '−' && (!sebelum || (sebelum.t === 'atom' && (SIMBOL_PDF[sebelum.v] || sebelum.v === '(')));
+      return kotakItem(x, s, unari);
+    });
+    var w = 0, a = s * 0.72, d = s * 0.22;
+    anak.forEach(function (k) { w += k.w; a = Math.max(a, k.a); d = Math.max(d, k.d); });
+    return { w: w, a: a, d: d, gambar: function (x, yb, prim) { var cx = x; anak.forEach(function (k) { k.gambar(cx, yb, prim); cx += k.w; }); } };
+  }
+
+  function kotakItem(x, s, unari) {
+    if (x.t === 'grup') return kotakDeret(x.isi, s);
+    if (x.t === 'atom') {
+      var sim = SIMBOL_PDF[x.v];
+      if (sim) {
+        // tanda relasi/operasi berjarak di kiri-kanan; minus bilangan negatif rapat ke angkanya
+        var jarak = unari ? s * 0.03 : x.v === '·' ? s * 0.12 : s * 0.24, lebarSim = sim[1] * s / 1000;
+        return { w: lebarSim + 2 * jarak, a: s * 0.6, d: s * 0.1, gambar: function (cx, yb, prim) {
+          prim.push({ k: 'teks', x: cx + jarak, y: yb, s: s, f: 5, warna: TINTA_RUMUS, teks: String.fromCharCode(sim[0]), mentah: true });
+        } };
+      }
+      // spasi LaTeX (\quad, \, dan "\ ") hanya memberi jarak; hurufnya tidak ada di WinAnsi
+      var spasi = { ' ': 1, ' ': 0.17, ' ': 0.28 }[x.v];
+      if (spasi) return { w: s * spasi, a: 0, d: 0, gambar: function () {} };
+      var miring = x.gaya === 'var', w = Metrik.lebar(x.v, s, false);
+      return { w: w + (miring ? s * 0.05 : 0), a: s * 0.72, d: s * 0.22, gambar: function (cx, yb, prim) {
+        prim.push({ k: 'teks', x: cx, y: yb, s: s, f: fontKunci(false, miring), warna: TINTA_RUMUS, teks: x.v });
+      } };
+    }
+    if (x.t === 'frac') {
+      var s2 = s * 0.9, atas = kotakDeret(x.a, s2), bawah = kotakDeret(x.b, s2), sumbu = s * 0.3, celah = s * 0.18, tepi = s * 0.15;
+      var lebarF = Math.max(atas.w, bawah.w) + 2 * tepi;
+      return { w: lebarF + s * 0.1, a: sumbu + celah + atas.d + atas.a, d: Math.max(0, celah + bawah.a + bawah.d - sumbu), gambar: function (cx, yb, prim) {
+        var garis = yb - sumbu;
+        atas.gambar(cx + (lebarF - atas.w) / 2, garis - celah - atas.d, prim);
+        bawah.gambar(cx + (lebarF - bawah.w) / 2, garis + celah + bawah.a, prim);
+        prim.push({ k: 'rect', x: cx + tepi * 0.4, y: garis - 0.3, w: lebarF - tepi * 0.8, h: 0.6, isi: TINTA_RUMUS, garis: TINTA_RUMUS });
+      } };
+    }
+    // pangkat dan indeks bawah
+    var dasar = kotakDeret(x.e, s), kecil = kotakDeret(x.x, s * 0.7), naik = x.t === 'sup' ? s * 0.42 : -s * 0.2;
+    return { w: dasar.w + kecil.w + s * 0.04, a: Math.max(dasar.a, naik + kecil.a), d: Math.max(dasar.d, kecil.d - naik), gambar: function (cx, yb, prim) {
+      dasar.gambar(cx, yb, prim);
+      kecil.gambar(cx + dasar.w + s * 0.02, yb - naik, prim);
+    } };
+  }
+
+  /** Blok persamaan: ditata dari notasinya; bila gagal diurai atau terlalu lebar, dicetak sebagai teks biasa. */
+  function tataRumus(b) {
+    var s = b.ukuran || 10, indent = 18, kotak = null;
+    try { kotak = kotakDeret(Rumus.urai(b.notasi), s); } catch (e) { kotak = null; }
+    if (!kotak || kotak.w > ISI_W - indent) return tataParagraf({ runs: [{ teks: b.teks || b.notasi }], ukuran: s, indent: indent, sesudah: 3 }, ISI_W);
+    var prim = [], dasar = kotak.a + 2;
+    kotak.gambar(indent, dasar, prim);
+    return { tinggi: kotak.a + kotak.d + 7, prim: prim };
+  }
+
   function tataJudul(b, tingkat) {
     var ukuran = tingkat === 1 ? 17 : (tingkat === 2 ? 13 : 11.5), warna = tingkat === 1 ? '1B2130' : (tingkat === 2 ? '1F3A5F' : '2C4A7A');
     var sebelum = tingkat === 1 ? 0 : (tingkat === 2 ? 8 : 6), sesudah = tingkat === 1 ? 6 : (tingkat === 2 ? 5 : 4);
@@ -179,6 +250,7 @@
       case 'h2': return [tataJudul(b, 2)];
       case 'h3': return [tataJudul(b, 3)];
       case 'p': return [tataParagraf(b, ISI_W)];
+      case 'rumus': return [tataRumus(b)];
       case 'jarak': return [{ tinggi: b.tinggi, prim: [] }];
       case 'gambar': return [tataGambar(b)];
       case 'galeri': return [tataGaleri(b)];
@@ -251,7 +323,9 @@
     hal.prim.forEach(function (p) {
       var y = TINGGI - TEPI_ATAS - p.y;
       if (p.k === 'teks') {
-        ops.push('BT ' + warnaPdf(p.warna) + ' rg /F' + p.f + ' ' + angka(p.s) + ' Tf 1 0 0 1 ' + angka(TEPI_KIRI + p.x) + ' ' + angka(y) + ' Tm (' + Metrik.teksPdf(p.teks) + ') Tj ET');
+        // teks `mentah` sudah berupa kode huruf (font Symbol); selainnya diubah ke WinAnsi
+        var isiTeks = p.mentah ? p.teks.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)') : Metrik.teksPdf(p.teks);
+        ops.push('BT ' + warnaPdf(p.warna) + ' rg /F' + p.f + ' ' + angka(p.s) + ' Tf 1 0 0 1 ' + angka(TEPI_KIRI + p.x) + ' ' + angka(y) + ' Tm (' + isiTeks + ') Tj ET');
       } else if (p.k === 'rect') {
         if (p.isi) ops.push(warnaPdf(p.isi) + ' rg ' + angka(TEPI_KIRI + p.x) + ' ' + angka(y - p.h) + ' ' + angka(p.w) + ' ' + angka(p.h) + ' re f');
         ops.push(warnaPdf(p.garis, 'B8C2D6') + ' RG 0.6 w ' + angka(TEPI_KIRI + p.x) + ' ' + angka(y - p.h) + ' ' + angka(p.w) + ' ' + angka(p.h) + ' re S');
@@ -281,6 +355,8 @@
     [1, 2, 3, 4].forEach(function (k) {
       noFont[k] = tambah({ isi: '<< /Type /Font /Subtype /Type1 /BaseFont /' + FONT[k] + ' /Encoding /WinAnsiEncoding >>' });
     });
+    // Symbol (salah satu 14 font standar PDF) memakai pengodean bawaannya untuk tanda matematika
+    noFont[5] = tambah({ isi: '<< /Type /Font /Subtype /Type1 /BaseFont /Symbol >>' });
 
     // gambar unik -> XObject
     var petaGambar = new Map(), daftarGambar = [];
@@ -314,7 +390,7 @@
           return '/' + n + ' ' + g.no + ' 0 R';
         }).join(' ') + ' >>' : '';
         noHalaman.push(tambah({ isi: '<< /Type /Page /Parent ' + noPages + ' 0 R /MediaBox [0 0 ' + LEBAR + ' ' + TINGGI + '] /Resources << /Font << ' +
-          [1, 2, 3, 4].map(function (k) { return '/F' + k + ' ' + noFont[k] + ' 0 R'; }).join(' ') + ' >> ' + xobj + ' >> /Contents ' + noIsi + ' 0 R >>' }));
+          [1, 2, 3, 4, 5].map(function (k) { return '/F' + k + ' ' + noFont[k] + ' 0 R'; }).join(' ') + ' >> ' + xobj + ' >> /Contents ' + noIsi + ' 0 R >>' }));
       });
     });
 

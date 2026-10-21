@@ -2,8 +2,10 @@
  * rumus.js — baris persamaan pada pembahasan, ditulis sekali dan dicetak tiga cara.
  *
  * Pembahasan tetap berupa daftar baris teks. Baris yang diawali "§ " adalah PERSAMAAN dalam
- * notasi LaTeX sederhana; penulis Word mengubahnya menjadi Equation Word (OMML, dibaca SiAdu
- * sebagai MathML), PDF/Excel/JSON memakai teks Unicode, dan antarmuka memakai HTML.
+ * notasi LaTeX sederhana. Excel, JSON, dan Word (bawaan) menuliskannya sebagai LaTeX `$$...$$`
+ * (dikenali MathJax dan KaTeX tanpa pengaturan tambahan); Word dapat diminta mencetak Equation
+ * Word (OMML, dibaca SiAdu sebagai MathML); PDF menatanya sendiri dengan pecahan bertingkat;
+ * antarmuka memakai HTML. Notasinya LaTeX baku, jadi bisa disalin langsung ke penyunting LaTeX.
  *
  *   § M = \frac{HJ}{1 + u} = \frac{25}{1{,}25} = 20
  *   § V = 1{,}25 \times 1{,}6 \times 0{,}5 = 1\ \text{m}^{3}
@@ -212,6 +214,12 @@
   /** Isi <m:oMath> untuk satu persamaan (tanpa paragraf pembungkus). */
   function omml(notasi) { return '<m:oMath>' + ommlPohon(urai(notasi)) + '</m:oMath>'; }
 
+  /** LaTeX satu persamaan sebagai baris tampilan: $$...$$. */
+  function latex(notasi) { return '$$' + notasi + '$$'; }
+
+  /** Baris pembahasan dalam bentuk LaTeX: persamaan menjadi $$...$$, baris lain apa adanya. */
+  function barisLatex(b) { return adalah(b) ? latex(isi(b)) : b; }
+
   /** Periksa notasi: null bila sah, pesan galat bila tidak. */
   function periksa(notasi) {
     try { urai(notasi); return null; } catch (e) { return e.message; }
@@ -219,6 +227,6 @@
 
   return {
     PENANDA: PENANDA, JUDUL_BAGIAN: JUDUL_BAGIAN, adalah: adalah, isi: isi, baris: baris, judulBagian: judulBagian,
-    urai: urai, teks: teks, barisTeks: barisTeks, html: html, omml: omml, periksa: periksa
+    urai: urai, teks: teks, barisTeks: barisTeks, latex: latex, barisLatex: barisLatex, html: html, omml: omml, periksa: periksa
   };
 });

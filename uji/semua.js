@@ -226,7 +226,13 @@ async function ujiEkspor() {
   // dibaca balik seperti importir SiAdu: Soal N, tingkat, bentuk, pilihan/tabel kunci, jawaban, pembahasan
   semuaDocx.forEach(function (f) {
     var st = hasil.hasil.paket[0].subtes.filter(function (s) { return s.kode === f.subtes; })[0];
-    try { Berkas.periksaDocx(f.data); var ms = Siadu.periksa(Buffer.from(f.data), st.butir); cek(ms.length === 0, 'Word ' + f.nama.split('/').pop() + ' terbaca sesuai template SiAdu (' + st.butir.length + ' soal)', ms.slice(0, 3).join('; ')); } catch (e) { cek(false, 'Word ' + f.nama + ' sesuai template SiAdu', e.message); }
+    try { Berkas.periksaDocx(f.data); var ms = Siadu.periksa(Buffer.from(f.data), st.butir); cek(ms.length === 0, 'Word ' + f.nama.split('/').pop() + ' terbaca sesuai template SiAdu, rumus LaTeX $$...$$ (' + st.butir.length + ' soal)', ms.slice(0, 3).join('; ')); } catch (e) { cek(false, 'Word ' + f.nama + ' sesuai template SiAdu', e.message); }
+  });
+  // --rumus equation: rumus pembahasan sebagai Equation Word
+  var berkasEq = await Ekspor.berkasPaket(hasil.hasil.paket[0], { docx: true, benih: 2026, rumus: 'equation' });
+  berkasEq.filter(function (b) { return b.jenis === 'docx'; }).forEach(function (f) {
+    var st = hasil.hasil.paket[0].subtes.filter(function (s) { return s.kode === f.subtes; })[0];
+    try { Berkas.periksaDocx(f.data); var ms = Siadu.periksa(Buffer.from(f.data), st.butir, 'equation'); cek(ms.length === 0, 'Word ' + f.nama.split('/').pop() + ' dengan --rumus equation: rumus berupa Equation Word', ms.slice(0, 3).join('; ')); } catch (e) { cek(false, 'Word ' + f.nama + ' dengan Equation Word', e.message); }
   });
   // naskah Word dan PDF berasal dari model blok yang sama: subtes berikutnya harus didahului lompatan halaman
   var blk = Dokumen.dariPaket(hasil.hasil.paket[0], function () { return { lebar: 200, tinggi: 100, skala: 2, png: new Uint8Array(0) }; }, {}).blok; // naskah PDF
@@ -315,7 +321,7 @@ function cariFile(dir, pola, out) {
 function ujiCli(tmp) {
   judul('6. CLI node cli/generate.js');
   var bantuan = cli(['--help']);
-  var opsiWajib = ['--paket', '--subtes', '--format', '--benih', '--keluaran', '--docx', '--pdf', '--xlsx', '--json', '--zip', '--tingkat', '--proporsi', '--komposisi-ku', '--komposisi-pn', '--tanpa-waktu', '--periksa-saja', '--skala', '--svg-json'];
+  var opsiWajib = ['--paket', '--subtes', '--format', '--benih', '--keluaran', '--docx', '--pdf', '--xlsx', '--json', '--zip', '--tingkat', '--proporsi', '--komposisi-ku', '--komposisi-pn', '--tanpa-waktu', '--periksa-saja', '--skala', '--svg-json', '--rumus'];
   var hilang = opsiWajib.filter(function (o) { return bantuan.keluar.indexOf(o) < 0; });
   cek(bantuan.kode === 0 && hilang.length === 0, '--help lengkap: menjelaskan ' + opsiWajib.length + ' opsi dan contoh pemakaian', hilang.join(', '));
   cek(/HASIL: /.test(bantuan.keluar) && /GAGAL: /.test(bantuan.keluar) && /output|<waktu>/.test(bantuan.keluar), '--help menjelaskan baris HASIL/GAGAL dan folder keluaran output/<waktu>');

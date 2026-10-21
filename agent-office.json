@@ -92,6 +92,7 @@
         "--komposisi-ku={komposisi_ku}",
         "--komposisi-pn={komposisi_pn}",
         "--benih={benih}",
+        "--rumus={rumus}",
         "{docx?--docx}",
         "{pdf?--pdf}",
         "{xlsx?--xlsx}",
@@ -118,6 +119,16 @@
           "pola": "^\\d{1,3}$",
           "maks": 3,
           "dari_tugas": "(\\d{1,3})\\s*paket"
+        },
+        "rumus": {
+          "jenis": "teks",
+          "label": "Rumus pembahasan di Word",
+          "bantuan": "latex: teks LaTeX $$...$$ (baku). equation: Equation Word, dikonversi SiAdu ke MathML. Excel dan JSON selalu LaTeX; PDF selalu digambar rapi.",
+          "bawaan": "latex",
+          "contoh": "latex",
+          "pola": "^(latex|equation)$",
+          "maks": 8,
+          "dari_tugas": "\\b(latex|equation)\\b"
         },
         "tingkat": {
           "jenis": "teks",
