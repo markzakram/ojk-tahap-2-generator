@@ -13,7 +13,8 @@
  *   { t:'gambar', img, lebarPt, rata }
  *   { t:'galeri', item:[{img, label, lebarPt}] }
  *   { t:'tabel', lebarKol:[bagian], baris:[[{teks, tebal, rata, isi}]], header:true }
- *   { t:'rumus', notasi }           persamaan (Equation Word); PDF menerima teksnya sebagai paragraf biasa
+ *   { t:'rumus', notasi, teks }     persamaan: Word mencetaknya sebagai Equation Word, PDF menatanya dengan
+ *                                   pecahan bertingkat (teks = cadangan bila terlalu lebar)
  *   { t:'jeda' }
  *   { t:'grup', anak:[blok] }      jaga agar tidak terpisah halaman bila muat
  */
@@ -98,7 +99,7 @@
     var bagian = [b.no + '. ' + teksSoal(b)];
     if (b.jenis === 'pg') b.opsi.forEach(function (o, i) { bagian.push(HURUF[i] + '. ' + (o.gambar ? 'Gambar ' + HURUF[i] : o.teks)); });
     bagian.push('Jawaban: ' + jawabanLengkap(b));
-    bagian.push('Pembahasan: ' + pembahasanBadan(b).filter(function (t) { return !/^Jenis soal: /.test(t); }).map(function (t) { return Rumus.barisTeks(t); }).join('\n'));
+    bagian.push('Pembahasan: ' + pembahasanBadan(b).filter(function (t) { return !/^Jenis soal: /.test(t); }).map(function (t) { return Rumus.barisLatex(t); }).join('\n'));
     return bagian.join('\n\n');
   }
 
@@ -231,7 +232,7 @@
 
   /** Satu baris pembahasan untuk PDF: persamaan sebagai teks menjorok, judul bagian (Diketahui, ...) tebal. */
   function barisPembahasanPdf(t) {
-    if (Rumus.adalah(t)) return par(Rumus.barisTeks(t, true), { ukuran: 10, indent: 18, sesudah: 3 });
+    if (Rumus.adalah(t)) return { t: 'rumus', notasi: Rumus.isi(t), teks: Rumus.barisTeks(t, true) };
     if (Rumus.judulBagian(t)) return par(t, { ukuran: 10, tebal: true, sesudah: 2 });
     return barisTeks(t, { ukuran: 10 });
   }
@@ -391,7 +392,7 @@
   }
 
   /** Blok satu soal dalam format SiAdu. */
-  function blokSiadu(b, img) {
+  function blokSiadu(b, img, modeRumus) {
     // identitas Kerangka Course dicetak tebal sebagai paragraf biasa (bukan Heading); Subchapter
     // dihapus bila kosong. Baris Tingkat Kesulitan dan Bentuk Soal tetap ada karena wajib bagi importir SiAdu.
     var k = b.klasifikasi || {};
@@ -412,7 +413,7 @@
       if (im) out.push({ t: 'gambar', img: im, lebarPt: Math.min(im.lebar / (im.skala || 2) * 0.75, 440), sesudah: 6 });
     });
     pembahasanSiadu(b).forEach(function (t) {
-      if (Rumus.adalah(t)) out.push({ t: 'rumus', notasi: Rumus.isi(t) });
+      if (Rumus.adalah(t)) out.push(modeRumus === 'equation' ? { t: 'rumus', notasi: Rumus.isi(t) } : par(Rumus.barisLatex(t)));
       else out.push(par(t, Rumus.judulBagian(t) ? { tebal: true } : {}));
     });
     return out;
@@ -432,7 +433,7 @@
       blok.push(par('Format input Word SiAdu · ' + st.jumlah + ' soal · ' + st.menit + ' menit · benih utama ' + (opsi.benih != null ? opsi.benih : '-') +
         (st.kode === 'pn' ? '. Grafik dibuat SiAdu dari tabel berkolom "Kunci Nilai"; Table Decision memakai tabel tiap tab.' : '. Pilihan ganda (Option New).'), { miring: true, warna: '888888', sesudah: 10 }));
       st.butir.forEach(function (b) {
-        blokSiadu(b, img).forEach(function (x) { blok.push(x); });
+        blokSiadu(b, img, opsi.rumus).forEach(function (x) { blok.push(x); });
         blok.push(par(''));
       });
       return { subtes: st.kode, judul: judul + ' — Paket ' + paket.id + ' · ' + st.nama, blok: blok, kaki: 'Paket ' + paket.id + ' · ' + st.nama };

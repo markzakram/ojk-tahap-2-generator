@@ -94,7 +94,7 @@
       var rantai = Promise.resolve();
       if (opsi.docx) {
         // Word mengikuti template input SiAdu, satu berkas per subtes; PDF tetap naskah baca satu paket
-        Dokumen.siaduPaket(paket, img, { benih: opsi.benih }).forEach(function (m) {
+        Dokumen.siaduPaket(paket, img, { benih: opsi.benih, rumus: opsi.rumus }).forEach(function (m) {
           rantai = rantai.then(function () { return Docx.buat(m); }).then(function (u8) {
             hasil.push({ nama: folder + '/' + namaWord(paket, m.subtes), data: u8, jenis: 'docx', subtes: m.subtes });
           });
@@ -143,7 +143,7 @@
     return [
       b.no, paket.id, st.nama, b.submateriLabel || b.submateri, b.tingkatNama || b.level,
       Dokumen.teksSoal(b), opsi[0], opsi[1], opsi[2], opsi[3], opsi[4],
-      Dokumen.jawabanBenar(b), b.pembahasan.map(function (t) { return Rumus.barisTeks(t); }).join('\n'), gSoal.join('; '),
+      Dokumen.jawabanBenar(b), b.pembahasan.map(function (t) { return Rumus.barisLatex(t); }).join('\n'), gSoal.join('; '),
       b.id, b.benih, b.keluarga, Dokumen.bentukIsian(b), b.jenis === 'isian' ? JSON.stringify(b.isian.kunci) : '', gPem.join('; '),
       b.pola || '', b.kategoriRiset || '', b.catatanRiset || '',
       (b.klasifikasi || {}).category || '', (b.klasifikasi || {}).lesson || '', (b.klasifikasi || {}).chapter || '', (b.klasifikasi || {}).subchapter || '', Dokumen.naskahLengkap(b)
@@ -214,7 +214,7 @@
                   kunci: b.jenis === 'pg' ? Dokumen.HURUF[b.kunci] : null,
                   jawabanBenar: Dokumen.jawabanBenar(b),
                   isian: b.isian || null, bentukIsian: b.jenis === 'isian' ? Dokumen.bentukIsian(b) : null,
-                  langkah: b.langkah, pembahasan: b.pembahasan,
+                  langkah: b.langkah, pembahasan: b.pembahasan.map(function (t) { return Rumus.barisLatex(t); }),
                   gambarPembahasan: (b.gambarPembahasan || []).map(function (d) { return desk(p, b, d); }),
                   model: b.model, sidik: b.sidik
                 };

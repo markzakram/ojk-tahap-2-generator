@@ -59,6 +59,8 @@ var BANTUAN = [
   '',
   'Opsi lain:',
   '  --skala <n>            Skala gambar PNG 1 sampai 4. Baku: 2.',
+  '  --rumus <latex|equation>  Cara Word menulis rumus pembahasan: latex = teks LaTeX $$...$$ (baku),',
+  '                         equation = Equation Word (dikonversi SiAdu ke MathML). Excel/JSON selalu LaTeX.',
   '  --svg-json             Sertakan teks SVG tiap gambar di berkas JSON (ukuran jauh lebih besar).',
   '  --periksa-saja         Hanya membuat dan memeriksa paket; tidak ada berkas yang ditulis.',
   '  --versi                Cetak versi.',
@@ -85,7 +87,7 @@ var BANTUAN = [
   '  node cli/generate.js --paket 50 --periksa-saja'
 ].join('\n');
 
-var OPSI_NILAI = ['--paket', '--subtes', '--format', '--benih', '--keluaran', '--tingkat', '--proporsi', '--komposisi-ku', '--komposisi-pn', '--skala'];
+var OPSI_NILAI = ['--paket', '--subtes', '--format', '--benih', '--keluaran', '--tingkat', '--proporsi', '--komposisi-ku', '--komposisi-pn', '--skala', '--rumus'];
 var OPSI_TANDA = ['--docx', '--pdf', '--xlsx', '--json', '--zip', '--svg-json', '--tanpa-waktu', '--periksa-saja', '--versi', '--bantuan', '--help', '-h'];
 
 function Galat(pesan) { this.message = pesan; this.galatPengguna = true; }
@@ -182,6 +184,8 @@ function bacaPengaturan(o, Bank) {
   if (o['--komposisi-ku'] != null) p.komposisi.ku = daftarKomposisi('--komposisi-ku', o['--komposisi-ku'], Bank.URUTAN.ku);
   if (o['--komposisi-pn'] != null) p.komposisi.pn = daftarKomposisi('--komposisi-pn', o['--komposisi-pn'], Bank.URUTAN.pn);
   p.skala = o['--skala'] == null ? 2 : bilanganBulat('--skala', o['--skala'], 1, 4);
+  p.rumus = String(o['--rumus'] == null ? 'latex' : o['--rumus']).trim().toLowerCase();
+  if (['latex', 'equation'].indexOf(p.rumus) < 0) throw new Galat('--rumus harus latex atau equation, bukan "' + o['--rumus'] + '"');
   p.zip = !!o['--zip'];
   p.svgJson = !!o['--svg-json'];
   p.tanpaWaktu = !!o['--tanpa-waktu'];
@@ -237,6 +241,7 @@ function perintahUlang(p) {
     if (k.length) a.push('--komposisi-' + st + ' ' + k.map(function (x) { return x + '=' + p.komposisi[st][x]; }).join(','));
   });
   if (p.skala !== 2) a.push('--skala ' + p.skala);
+  if (p.rumus !== 'latex') a.push('--rumus ' + p.rumus);
   if (p.svgJson) a.push('--svg-json');
   return a.join(' ');
 }
@@ -344,7 +349,7 @@ async function utama(argv) {
   for (var i = 0; i < hasil.paket.length; i++) {
     var t0 = Date.now(), paket = hasil.paket[i];
     var berkas = await Ekspor.berkasPaket(paket, {
-      docx: p.format.indexOf('docx') >= 0, pdf: p.format.indexOf('pdf') >= 0, gambar: true, skala: p.skala, benih: p.benih
+      docx: p.format.indexOf('docx') >= 0, pdf: p.format.indexOf('pdf') >= 0, gambar: true, skala: p.skala, benih: p.benih, rumus: p.rumus
     });
     var ket = [], png = 0;
     berkas.forEach(function (b) {
