@@ -14,28 +14,37 @@
  * itu dari SVG tiap tab dan menerapkan aturan yang sama dari awal. Keempat orang
  * sengaja memberi hasil yang beragam, dan yang "tidak" gagal pada syarat yang
  * berbeda-beda, sebagian dengan selisih tipis.
+ *
+ * Semua nominal memakai USD ($), sesuai panduan revisi. Pembahasan: Diketahui, Ditanyakan,
+ * Pengerjaan (rumus umum lalu hitungan tiap orang sebagai persamaan "§", termasuk selang
+ * kategori atau kedua syarat beserta angkanya), dan Kesimpulan berupa pilihan tiap tab.
  */
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
-    api = factory(require('./rng.js'), require('./format.js'), require('./butir.js'));
+    api = factory(require('./rng.js'), require('./format.js'), require('./butir.js'), require('./rumus.js'));
     module.exports = api;
   } else {
-    api = factory(root.Rng, root.Fmt, root.Butir);
+    api = factory(root.Rng, root.Fmt, root.Butir, root.Rumus);
     root.PnTabel = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Rng, Fmt, Butir) {
+})(typeof self !== 'undefined' ? self : this, function (Rng, Fmt, Butir, Rumus) {
   'use strict';
 
   var ORANG = ['Orang A', 'Orang B', 'Orang C', 'Orang D'];
   function mt(sim, v) { return sim + Fmt.angka(v); }
 
+  // ----- notasi persamaan pembahasan (lihat rumus.js)
+  function rAngka(v, d) { return Fmt.angka(v, { desimal: d == null ? 2 : d }).replace(',', '{,}'); }
+  function rUang(sim, v, d) { return '\\' + sim + rAngka(v, d); }
+  function rTeks(t) { return '\\text{' + t + '}'; }
+
   // ------------------------------------------------------------ target 2 opsi
 
   var TEMA_TARGET = [
-    { id: 'penjualan', judul: 'Penjualan', sim: '€', kolom: ['Bulan', 'Penjualan', 'Target'], bulan: ['Juli', 'Agustus', 'September'], noun: 'penjualan', aksi: 'target penjualan kuartal' },
-    { id: 'kredit', judul: 'Penyaluran Kredit', sim: '$', kolom: ['Bulan', 'Realisasi', 'Target'], bulan: ['Januari', 'Februari', 'Maret'], noun: 'penyaluran kredit', aksi: 'target penyaluran kredit kuartal' },
-    { id: 'premi', judul: 'Premi Asuransi', sim: '£', kolom: ['Bulan', 'Premi diterima', 'Target'], bulan: ['April', 'Mei', 'Juni'], noun: 'premi yang diterima', aksi: 'target premi kuartal' }
+    { id: 'penjualan', judul: 'Penjualan', sim: '$', kolom: ['Bulan', 'Penjualan', 'Target'], bulan: ['Juli', 'Agustus', 'September'], noun: 'penjualan', nounTarget: 'target penjualan', aksi: 'target penjualan kuartal' },
+    { id: 'kredit', judul: 'Penyaluran Kredit', sim: '$', kolom: ['Bulan', 'Realisasi', 'Target'], bulan: ['Januari', 'Februari', 'Maret'], noun: 'penyaluran kredit', nounTarget: 'target penyaluran kredit', aksi: 'target penyaluran kredit kuartal' },
+    { id: 'premi', judul: 'Premi Asuransi', sim: '$', kolom: ['Bulan', 'Premi diterima', 'Target'], bulan: ['April', 'Mei', 'Juni'], noun: 'premi yang diterima', nounTarget: 'target premi', aksi: 'target premi kuartal' }
   ];
 
   /** Bagi `jumlah` (kelipatan 500) menjadi tiga bulan dengan sebaran acak. */
@@ -84,7 +93,7 @@
       var aturan = [
         'Target ' + tm.aksi.replace('target ', '') + ' tercapai apabila:',
         '• Total ' + tm.noun + ' selama tiga bulan sekurang-kurangnya ' + mt(tm.sim, M) + ', DAN',
-        '• Rata-rata ' + tm.noun + ' yang dicapai pada kuartal tersebut sekurang-kurangnya ' + u + '% di atas rata-rata target.'
+        '• Rata-rata ' + tm.noun + ' selama kuartal tersebut sekurang-kurangnya ' + u + '% lebih tinggi daripada rata-rata ' + tm.nounTarget + ' pada tiga bulan yang sama.'
       ];
       var tabs = orang.map(function (o, k) {
         return {
@@ -97,19 +106,40 @@
         return Object.assign({}, m, { status: orang[k].hasil === 0 ? 'Mencapai target' : 'Tidak mencapai target' });
       });
       var pil = ['Mencapai target', 'Tidak mencapai target'];
-      var pem = ['Syarat 1: total ' + tm.noun + ' ≥ ' + mt(tm.sim, M) + '. Syarat 2: total ' + tm.noun + ' ≥ ' + (100 + u) + '% × total target (rata-rata ' + u + '% di atas target sama artinya dengan total ' + u + '% di atas total target, karena jumlah bulannya sama). Keduanya harus terpenuhi.'];
+      var R = Rumus.baris, sim = tm.sim, faktor = rAngka((100 + u) / 100);
+      var lJual = rTeks('total ' + tm.noun), lTarget = rTeks('total ' + tm.nounTarget);
+      var pem = ['Diketahui',
+        'Syarat 1: total ' + tm.noun + ' selama tiga bulan sekurang-kurangnya ' + mt(sim, M) + '.',
+        'Syarat 2: rata-rata ' + tm.noun + ' sekurang-kurangnya ' + u + '% lebih tinggi daripada rata-rata ' + tm.nounTarget + ' pada tiga bulan yang sama.',
+        'Kedua syarat harus terpenuhi. Data ' + tm.kolom[1].toLowerCase() + ' dan target bulan ' + Fmt.daftarKata(tm.bulan) + ' tiap orang ada pada tab ' + ORANG[0] + ' sampai ' + ORANG[3] + '.',
+        'Ditanyakan',
+        'Apakah setiap orang ' + pil[0].toLowerCase() + ' atau ' + pil[1].toLowerCase() + ' ' + tm.aksi.replace('target ', '') + '.',
+        'Pengerjaan',
+        'Jumlahkan data tiga bulan untuk setiap orang:',
+        R(lJual + ' = ' + tm.bulan.map(function (b) { return rTeks(tm.noun + ' ' + b); }).join(' + ')),
+        'Sekurang-kurangnya ' + u + '% lebih tinggi berarti sekurang-kurangnya target dikalikan faktor berikut:',
+        R('100\\% + ' + u + '\\% = ' + (100 + u) + '\\% = ' + faktor),
+        'Kedua rata-rata dibagi dengan banyak bulan yang sama (3), jadi syarat 2 cukup diperiksa dengan total:',
+        R('\\frac{' + lJual + '}{3} \\ge ' + faktor + ' \\times \\frac{' + lTarget + '}{3} \\to ' + lJual + ' \\ge ' + faktor + ' \\times ' + lTarget)];
       orang.forEach(function (o, k) {
-        pem.push('• ' + ORANG[k] + ': ' + o.jual.map(function (v) { return mt(tm.sim, v); }).join(' + ') + ' = ' + mt(tm.sim, o.Ss) + '; total target = ' + o.target.map(function (v) { return mt(tm.sim, v); }).join(' + ') + ' = ' + mt(tm.sim, o.Ts) +
-          '; batas syarat 2 = ' + Fmt.angka((100 + u) / 100, { desimal: 2 }) + ' × ' + mt(tm.sim, o.Ts) + ' = ' + mt(tm.sim, o.Ts * (100 + u) / 100) +
-          '. Syarat 1 ' + (o.c1 ? 'terpenuhi' : 'tidak terpenuhi') + ', syarat 2 ' + (o.c2 ? 'terpenuhi' : 'tidak terpenuhi') + ': ' + pil[o.hasil] + '.');
+        var batas2 = o.Ts * (100 + u) / 100;
+        pem.push(ORANG[k] + ':');
+        pem.push(R(lJual + ' = ' + o.jual.map(function (v) { return rUang(sim, v); }).join(' + ') + ' = ' + rUang(sim, o.Ss)));
+        pem.push(R(lTarget + ' = ' + o.target.map(function (v) { return rUang(sim, v); }).join(' + ') + ' = ' + rUang(sim, o.Ts)));
+        pem.push(R(rTeks('batas syarat 2') + ' = ' + faktor + ' \\times ' + rUang(sim, o.Ts) + ' = ' + rUang(sim, batas2)));
+        pem.push(R(rTeks('syarat 1: ') + rUang(sim, o.Ss) + (o.c1 ? ' \\ge ' : ' < ') + rUang(sim, M) + ' \\to ' + rTeks(o.c1 ? 'terpenuhi' : 'tidak terpenuhi')));
+        pem.push(R(rTeks('syarat 2: ') + rUang(sim, o.Ss) + (o.c2 ? ' \\ge ' : ' < ') + rUang(sim, batas2) + ' \\to ' + rTeks(o.c2 ? 'terpenuhi' : 'tidak terpenuhi')));
+        pem.push(ORANG[k] + ': ' + (o.c1 && o.c2 ? 'kedua syarat terpenuhi, jadi ' : (!o.c1 && !o.c2 ? 'kedua syarat tidak terpenuhi' : 'syarat ' + (o.c1 ? '2' : '1') + ' tidak terpenuhi') + ', jadi ') + pil[o.hasil].toLowerCase() + '.');
       });
+      pem.push('Kesimpulan', 'Pilih ' + orang.map(function (o, k) { return Fmt.huruf(o.hasil) + ' (' + pil[o.hasil] + ') pada tab ' + ORANG[k]; }).join('; ') + '.');
       var kunciTeks = orang.map(function (o, k) { return ORANG[k] + ': ' + pil[o.hasil]; }).join('. ') + '.';
       return {
         ti: ti, tm: tm, pil: pil, orang: orang, tabs: tabs, tabsKunci: tabsKunci, M: M, u: u,
         teks: aturan, judul: tm.judul + ' · Table (2 opsi)',
         pertanyaan: 'Tentukan apakah setiap orang mencapai ' + tm.aksi + 'nya. Setiap tabel di bawah mewakili tampilan tabel ketika tab nama tersebut dipilih.',
         kunciIdx: orang.map(function (o) { return o.hasil; }), kunciTeks: kunciTeks, pembahasan: pem,
-        aturan: { jenis: 'dua-syarat', M: M, u: u, baris: 3, kolomJual: 1, kolomTarget: 2, pilihan: pil }
+        aturan: { jenis: 'dua-syarat', M: M, u: u, baris: 3, kolomJual: 1, kolomTarget: 2, pilihan: pil },
+        pola: 'tabel-target-' + tm.id, kategoriRiset: 'acuan'
       };
     }
     return null;
@@ -117,11 +147,26 @@
 
   // ------------------------------------------------------------ komisi 3-4 opsi
 
+  /*
+   * Istilah per tema dipakai SAMA di ketentuan, label tabel, dan pembahasan: kotor = jumlah per minggu
+   * sebelum pembatalan (seperti yang tertulis di tabel), batal = yang dibatalkan, bersih = kotor dikurangi
+   * pembatalan seminggu, nilai = rata-rata yang menentukan kategori, total = nilai uang per minggu.
+   * `skala` mengalikan batas kategori dan total uang supaya nominal dolarnya wajar untuk temanya
+   * (nilai satu kredit ribuan dolar, satu penjualan atau premi puluhan sampai ratusan dolar).
+   */
   var TEMA_KOMISI = [
-    { id: 'penjualan', judul: 'Komisi', sim: '£', nol: 'Tanpa komisi', unitMinggu: 'penjualan', hari: 5, label: ['Total pendapatan per minggu (£)', 'Penjualan per minggu', 'Rata-rata pembatalan per hari'], status: 'Komisi yang diperoleh', noun: 'karyawan' },
-    { id: 'asuransi', judul: 'Insentif Agen Asuransi', sim: '$', nol: 'Tanpa insentif', unitMinggu: 'polis', hari: 5, label: ['Total premi per minggu ($)', 'Polis terjual per minggu', 'Rata-rata polis batal per hari'], status: 'Insentif yang diperoleh', noun: 'agen' },
-    { id: 'kredit', judul: 'Bonus Petugas Kredit', sim: '€', nol: 'Tanpa bonus', unitMinggu: 'pengajuan', hari: 6, label: ['Total kredit cair per minggu (€)', 'Pengajuan disetujui per minggu', 'Rata-rata pengajuan batal per hari'], status: 'Bonus yang diperoleh', noun: 'petugas' }
+    { id: 'penjualan', judul: 'Komisi', sim: '$', skala: 1, nol: 'Tanpa komisi', hari: 5, status: 'Komisi yang diperoleh', noun: 'karyawan',
+      istilah: { kotor: 'penjualan per minggu', batal: 'pembatalan', bersih: 'penjualan bersih', nilai: 'rata-rata nilai penjualan', total: 'total pendapatan per minggu' },
+      label: ['Total pendapatan per minggu ($)', 'Penjualan per minggu', 'Rata-rata pembatalan per hari'] },
+    { id: 'asuransi', judul: 'Insentif Agen Asuransi', sim: '$', skala: 1, nol: 'Tanpa insentif', hari: 5, status: 'Insentif yang diperoleh', noun: 'agen',
+      istilah: { kotor: 'polis terjual per minggu', batal: 'polis batal', bersih: 'polis bersih', nilai: 'rata-rata premi per polis bersih', total: 'total premi per minggu' },
+      label: ['Total premi per minggu ($)', 'Polis terjual per minggu (sebelum pembatalan)', 'Rata-rata polis batal per hari'] },
+    { id: 'kredit', judul: 'Bonus Petugas Kredit', sim: '$', skala: 100, nol: 'Tanpa bonus', hari: 6, status: 'Bonus yang diperoleh', noun: 'petugas',
+      istilah: { kotor: 'pengajuan per minggu', batal: 'pengajuan batal', bersih: 'pengajuan bersih', nilai: 'rata-rata nilai kredit per pengajuan bersih', total: 'total kredit cair per minggu' },
+      label: ['Total kredit cair per minggu ($)', 'Pengajuan per minggu (sebelum pembatalan)', 'Rata-rata pengajuan batal per hari'] }
   ];
+
+  function kapital(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
 
   function komisi(a, level) {
     var ti = a.bulat(0, TEMA_KOMISI.length - 1), tm = TEMA_KOMISI[ti];
@@ -154,15 +199,20 @@
       }
       if (gagal || orang.length < 4) continue;
       if (orang.some(function (o, k) { return orang.some(function (p, l) { return l !== k && p.rev === o.rev && p.sales === o.sales; }); })) continue;
+      // nominal dolar sesuai tema: batas kategori dan total uang dikalikan skala (kategorinya tidak berubah)
+      var sk = tm.skala || 1;
+      batas = batas.map(function (x) { return x * sk; });
+      orang.forEach(function (o) { o.rev *= sk; o.avg = o.rev / o.net; });
       var sim = tm.sim;
+      var ist = tm.istilah;
       var ketentuan = [
         'Ketentuan penentuan ' + tm.status.toLowerCase() + ':',
-        '• Penjualan bersih per minggu = ' + tm.unitMinggu + ' per minggu dikurangi pembatalan per minggu, dengan ' + tm.hari + ' hari kerja per minggu.',
-        '• Rata-rata nilai penjualan = total pendapatan per minggu dibagi penjualan bersih per minggu.',
-        '• Jika rata-rata nilai penjualan kurang dari ' + sim + batas[0] + ': ' + komisiNama[0].toLowerCase() + '.'
+        '• ' + kapital(ist.bersih) + ' per minggu = ' + ist.kotor + ' dikurangi ' + ist.batal + ' per minggu, dengan ' + tm.hari + ' hari kerja per minggu. Angka ' + ist.kotor + ' pada tabel belum dikurangi ' + ist.batal + '.',
+        '• ' + kapital(ist.nilai) + ' = ' + ist.total + ' dibagi ' + ist.bersih + ' per minggu.',
+        '• Jika ' + ist.nilai + ' kurang dari ' + mt(sim, batas[0]) + ': ' + komisiNama[0].toLowerCase() + '.'
       ];
       for (var kk = 1; kk < tingkat; kk++) {
-        ketentuan.push('• Jika rata-rata nilai penjualan ' + sim + batas[kk - 1] + ' atau lebih' + (kk < tingkat - 1 ? ', tetapi kurang dari ' + sim + batas[kk] : '') + ': ' + komisiNama[kk] + '.');
+        ketentuan.push('• Jika ' + ist.nilai + ' ' + mt(sim, batas[kk - 1]) + ' atau lebih' + (kk < tingkat - 1 ? ', tetapi kurang dari ' + mt(sim, batas[kk]) : '') + ': ' + komisiNama[kk] + '.');
       }
       var tabs = orang.map(function (o, k) {
         return {
@@ -176,17 +226,44 @@
         };
       });
       var tabsKunci = tabs.map(function (m, k) { return Object.assign({}, m, { status: komisiNama[orang[k].tier] }); });
-      var pem = ['Pembatalan per minggu = pembatalan per hari × ' + tm.hari + ' hari kerja. Penjualan bersih = penjualan per minggu - pembatalan per minggu. Rata-rata nilai penjualan = total pendapatan ÷ penjualan bersih.'];
+      // pembahasan: rumus umum, lalu tiap orang batal -> bersih -> rata-rata (pecahan) -> selang kategori
+      var R = Rumus.baris, jenisImbal = tm.status.split(' ')[0].toLowerCase();
+      var lBatal = rTeks(ist.batal + ' per minggu'), lBersih = rTeks(ist.bersih), lNilai = rTeks(ist.nilai);
+      var namaKategori = function (t) { return t === 0 ? rTeks(komisiNama[0].toLowerCase()) : rTeks(jenisImbal + ' ') + komisiNama[t].replace('%', '\\%'); };
+      var pem = ['Diketahui',
+        'Setiap tab memuat ' + tm.label[0].replace(' ($)', '').toLowerCase() + ' (dalam dolar), ' + ist.kotor + ' sebelum pembatalan, dan rata-rata ' + ist.batal + ' per hari; satu minggu terdiri dari ' + tm.hari + ' hari kerja.',
+        'Batas kategori menurut ' + ist.nilai + ': ' + Fmt.daftarKata(batas.map(function (x) { return mt(sim, x); })) + ' (lihat ketentuan).',
+        'Ditanyakan',
+        'Kategori ' + jenisImbal + ' yang tepat untuk ' + Fmt.daftarKata(ORANG) + '.',
+        'Pengerjaan',
+        'Rumus yang dipakai untuk setiap orang:',
+        R(lBatal + ' = ' + rTeks(ist.batal + ' per hari') + ' \\times ' + tm.hari),
+        R(lBersih + ' = ' + rTeks(ist.kotor) + ' - ' + lBatal),
+        R(lNilai + ' = \\frac{' + rTeks(ist.total) + '}{' + lBersih + '}'),
+        'Hasil rata-rata lalu dicocokkan dengan selang kategori pada ketentuan.'];
       orang.forEach(function (o, k) {
-        pem.push('• ' + ORANG[k] + ': pembatalan ' + o.cancel + ' × ' + tm.hari + ' = ' + (o.cancel * tm.hari) + '; penjualan bersih ' + o.sales + ' - ' + (o.cancel * tm.hari) + ' = ' + o.net + '; rata-rata ' + sim + Fmt.angka(o.rev) + ' ÷ ' + o.net + ' = ' + sim + Fmt.angka(o.avg, { desimal: 2 }) + ' → ' + komisiNama[o.tier] + ' (' + Fmt.huruf(o.tier) + ').');
+        var tepat = Math.round(o.rev * 100) % o.net === 0, rata = rUang(sim, o.avg);
+        var selang = o.tier === 0 ? rata + ' < ' + rUang(sim, batas[0])
+          : o.tier === tingkat - 1 ? rata + ' \\ge ' + rUang(sim, batas[tingkat - 2])
+            : rUang(sim, batas[o.tier - 1]) + ' \\le ' + rata + ' < ' + rUang(sim, batas[o.tier]);
+        pem.push(ORANG[k] + ':');
+        pem.push(R(lBatal + ' = ' + o.cancel + ' \\times ' + tm.hari + ' = ' + (o.cancel * tm.hari)));
+        pem.push(R(lBersih + ' = ' + o.sales + ' - ' + (o.cancel * tm.hari) + ' = ' + o.net));
+        pem.push(R(lNilai + ' = \\frac{' + rUang(sim, o.rev) + '}{' + o.net + '} ' + (tepat ? '= ' : '\\approx ') + rata));
+        pem.push(R(selang + ' \\to ' + namaKategori(o.tier)));
       });
+      pem.push('Kesimpulan', 'Pilih ' + orang.map(function (o, k) { return Fmt.huruf(o.tier) + ' (' + komisiNama[o.tier] + ') pada tab ' + ORANG[k]; }).join('; ') + '.');
       var kunciTeks = orang.map(function (o, k) { return ORANG[k] + ': ' + komisiNama[o.tier]; }).join('. ') + '.';
       return {
         ti: ti, tm: tm, pil: komisiNama, orang: orang, tabs: tabs, tabsKunci: tabsKunci,
         teks: ketentuan, judul: tm.judul + ' · Table (' + tingkat + ' opsi)',
         pertanyaan: 'Tentukan kategori ' + tm.status.toLowerCase().replace(' yang diperoleh', '') + ' yang tepat untuk setiap ' + tm.noun + '. Setiap tabel di bawah mewakili tampilan tabel ketika tab nama tersebut dipilih.',
         kunciIdx: orang.map(function (o) { return o.tier; }), kunciTeks: kunciTeks, pembahasan: pem,
-        aturan: { jenis: 'komisi', batas: batas, hari: tm.hari, pilihan: komisiNama }
+        aturan: { jenis: 'komisi', batas: batas, hari: tm.hari, pilihan: komisiNama },
+        pola: 'tabel-komisi-' + tm.id,
+        // contoh riset memuat tiga kategori; empat kategori adalah modifikasi tim
+        kategoriRiset: tingkat === 3 ? 'acuan' : 'pengayaan',
+        catatanRiset: tingkat === 3 ? null : 'Contoh riset Table Komisi memuat tiga kategori; empat kategori adalah modifikasi tim, bukan bukti bahwa empat opsi muncul pada PCAM.'
       };
     }
     return null;
@@ -196,7 +273,7 @@
     var ctx = { submateri: 'tabel', keluarga: id, level: level, benih: benih };
     var gambar = s.tabs.map(function (m, k) { return { id: 'tab-' + k, jenis: 'tabel', model: m, judul: ORANG[k] }; });
     var gambarKunci = s.tabsKunci.map(function (m, k) { return { id: 'kunci-' + k, jenis: 'tabel', model: m, judul: ORANG[k] + ' (kunci)' }; });
-    return Butir.rakitIsian(ctx, {
+    var butir = Butir.rakitIsian(ctx, {
       jenisSoal: jenisSoal,
       judul: s.judul, teks: s.teks, pertanyaan: s.pertanyaan,
       perintah: 'Pilih satu pilihan untuk setiap tab. Setiap tabel mewakili tampilan tabel ketika tab nama tersebut dipilih.',
@@ -208,6 +285,10 @@
       model: { param: {}, tampil: {}, toleransi: 0, topik: 'Table', aturan: s.aturan },
       sidik: { inti: 'pn-tabel|' + id + '|' + s.ti + '|' + JSON.stringify(s.tabs.map(function (m) { return m.baris.map(function (b) { return b.sel.join('/'); }).join(';'); })), param: s.orang.map(function (o) { return o.rev || o.Ss; }), entitas: s.ti + id }
     });
+    butir.pola = s.pola;
+    butir.kategoriRiset = s.kategoriRiset;
+    if (s.catatanRiset) butir.catatanRiset = s.catatanRiset;
+    return butir;
   }
 
   function buat(id, level, benih) {

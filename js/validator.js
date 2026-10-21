@@ -16,7 +16,9 @@
  *   figural     menebak aturan tiap kanal dari kotak yang tampak (Inferensi) dan
  *               memastikan tepat satu opsi yang memenuhi semuanya; untuk matriks 5x5,
  *               5x6, 2x2 bersekat, dan deret kotak ganda, aturannya disimpulkan dari
- *               gambar soal yang tampil lalu dicocokkan dengan gambar tiap opsi
+ *               gambar soal yang tampil lalu dicocokkan dengan gambar tiap opsi; gambar
+ *               pembahasan (tahapan pola) wajib ada, disebut di teks, dan jawabannya
+ *               sama dengan opsi kunci, tetapi tidak dipakai untuk membuktikan kunci
  *   interaktif  menghitung ulang kondisi akhir (batang, tab, titik, irisan)
  *
  * Satu butir lulus bila masalahnya kosong. Paket dan seluruh hasil generate
@@ -113,7 +115,7 @@
   // ------------------------------------------------------------------ pemeriksaan umum
 
   function ulangiTeks(b) {
-    var t = (b.stimulus.teks || []).join(' ') + ' ' + (b.pertanyaan || '') + ' ' + (b.perintah || '');
+    var t = (b.stimulus.teks || []).join(' ') + ' ' + (b.stimulus.kartu || []).map(function (k) { return k.judul + ' ' + k.teks; }).join(' ') + ' ' + (b.pertanyaan || '') + ' ' + (b.perintah || '');
     return t;
   }
 
@@ -205,9 +207,314 @@
 
   function bulanIndeks(teks) { return BULAN.indexOf(String(teks).trim().toLowerCase()); }
 
+  // ---- pengecoh numerik: setiap pengecoh berasal dari jalur kesalahan yang hitungannya tertulis
+
+  /** Kalimat alasan lama yang hanya membandingkan angka, bukan menunjukkan kesalahannya. */
+  var ALASAN_UMUM = [
+    /salah hitung pada salah satu langkah/i, /dari jawaban yang benar/i, /\bmenebak\b/i, /tanpa dasar/i,
+    /salah (menghitung|menjumlahkan) satu/i, /salah membulatkan/i, /salah membaca angka/i, /salah menggeser koma/i,
+    /membagi dua (perubahan|kenaikan|selisih|hasil)/i, /^terlalu (cepat|lambat|sedikit|banyak|besar|kecil)\b/i
+  ];
+
+  /** Inti angka teks pilihan: "9:2", "5/6", "1.234,50", "68,57"; null bila pilihan berupa kata (bulan, nama tim). */
+  function intiAngka(teks) {
+    var t = String(teks).replace(/ /g, ' '), r = /\d+\s*:\s*\d+/.exec(t);
+    if (r) return r[0].replace(/\s+/g, '');
+    r = /\d+\s*\/\s*\d+/.exec(t);
+    if (r) return r[0].replace(/\s+/g, '');
+    r = /\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:,\d+)?/.exec(t);
+    return r ? r[0] : null;
+  }
+
+  function memuatAngka(teks, inti) {
+    var t = String(teks).replace(/\s*:\s*/g, ':').replace(/(\d)\s*\/\s*(\d)/g, '$1/$2');
+    return new RegExp('(^|[^\\d.,])' + inti.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&') + '(?!\\d|[.,]\\d)').test(t);
+  }
+
+  /**
+   * Alasan tiap pengecoh harus menamai kesalahannya DAN menuliskan hitungannya sampai ke
+   * pilihan itu (angka pilihan, atau nama bulan/tim untuk pilihan berupa kata), bukan
+   * kalimat umum seperti "kurang ... dari jawaban yang benar". Alasan juga harus muncul
+   * di pembahasan.
+   */
+  function periksaAlasanPengecoh(b, m) {
+    // pembahasan tidak lagi mengulas opsi salah (panduan revisi paket-002); alasan cukup ada di data opsi
+    var bahas = (b.pembahasan || []).join('\n');
+    if (/Pilihan lain yang menjebak/.test(bahas)) m.push('pembahasan masih mengulas pilihan yang salah');
+    b.opsi.forEach(function (o, i) {
+      if (i === b.kunci) return;
+      var al = o.alasan == null ? '' : String(o.alasan).trim();
+      if (al.length < 15) { m.push('pengecoh ' + HURUF[i] + ' (' + o.teks + ') tidak punya alasan jalur kesalahan'); return; }
+      if (ALASAN_UMUM.some(function (r) { return r.test(al); })) { m.push('alasan pengecoh ' + HURUF[i] + ' masih kalimat umum, bukan jalur kesalahan: ' + al); return; }
+      if (!/\d/.test(al) || !/[=≈<>≥≤]/.test(al)) { m.push('alasan pengecoh ' + HURUF[i] + ' tidak menuliskan hitungan jalur kesalahannya: ' + al); return; }
+      var inti = intiAngka(o.teks);
+      if (inti ? !memuatAngka(al, inti) : al.toLowerCase().indexOf(String(o.teks).toLowerCase()) < 0) {
+        m.push('alasan pengecoh ' + HURUF[i] + ' tidak sampai pada pilihan itu (' + o.teks + '): ' + al);
+      }
+    });
+  }
+
+  // ---- angka yang tercetak: semuanya tercatat, dan setiap angka data memengaruhi jawaban
+
+  /** Bilangan yang tercetak pada teks: perbandingan "3:2", pecahan "3/4", dan angka gaya Indonesia. */
+  function angkaTercetak(teks) {
+    var hasil = [], re = /\d+\s*:\s*\d+|\d+\s*\/\s*\d+|\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:,\d+)?/g, r;
+    while ((r = re.exec(teks))) hasil.push(r[0]);
+    return hasil;
+  }
+
+  /**
+   * Setiap bilangan di stimulus dan pertanyaan harus tercatat sebagai angka data (`tampil`,
+   * dihitung ulang dan dicek gemanya), perbandingan (`rasioTampil`), atau konteks yang
+   * memang bukan data (`konteks`, mis. "1" dan "1.000" pada "1 liter = 1.000 cm³" atau tahun pada judul kolom).
+   * Angka tak tercatat bisa jadi informasi yang tidak dipakai atau data yang tidak diperiksa.
+   */
+  function periksaAngkaTercetak(b, m, mod) {
+    var teks = (b.stimulus.teks || []).join(' ') + ' ' + (b.pertanyaan || '');
+    var kenal = [];
+    Object.keys(mod.tampil || {}).concat((mod.konteks || []).map(function (k, i) { return '#' + i; })).forEach(function (k) {
+      var u = urai(k.charAt(0) === '#' ? mod.konteks[Number(k.slice(1))] : mod.tampil[k]);
+      if (u && u.tipe === 'angka') kenal.push(u.q);
+    });
+    var rasio = (mod.rasioTampil || []).map(function (r) { return String(r).replace(/\s+/g, ''); });
+    angkaTercetak(teks).forEach(function (t) {
+      if (/:/.test(t)) {
+        if (rasio.indexOf(t.replace(/\s+/g, '')) < 0) m.push('perbandingan ' + t + ' tercetak di soal tetapi tidak tercatat');
+        return;
+      }
+      var u = urai(t);
+      if (!u || !kenal.some(function (q) { return H.sama(q, u.q); })) m.push('angka ' + t + ' tercetak di soal tetapi tidak tercatat sebagai data atau konteks');
+    });
+  }
+
+  /**
+   * Setiap angka data yang tercetak harus diperlukan: bila nilainya diganti (×2, ×1/3,
+   * ×1,01, ×100), hasil hitung ulang `jawab` harus berubah untuk sedikitnya satu
+   * penggantian. Menangkap informasi yang tercoret dengan sendirinya (mis. berat yang
+   * diketahui tetapi lenyap dari persamaan setelah substitusi).
+   */
+  function periksaPerlu(b, m, mod, env, jawab) {
+    // ×100 dicoba terakhir: hanya perlu untuk angka yang pengaruhnya lewat maks/min (dan mahal bila angka itu pangkat)
+    var pengali = [H.q(2), H.Q(BigInt(1), BigInt(3)), H.q('1.01'), H.q(100)];
+    Object.keys(mod.tampil || {}).forEach(function (nama) {
+      if (!env[nama] || !mod.param || !Object.prototype.hasOwnProperty.call(mod.param, nama)) return;
+      var berubah = pengali.some(function (f) {
+        var e = Object.assign({}, env), abaikan = [];
+        e[nama] = H.kali(env[nama], f);
+        var hasil = hitungLangkah(b, e, abaikan);
+        return abaikan.length > 0 || !hasil.jawab || !H.sama(hasil.jawab, jawab);
+      });
+      if (!berubah) m.push('angka ' + nama + ' (' + mod.tampil[nama] + ') tercetak di soal tetapi tidak memengaruhi jawaban');
+    });
+  }
+
+  // ---- pembahasan soal hitungan: Diketahui, Ditanyakan, Pengerjaan, Kesimpulan, dengan baris persamaan "§ "
+
+  var JUDUL_HITUNG = ['Diketahui', 'Ditanyakan', 'Pengerjaan', 'Kesimpulan'];
+  /** Perintah notasi persamaan yang dapat dicetak penulis Word (OMML), PDF/Excel (teks), dan antarmuka (HTML). */
+  var PERINTAH_RUMUS = ['frac', 'text', 'mathrm', 'times', 'div', 'cdot', 'pm', 'approx', 'le', 'leq', 'ge', 'geq', 'ne', 'neq', 'to', 'rightarrow', 'quad', 'ldots'];
+  var RELASI = { '=': 'sama', '\\approx': 'kira', '<': 'kurang', '>': 'lebih', '\\le': 'kurangsama', '\\leq': 'kurangsama', '\\ge': 'lebihsama', '\\geq': 'lebihsama', '\\ne': 'beda', '\\neq': 'beda' };
+
+  /**
+   * Sintaks satu notasi persamaan, diperiksa sendiri (tidak memakai pengurai penulis): kurung kurawal
+   * seimbang, perintah dikenal, \frac diikuti dua grup, \text diikuti grup, pangkat/indeks punya basis
+   * dan isi, dan kata (tiga huruf atau lebih) hanya di dalam \text supaya tidak tercetak sebagai
+   * deretan variabel miring. @returns {string|null} pesan masalah, atau null bila sah
+   */
+  function sintaksPersamaan(s) {
+    if (/[£€]/.test(s)) return 'memakai simbol mata uang selain $';
+    var dalam = 0, i, c, polos = '';
+    for (i = 0; i < s.length; i++) {
+      c = s.charAt(i);
+      if (c === '\\') {
+        var r = /^\\([a-zA-Z]+|.)/.exec(s.slice(i));
+        if (!r) return '"\\" tanpa perintah';
+        var nama = r[1];
+        i += r[0].length;
+        if (/^[a-zA-Z]+$/.test(nama) && PERINTAH_RUMUS.indexOf(nama) < 0) return 'perintah \\' + nama + ' tidak dikenal';
+        if (!/^[a-zA-Z]+$/.test(nama) && '%$ ,{}'.indexOf(nama) < 0) return 'perintah \\' + nama + ' tidak dikenal';
+        if (nama === 'frac') {
+          // dua grup berturut-turut: pembilang dan penyebut
+          for (var g = 0; g < 2; g++) {
+            if (s.charAt(i) !== '{') return '\\frac tanpa grup pembilang/penyebut';
+            var d = 0, j = i;
+            for (; j < s.length; j++) { if (s.charAt(j) === '{') d++; else if (s.charAt(j) === '}' && --d === 0) break; }
+            if (j >= s.length) return 'grup \\frac tidak ditutup';
+            var sub = sintaksPersamaan(s.slice(i + 1, j));
+            if (sub) return sub;
+            i = j + 1;
+          }
+        } else if (nama === 'text' || nama === 'mathrm') {
+          if (s.charAt(i) !== '{') return '\\text tanpa grup';
+          var tutup = s.indexOf('}', i);
+          if (tutup < 0 || s.slice(i + 1, tutup).indexOf('{') >= 0) return '\\text tidak ditutup';
+          i = tutup + 1;
+          polos += ' ';
+        }
+        i--;
+        polos += ' ';
+        continue;
+      }
+      if (c === '{') dalam++;
+      else if (c === '}') { if (--dalam < 0) return 'kurung kurawal "}" berlebih'; }
+      else if (c === '^' || c === '_') {
+        if (!i || /[\s=]/.test(s.charAt(i - 1))) return '"' + c + '" tanpa basis';
+        if (i + 1 >= s.length || /\s/.test(s.charAt(i + 1))) return '"' + c + '" tanpa isi';
+      }
+      polos += c;
+    }
+    if (dalam) return 'kurung kurawal tidak seimbang';
+    var kata = /[a-zA-Z]{3,}/.exec(polos);
+    if (kata) return 'kata "' + kata[0] + '" di luar \\text';
+    return null;
+  }
+
+  /** Pecah notasi pada tingkat kurung terluar menurut daftar pemisah (relasi atau pemisah pernyataan). */
+  function pecahLuar(s, pemisah) {
+    var hasil = [{ isi: '', sebelum: null }], dalam = 0;
+    for (var i = 0; i < s.length; i++) {
+      var c = s.charAt(i);
+      if (c === '{') dalam++;
+      else if (c === '}') dalam--;
+      if (!dalam) {
+        var cocok = null;
+        pemisah.forEach(function (p) {
+          if (s.slice(i, i + p.length) === p && !(p.charAt(0) === '\\' && /[a-zA-Z]/.test(s.charAt(i + p.length))) && (!cocok || p.length > cocok.length)) cocok = p;
+        });
+        if (cocok) { hasil.push({ isi: '', sebelum: cocok }); i += cocok.length - 1; continue; }
+      }
+      hasil[hasil.length - 1].isi += c;
+    }
+    return hasil;
+  }
+
+  /**
+   * Nilai eksak satu ruas persamaan. Satuan dan kata (\text, beserta pangkat satuannya) dicatat lalu
+   * dibuang; \$ dibuang; \% berarti per seratus; ":" pada perbandingan berarti dibagi; angka ditulis
+   * gaya Indonesia (titik ribuan, koma desimal). @returns {{q, satuan:string, tunggal:(object|null)}|null}
+   * null bila ruas memuat variabel atau tidak memuat angka; melempar galat bila angkanya tak terhitung.
+   */
+  function nilaiRuas(ruas) {
+    var s = String(ruas).trim().replace(/[\s,.;]+$/, ''), i = 0, satuan = [];
+    if (!/\d/.test(s)) return null;
+    function grup() {
+      if (s.charAt(i) !== '{') throw new Error('grup diharapkan');
+      i++;
+      var isi = deret('}');
+      i++;
+      return isi;
+    }
+    function deret(akhir) {
+      var o = '';
+      while (i < s.length && s.charAt(i) !== akhir) {
+        var c = s.charAt(i);
+        if (c === '\\') {
+          var r = /^\\([a-zA-Z]+|.)/.exec(s.slice(i)), nama = r[1];
+          i += r[0].length;
+          if (nama === 'frac') { var atas = grup(), bawah = grup(); o += '((' + atas + ')/(' + bawah + '))'; }
+          else if (nama === 'text' || nama === 'mathrm') {
+            var tutup = s.indexOf('}', i);
+            satuan.push(s.slice(i + 1, tutup).trim());
+            i = tutup + 1;
+            // pangkat milik satuan (m^3, cm^3) bukan pangkat bilangan
+            if (s.charAt(i) === '^') { i++; if (s.charAt(i) === '{') grup(); else i++; }
+            o += ' ';
+          } else if (nama === 'times' || nama === 'cdot') o += '*';
+          else if (nama === 'div') o += '/';
+          else if (nama === '%') o += '%';
+          else if (nama === '$' || nama === ' ' || nama === ',' || nama === 'quad') o += ' ';
+          else return null;
+        } else if (c === '{') {
+          if (s.slice(i, i + 3) === '{,}') { o += ','; i += 3; } else o += '(' + grup() + ')';
+        } else if (c === '^') { i++; o += '^(' + (s.charAt(i) === '{' ? grup() : s.charAt(i++)) + ')'; }
+        else { o += c; i++; }
+      }
+      return o;
+    }
+    var expr = deret(null);
+    if (expr === null || /[a-zA-Z_]/.test(expr)) return null;
+    expr = expr.replace(/\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:,\d+)?/g, function (x) { return x.replace(/\./g, '').replace(',', '.'); }).replace(/:/g, '/');
+    var q;
+    try { q = H.hitung(expr, {}); } catch (e) {
+      // kata di tengah rumus umum ("100% - persen cacat") membuat ruas bukan bilangan murni
+      if (satuan.length) return null;
+      throw e;
+    }
+    // ruas berupa satu bilangan: banyaknya angka desimal yang tercetak menentukan toleransi pembulatan
+    var polos = String(ruas).replace(/\\text\{[^}]*\}(\^\{[^}]*\}|\^\d)?/g, '').replace(/\\\$|\\ |\\,|\\quad|\s/g, '').replace(/[,.;]+$/, '');
+    var t1 = /^-?\d{1,3}(?:\.\d{3})*(?:(?:\{,\}|,)(\d+))?(\\%)?$|^-?\d+(?:(?:\{,\}|,)(\d+))?(\\%)?$/.exec(polos);
+    var tunggal = t1 ? { desimal: (t1[1] || t1[3] || '').length, persen: !!(t1[2] || t1[4]) } : null;
+    return { q: q, satuan: satuan.filter(Boolean).join('|'), tunggal: tunggal };
+  }
+
+  /**
+   * Setiap baris persamaan: sintaksnya sah dan setiap relasi antara dua ruas berangka benar. "=" harus
+   * tepat (pecahan eksak), "\approx" hanya selisih pembulatan angka yang tercetak, dan <, >, \le, \ge
+   * harus berlaku. Dua ruas dengan satuan berbeda (konversi, mis. 1 m^3 = 1.000.000 cm^3) tidak dibandingkan.
+   */
+  function periksaPersamaan(notasi, m) {
+    var salah = sintaksPersamaan(notasi);
+    if (salah) { m.push('baris persamaan "' + notasi + '" tidak sah: ' + salah); return; }
+    pecahLuar(notasi, ['\\quad', ';']).forEach(function (pernyataan) {
+      var ruas = pecahLuar(pernyataan.isi, Object.keys(RELASI)), nilai;
+      try { nilai = ruas.map(function (r) { return nilaiRuas(r.isi); }); } catch (e) { m.push('baris persamaan "' + notasi + '" memuat ruas yang tidak dapat dihitung: ' + e.message); return; }
+      for (var k = 1; k < ruas.length; k++) {
+        var a = nilai[k - 1], b = nilai[k], rel = RELASI[ruas[k].sebelum];
+        if (!a || !b || (a.satuan && b.satuan && a.satuan !== b.satuan)) continue;
+        var beda = H.banding(a.q, b.q), benar;
+        if (rel === 'sama') benar = beda === 0;
+        else if (rel === 'kira') {
+          var acuan = b.tunggal ? b : (a.tunggal ? a : null), tol;
+          if (acuan) tol = H.bagi(H.q('5e-' + (acuan.tunggal.desimal + 1)), acuan.tunggal.persen ? 100 : 1);
+          else tol = H.kali(H.mutlak(b.q), H.q('0.005'));
+          benar = H.banding(H.mutlak(H.kurang(a.q, b.q)), tol) <= 0;
+        } else if (rel === 'kurang') benar = beda < 0;
+        else if (rel === 'lebih') benar = beda > 0;
+        else if (rel === 'kurangsama') benar = beda <= 0;
+        else if (rel === 'lebihsama') benar = beda >= 0;
+        else benar = beda !== 0;
+        if (!benar) m.push('baris persamaan "' + notasi + '" keliru: ' + ruas[k - 1].isi.trim() + ' ' + ruas[k].sebelum + ' ' + ruas[k].isi.trim() + (rel === 'sama' ? ' (bila hasilnya dibulatkan, tulis \\approx)' : ''));
+      }
+    });
+  }
+
+  /**
+   * Pembahasan soal cerita, tabel, dan grafik (panduan revisi tim akademik): empat judul bagian berurutan,
+   * tiap bagian berisi; Pengerjaan memuat baris persamaan; Kesimpulan menjawab dengan nilai kunci dan
+   * huruf kuncinya; setiap baris persamaan sah dan benar hitungannya.
+   */
+  function periksaBahasHitung(b, m) {
+    var p = b.pembahasan || [], pos = JUDUL_HITUNG.map(function (j) { return p.indexOf(j); });
+    p.forEach(function (l) { if (/^§ /.test(l)) periksaPersamaan(l.slice(2), m); });
+    if (p.some(function (l) { return l.indexOf('{HURUF}') >= 0; })) m.push('penanda {HURUF} pada pembahasan tidak terisi');
+    var hilang = JUDUL_HITUNG.filter(function (j, k) { return pos[k] < 0; });
+    if (hilang.length) { m.push('pembahasan soal hitungan tidak memuat bagian: ' + hilang.join(', ')); return; }
+    if (JUDUL_HITUNG.some(function (j) { return p.filter(function (l) { return l === j; }).length > 1; })) m.push('judul bagian pembahasan tertulis lebih dari sekali');
+    for (var k = 1; k < 4; k++) if (!(pos[k] > pos[k - 1] + 1)) { m.push('bagian pembahasan tidak berurutan Diketahui, Ditanyakan, Pengerjaan, Kesimpulan atau ada bagian yang kosong'); return; }
+    if (!p.slice(pos[2] + 1, pos[3]).some(function (l) { return /^§ /.test(l); })) m.push('bagian Pengerjaan tidak memuat baris persamaan');
+    var kunci = b.opsi[b.kunci], inti = intiAngka(kunci.teks);
+    var simpul = p.slice(pos[3] + 1).filter(function (l) { return !/^Jawaban: /.test(l) && !/^§ /.test(l); });
+    var jawab = simpul.filter(function (l) { return /Jawaban: [A-E]\b/.test(l); });
+    if (!jawab.length) m.push('Kesimpulan tidak menyebut huruf jawaban');
+    else if (jawab.some(function (l) { return !new RegExp('Jawaban: ' + HURUF[b.kunci] + '\\b').test(l); })) m.push('huruf jawaban pada Kesimpulan tidak sama dengan kunci ' + HURUF[b.kunci]);
+    else if (!jawab.some(function (l) { return inti ? memuatAngka(l, inti) : l.toLowerCase().indexOf(String(kunci.teks).toLowerCase()) >= 0; })) m.push('Kesimpulan tidak menyebut nilai jawaban (' + kunci.teks + ')');
+  }
+
+  /** Soal yang memakai uang hanya memakai dolar ($): tidak ada £, €, atau kurs pada soal, gambar, opsi, dan pembahasan. */
+  function periksaMataUang(b, m) {
+    var semua = [ulangiTeks(b)].concat(b.opsi.map(function (o) { return o.teks + ' ' + (o.alasan || ''); }), b.pembahasan || [],
+      (b.stimulus.gambar || []).map(function (g) { return JSON.stringify(g.model || {}) + ' ' + (g.judul || ''); })).join('\n');
+    if (/[£€]|\b(kurs|euro|pound)\b/i.test(semua)) m.push('soal memakai mata uang selain dolar atau menyebut konversi kurs');
+  }
+
   function periksaNumerik(b, m) {
     if (!periksaPilihan(b, m, 5)) return;
     var mod = b.model || {}, info = {};
+    if (b.jenis === 'pg' && ['cerita', 'tabel', 'grafik'].indexOf(b.submateri) >= 0) {
+      periksaAlasanPengecoh(b, m);
+      periksaBahasHitung(b, m);
+      periksaMataUang(b, m);
+    }
     var env = bangunEnv(b, m, info);
     var nilai = hitungLangkah(b, env, m);
     var toleransi = mod.toleransi == null ? 0 : mod.toleransi;
@@ -216,16 +523,26 @@
     // ---- hitung ulang
     var jawab = null, jenis = mod.jenisHitung || 'langkah';
     if (jenis === 'lunas-bulan') {
-      var P0 = env.P0, g = env.g, C = env.C, m0 = Number(env.m0.n);
-      if (!P0 || !g || !C) { m.push('param laba-majemuk tidak lengkap'); return; }
+      var P0 = env.P0, g = env.g, C = env.C, m0 = env.m0 ? Number(env.m0.n) : -1;
+      if (!P0 || !g || !C || m0 < 0) { m.push('param laba-majemuk tidak lengkap'); return; }
+      // uang muka (bila ada) dibayar tunai; sisanya dilunasi laba mulai bulan pembelian
+      var sisa = env.DP ? H.kurang(C, env.DP) : C;
       var kum = H.q(0), laba = P0, k = 0;
-      while (H.banding(kum, C) < 0 && k < 40) { kum = H.tambah(kum, laba); laba = H.bagi(H.kali(laba, H.tambah(100, g)), 100); k++; }
-      var idx = (m0 + k - 1) % 12;
+      while (H.banding(kum, sisa) < 0 && k < 40) { kum = H.tambah(kum, laba); laba = H.bagi(H.kali(laba, H.tambah(100, g)), 100); k++; }
+      var idx = m0 + k - 1;
+      if (idx > 11) m.push('bulan lunas yang dihitung ulang melewati Desember tahun pembelian');
       var kunciIdx = bulanIndeks(kunciOpsi.teks);
-      if (kunciIdx !== idx) m.push('bulan lunas yang dihitung ulang: ' + BULAN[idx] + ', kunci tercetak: ' + kunciOpsi.teks);
-      // lima bulan berurutan
-      var awal = bulanIndeks(b.opsi[0].teks);
-      b.opsi.forEach(function (o, i) { if (bulanIndeks(o.teks) !== (awal + i) % 12) m.push('opsi bulan tidak berurutan pada ' + HURUF[i]); });
+      if (kunciIdx !== idx % 12) m.push('bulan lunas yang dihitung ulang: ' + BULAN[idx % 12] + ', kunci tercetak: ' + kunciOpsi.teks);
+      // bulan pilihan: berbeda, urut waktu, pada atau sesudah bulan pembelian dalam tahun yang sama
+      var sebelum = -1;
+      b.opsi.forEach(function (o, i) {
+        var bi = bulanIndeks(o.teks);
+        if (bi < 0) m.push('opsi ' + HURUF[i] + ' bukan nama bulan: ' + o.teks);
+        else if (bi < m0) m.push('opsi ' + HURUF[i] + ' (' + o.teks + ') jatuh sebelum bulan pembelian (' + BULAN[m0] + ')');
+        else if (bi <= sebelum) m.push('opsi bulan tidak urut waktu pada ' + HURUF[i]);
+        sebelum = Math.max(sebelum, bi);
+      });
+      if (ulangiTeks(b).toLowerCase().indexOf('bulan ' + BULAN[m0]) < 0) m.push('bulan pembelian (' + BULAN[m0] + ') tidak tertulis di soal');
       return finalNumerik(b, m, mod, env);
     }
     if (jenis === 'tahun-lampaui') {
@@ -240,8 +557,12 @@
       }
       var uk = urai(kunciOpsi.teks);
       if (!uk || Number(uk.q.n) !== tahun) m.push('jumlah tahun yang dihitung ulang: ' + tahun + ', kunci tercetak: ' + kunciOpsi.teks);
-      var nums = b.opsi.map(function (o) { var u = urai(o.teks); return u ? Number(u.q.n) : NaN; });
-      nums.forEach(function (v, i) { if (i && v !== nums[i - 1] + 1) m.push('opsi tahun tidak berurutan'); });
+      // pilihan tahun: bilangan bulat positif yang berbeda dan urut naik (dari jalur kesalahan, tidak harus berurutan)
+      var nums = b.opsi.map(function (o) { var u = urai(o.teks); return u && u.q.d === BigInt(1) ? Number(u.q.n) : NaN; });
+      nums.forEach(function (v, i) {
+        if (!(v >= 1)) m.push('opsi tahun ' + HURUF[i] + ' bukan bilangan bulat positif');
+        else if (i && !(v > nums[i - 1])) m.push('opsi tahun tidak urut naik pada ' + HURUF[i]);
+      });
       return finalNumerik(b, m, mod, env);
     }
     if (jenis === 'argmaks') {
@@ -284,12 +605,14 @@
       sudah.forEach(function (x) { if (H.sama(x.q, u.q)) m.push('opsi ' + HURUF[x.i] + ' dan ' + HURUF[i] + ' bernilai sama'); });
       sudah.push({ i: i, q: u.q });
     });
+    periksaPerlu(b, m, mod, env, jawab);
     finalNumerik(b, m, mod, env, nilai);
   }
 
-  /** Pemeriksaan yang berlaku untuk semua butir numerik: gema angka, keseimbangan, jumlah tabel. */
+  /** Pemeriksaan yang berlaku untuk semua butir numerik: gema angka, angka tercetak, keseimbangan, jumlah tabel. */
   function finalNumerik(b, m, mod, env, nilai) {
     var teks = ulangiTeks(b);
+    periksaAngkaTercetak(b, m, mod);
     // gema: angka yang dihitung = angka yang dibaca peserta
     Object.keys(mod.tampil || {}).forEach(function (nama) {
       var tampil = mod.tampil[nama];
@@ -359,8 +682,9 @@
   // pernyataan diturunkan ulang dari fakta itu dengan aturan validator sendiri, lalu
   // diperiksa bahwa fakta memang tertulis: bacaan tersusun tepat dari kalimat fakta, dan
   // kata penanda tiap fakta ("tidak termasuk", "hanya", "secara teori", "tidak semua",
-  // "sekurang-kurangnya", arah "menaikkan/menurunkan", ...) ada di kalimatnya. Daftar
-  // penanda di bawah ini milik validator; tidak diambil dari penyusun.
+  // "sekurang-kurangnya", "paling lambat <angka> <satuan>", arah "menaikkan/menurunkan",
+  // temuan "menunjukkan" yang tidak berlaku umum, ...) ada di kalimatnya. Daftar penanda di
+  // bawah ini milik validator; tidak diambil dari penyusun.
 
   var V_YA = ['mencakup', 'meliputi', 'termasuk', 'tergolong', 'masuk golongan', 'bagian dari', 'berlaku bagi'];
   var V_TIDAK = ['tidak termasuk', 'tidak tergolong', 'tidak mencakup', 'bukan bagian', 'kecuali', 'di luar'];
@@ -373,7 +697,8 @@
   var V_AWAL = ['pertama kali', 'mula-mula', 'pada mulanya', 'awalnya'];
   var V_LANJUT = ['kemudian', 'lalu', 'setelah itu', 'selanjutnya'];
   var V_BILANGAN = { 2: 'dua', 3: 'tiga', 4: 'empat' };
-  var V_TIPE = ['latar', 'golongan', 'bagian', 'daftar', 'sebab', 'kuantor', 'status', 'syarat', 'urutan', 'banding'];
+  var V_TEMUAN = ['menunjukkan', 'memperlihatkan', 'mendapati', 'mencatat', 'menemukan'];
+  var V_TIPE = ['latar', 'golongan', 'bagian', 'daftar', 'sebab', 'kuantor', 'status', 'syarat', 'urutan', 'banding', 'batas', 'temuan'];
 
   function kecilV(s) { return String(s == null ? '' : s).toLowerCase(); }
   function polaKata(kata) { return new RegExp('(^|[^a-z-])' + kata.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?=[^a-z-]|$)'); }
@@ -428,6 +753,27 @@
     if (pasti && !tidak) return 'pasti';
     return tidak && !pasti ? 'tidak' : null;
   }
+  /** lambat ("paling lambat t ... setelah", batas akhir) atau cepat ("paling cepat t ... setelah", masa tunggu). */
+  function batasDariTeks(teks) {
+    var t = kecilV(teks), lambat = /(paling lambat|selambat-lambatnya)/.test(t), cepat = /(paling cepat|paling awal|secepat-cepatnya)/.test(t);
+    if (lambat === cepat) return null;
+    return lambat ? 'lambat' : 'cepat';
+  }
+  /** Pernyataan batas waktu: memenuhi, melewati, atau menyebut batasnya sendiri ("paling lambat v ..."). */
+  function batasKlaimDariTeks(teks) {
+    var t = kecilV(teks);
+    if (negasiV(t)) return null;
+    var penuhi = /(memenuhi batas waktu|masih dalam batas waktu)/.test(t), lewat = /(melewati batas waktu|melampaui batas waktu|terlambat)/.test(t);
+    if (penuhi && !lewat) return 'memenuhi';
+    if (lewat && !penuhi) return 'melewati';
+    return !penuhi && !lewat && batasDariTeks(t) === 'lambat' ? 'batas' : null;
+  }
+  /** Angka dan satuan waktu tercetak berdampingan ("24 jam", "10 hari kerja"). */
+  function adaWaktu(teks, v, satuan) {
+    return !!satuan && new RegExp('(^|[^\\d.,])' + angkaId(v).replace(/\./g, '\\.') + '\\s+' + kecilV(satuan).replace(/\s+/g, '\\s+') + '(?=[^a-z]|$)').test(kecilV(teks));
+  }
+  /** Penanda berlaku umum: semua, seluruh, setiap, di mana pun. */
+  function umumV(teks) { return /(^|[^a-z])(semua|seluruh|setiap|mana pun)([^a-z]|$)/.test(kecilV(teks)); }
   /** Ada klausa dengan susunan "<a> ... lebih <sifat> ... daripada ... <b>". */
   function susunanBanding(teks, na, nb, sifat) {
     return klausaV(teks).some(function (k) {
@@ -580,6 +926,26 @@
       if (aL && bL) return 'KONTRADIKSI';
       return aL ? 'B' : (bL ? 'S' : 'TD');
     }
+    if (k.tipe === 'batas') {
+      var bt = cari('batas', function (x) { return x.aksi === k.aksi; });
+      if (!bt.length) return 'TD';     // tahap lain: batas waktunya tidak disebut
+      if (bt.length > 1) return 'GANDA';
+      var b0 = bt[0];
+      if (b0.satuan !== k.satuan || (b0.jenis !== 'lambat' && b0.jenis !== 'cepat')) return 'TIDAK-DIKENAL';
+      var dalam = b0.jenis === 'lambat' ? k.v <= b0.batas : k.v >= b0.batas;
+      if (k.jenis === 'memenuhi') return dalam ? 'B' : 'S';
+      if (k.jenis === 'melewati') return b0.jenis === 'lambat' ? (dalam ? 'S' : 'B') : 'TIDAK-DIKENAL';
+      if (k.jenis === 'batas') return b0.jenis === 'lambat' && k.v === b0.batas ? 'B' : 'AMBIGU';
+      return 'TIDAK-DIKENAL';
+    }
+    if (k.tipe === 'temuan') {
+      var tm = cari('temuan', function (x) { return x.hal === k.hal; });
+      if (!tm.length) return 'TD';
+      if (tm.length > 1) return 'GANDA';
+      if (k.lingkup === tm[0].lingkup) return k.arah === tm[0].arah ? 'B' : 'S';
+      // hasil di satu lingkup tidak berlaku umum; lawan arahnya di lingkup lebih luas bergantung pada tafsiran
+      return k.arah === tm[0].arah ? 'TD' : 'AMBIGU';
+    }
     return 'TIDAK-DIKENAL';
   }
 
@@ -633,6 +999,23 @@
       (f.lanjut || []).forEach(function (id) { if (!f.nama || t.indexOf(kecilV(f.nama[id]), pl) < pl) m.push(pelaku + ': "' + id + '" tidak tertulis setelah "kemudian"'); });
     } else if (f.tipe === 'banding') {
       if (!f.nama || !susunanBanding(f.teks, f.nama.a, f.nama.b, f.sifat)) m.push(pelaku + ': susunan "a lebih ' + f.sifat + ' daripada b" tidak tertulis');
+    } else if (f.tipe === 'batas') {
+      if (!adaWaktu(f.teks, f.batas, f.satuan)) m.push(pelaku + ': batas ' + f.batas + ' ' + f.satuan + ' tidak tercetak');
+      var bj = batasDariTeks(f.teks);
+      if (bj !== f.jenis) m.push(pelaku + ': batas waktu tertulis "' + bj + '", model "' + f.jenis + '"');
+      if (!f.nama || !f.nama.aksi) m.push(pelaku + ': hal yang dibatasi waktunya tidak bernama');
+    } else if (f.tipe === 'temuan') {
+      var pt = kecilV(f.penanda);
+      if (!pt || t.indexOf(pt) < 0) m.push(pelaku + ': penanda "' + f.penanda + '" tidak tertulis');
+      else {
+        if (!f.nama || !f.nama.hal || pt.indexOf(kecilV(f.nama.hal)) < 0) m.push(pelaku + ': hal yang diamati tidak ada pada penanda "' + f.penanda + '"');
+        if (!arahCocok(pt, f.arah)) m.push(pelaku + ': kata pada "' + f.penanda + '" tidak menunjukkan arah ' + f.arah);
+      }
+      if (!f.nama || !f.nama.lingkup) m.push(pelaku + ': lingkup temuan tidak bernama');
+      if (!adaSalahSatu(t, V_TEMUAN)) m.push(pelaku + ': temuan tidak ditandai "menunjukkan/mendapati/mencatat"');
+      // temuan setempat bukan pernyataan bukti umum dan tidak berlaku umum
+      if (/(terbukti|membuktikan|secara teori|pada prinsipnya)/.test(t)) m.push(pelaku + ': temuan memakai penanda status bukti');
+      if (umumV(t)) m.push(pelaku + ': temuan setempat ditulis berlaku umum');
     }
   }
 
@@ -657,6 +1040,15 @@
       if (k.jenis === 'diterapkan' && (ada || sebelum >= 0)) salah('memuat penanda urutan');
       if (k.jenis === 'sebelum' && !(k.nama && t.indexOf(kecilV(k.nama.x)) >= 0 && t.indexOf(kecilV(k.nama.x)) < sebelum && t.indexOf(kecilV(k.nama.y), sebelum) > sebelum)) salah('susunan "x lebih dahulu daripada y" tidak tertulis');
     } else if (k.tipe === 'banding' && !(k.nama && susunanBanding(k.teks, k.nama.a, k.nama.b, k.sifat))) salah('susunan "a lebih ' + k.sifat + ' daripada b" tidak tertulis');
+    else if (k.tipe === 'batas') {
+      if (!adaWaktu(k.teks, k.v, k.satuan)) salah('angka atau satuan waktu tidak sesuai model');
+      if (batasKlaimDariTeks(sisa) !== k.jenis) salah('jenis pernyataan batas waktu tertulis "' + batasKlaimDariTeks(sisa) + '", model "' + k.jenis + '"');
+    } else if (k.tipe === 'temuan') {
+      var pk = kecilV(k.penanda);
+      if (!pk || t.indexOf(pk) < 0 || !k.nama || !k.nama.hal || pk.indexOf(kecilV(k.nama.hal)) < 0 || !arahCocok(pk, k.arah)) salah('arah temuan tidak tertulis sesuai model');
+      if (k.lingkup === 'umum' ? !umumV(sisa) : (umumV(sisa) || !k.nama || !k.nama.lingkup)) salah('lingkup temuan tidak tertulis sesuai model');
+      if (negasiV(sisa)) salah('pernyataan temuan memakai penyangkalan');
+    }
   }
 
   function disebutVerbal(fakta, id) {
@@ -672,7 +1064,8 @@
     Object.keys(mb.ids).forEach(function (x) { if (mb.terpisah(x, x)) m.push('fakta golongan bertentangan: "' + x + '" berada di dua golongan yang saling lepas'); });
     var kunci = {};
     fakta.forEach(function (f) {
-      var kk = { daftar: 'daftar ' + f.subjek + '/' + f.himp, kuantor: 'kuantor ' + f.kelompok + '/' + f.sifat, status: 'status ' + f.hal, syarat: 'syarat ' + f.aksi, urutan: 'urutan ' + f.subjek }[f.tipe];
+      var kk = { daftar: 'daftar ' + f.subjek + '/' + f.himp, kuantor: 'kuantor ' + f.kelompok + '/' + f.sifat, status: 'status ' + f.hal, syarat: 'syarat ' + f.aksi, urutan: 'urutan ' + f.subjek,
+        batas: 'batas ' + f.aksi, temuan: 'temuan ' + f.hal }[f.tipe];
       if (!kk) return;
       if (kunci[kk]) m.push('dua fakta untuk hal yang sama: ' + kk);
       kunci[kk] = 1;
@@ -710,6 +1103,32 @@
       var id = mod.klaim[r], nm = mod.klaim.nama && mod.klaim.nama[r];
       if (typeof id === 'string' && nm && !disebutVerbal(mod.fakta, id) && kecilV(bacaan).indexOf(kecilV(nm)) >= 0) m.push('"' + nm + '" tidak disebut fakta mana pun, tetapi tertulis di bacaan');
     });
+    var kl = mod.klaim;
+    // istilah pada pernyataan harus istilah yang dipakai fakta untuk id yang sama (bukan hanya id-nya)
+    var namaId = {};
+    function catatNama(id, nm) { if (typeof id === 'string' && nm) namaId[id] = kecilV(nm); }
+    mod.fakta.forEach(function (f) {
+      if (!f.nama) return;
+      if (f.tipe === 'banding') { catatNama(f.a, f.nama.a); catatNama(f.b, f.nama.b); }
+      else if (f.tipe === 'bagian') catatNama(f.x, f.nama.x);
+      else if (f.tipe === 'kuantor') catatNama(f.kelompok, f.nama.kelompok);
+      else if (f.tipe === 'urutan') Object.keys(f.nama).forEach(function (id) { catatNama(id, f.nama[id]); });
+    });
+    // (sebab tidak diperiksa di sini: pernyataannya boleh memakai bentuk kata kerja, mis. "memilah" untuk "pemilahan")
+    var peran = { banding: ['a', 'b'], bagian: ['x'], urutan: ['x', 'y'], kuantor: ['kelompok'] }[kl.tipe] || [];
+    peran.forEach(function (r) {
+      var id = kl[r], nf = namaId[id], nk = kl.nama && kecilV(kl.nama[r]);
+      if (nf && nk && nf !== nk) m.push('istilah "' + kl.nama[r] + '" pada pernyataan tidak sesuai dengan istilah bacaan untuk ' + id);
+    });
+    // batas waktu tahap lain: tahap itu harus bernama dan tidak boleh disinggung bacaan sama sekali
+    if (kl.tipe === 'batas' && !mod.fakta.some(function (f) { return f.tipe === 'batas' && f.aksi === kl.aksi; }) &&
+      !(kl.x === kl.aksi && kl.nama && kl.nama.x && kecilV(kl.teks).indexOf(kecilV(kl.nama.x)) >= 0)) m.push('pernyataan batas waktu untuk tahap yang tidak disebut bacaan harus menamai tahap itu');
+    // generalisasi: tidak ada kalimat bacaan yang sudah memberlakukan hal itu secara umum
+    if (kl.tipe === 'temuan' && kl.nama && kl.nama.hal) {
+      String(bacaan).split(/\.\s+/).forEach(function (s) {
+        if (kecilV(s).indexOf(kecilV(kl.nama.hal)) >= 0 && umumV(s)) m.push('bacaan memberlakukan "' + kl.nama.hal + '" secara umum: "' + s.slice(0, 60) + '..."');
+      });
+    }
     cekKonsistenVerbal(mod.fakta, m);
   }
 
@@ -782,39 +1201,74 @@
     if (JSON.stringify(deret) !== JSON.stringify(mod.deret)) m.push('deret yang tergambar berbeda dari data model');
     if (JSON.stringify(pilihan) !== JSON.stringify(mod.pilihan)) m.push('opsi yang tergambar berbeda dari data model');
     if (deret.length !== 4) { m.push('deret harus berisi empat kotak'); return; }
+    // (1) arah: putaran antarkotak tetap (boleh nol bila gambar hanya berpindah tempat)
     var dasar = deret.map(function (f) { return Fig.pusatkan(tanpaPenanda(f)); }), delta = null;
     for (var i = 0; i < 3; i++) {
       var d = Fig.sudutPutarKe(dasar[i], dasar[i + 1]);
       if (d === null) { m.push('kotak ' + (i + 1) + ' dan ' + (i + 2) + ' tidak terhubung oleh putaran'); return; }
-      var dn = d > 180 ? d - 360 : d;
+      var dn = sudutBertanda(d);
       if (delta === null) delta = dn; else if (Math.abs(dn - delta) > 1e-3) { m.push('langkah putar antar kotak tidak konsisten (' + delta + ' lalu ' + dn + ')'); return; }
     }
-    if (Math.abs(delta) < 1e-6) { m.push('deret tidak berputar'); return; }
-    // titik penanda: jumlah dan isi
+    // (2) letak: titik berat gambar tetap, atau mengelilingi pusat kotak dengan langkah sudut tetap
+    var pos = deret.map(titikBerat), posTetap = pos.every(function (p) { return letakSama(p, pos[0]); }), posKunci = pos[3];
+    if (!posTetap) {
+      var jari = pos.map(function (p) { return Math.hypot(p[0], p[1]); }), langkah = null;
+      if (jari[0] < 1e-3 || jari.some(function (r) { return Math.abs(r - jari[0]) > 1e-3; })) { m.push('letak gambar antarkotak tidak membentuk pola (jaraknya ke pusat kotak berubah)'); return; }
+      for (i = 0; i < 3; i++) {
+        var ds = sudutBertanda((Math.atan2(pos[i + 1][1], pos[i + 1][0]) - Math.atan2(pos[i][1], pos[i][0])) * 180 / Math.PI);
+        if (langkah === null) langkah = ds; else if (Math.abs(ds - langkah) > 1e-3) { m.push('perpindahan letak gambar antarkotak tidak tetap'); return; }
+      }
+      var rad = langkah * Math.PI / 180;
+      posKunci = [pos[3][0] * Math.cos(rad) - pos[3][1] * Math.sin(rad), pos[3][0] * Math.sin(rad) + pos[3][1] * Math.cos(rad)];
+    }
+    // (3) titik penanda: jumlahnya deret aritmetika; isinya berselang-seling di dalam kotak (bila
+    //     jumlahnya bertambah), atau tetap / berulang tiap dua kotak (bila jumlahnya tetap)
     var jml = deret.map(function (f) { return penandaFig(f).length; });
     var beda = jml[1] - jml[0];
     if (jml[2] - jml[1] !== beda || jml[3] - jml[2] !== beda) { m.push('jumlah titik penanda tidak membentuk deret aritmetika: ' + jml.join(',')); return; }
-    var isi4 = penandaFig(deret[3]).map(function (u) { return u.isi ? 1 : 0; });
-    var bergantian = isi4.length >= 2 && isi4.every(function (x, j) { return j === 0 || x !== isi4[j - 1]; });
-    var prediksiJml = jml[3] + beda, prediksiIsi = isi4.slice();
-    for (var j = isi4.length; j < prediksiJml; j++) prediksiIsi.push(bergantian ? 1 - prediksiIsi[j - 1] : (prediksiIsi.length ? prediksiIsi[j - 1] : 1));
-    var sudutKunci = (delta);
+    var isiK = deret.map(function (f) { return penandaFig(f).map(function (u) { return u.isi ? 1 : 0; }).join(''); });
+    var isiTetap = isiK.every(function (s) { return s === isiK[0]; });
+    var prediksiJml = jml[3] + beda, prediksiIsi;
+    if (beda !== 0) {
+      var isi4 = isiK[3].split('').map(Number);
+      var bergantian = isi4.length >= 2 && isi4.every(function (x, j) { return j === 0 || x !== isi4[j - 1]; });
+      prediksiIsi = isi4.slice();
+      for (var j = isi4.length; j < prediksiJml; j++) prediksiIsi.push(bergantian ? 1 - prediksiIsi[j - 1] : (prediksiIsi.length ? prediksiIsi[j - 1] : 1));
+      prediksiIsi = prediksiIsi.join('');
+    } else if (isiTetap) prediksiIsi = isiK[3];
+    else if (isiK[0] === isiK[2] && isiK[1] === isiK[3]) prediksiIsi = isiK[2];
+    else { m.push('isi titik penanda antarkotak tidak membentuk pola: ' + isiK.join(' / ')); return; }
+    if (Math.abs(delta) < 1e-6 && posTetap && beda === 0 && isiTetap) { m.push('deret tidak berubah dari kotak ke kotak'); return; }
     var cocok = [];
     pilihan.forEach(function (f, idx) {
       var base = Fig.pusatkan(tanpaPenanda(f));
       var d2 = Fig.sudutPutarKe(dasar[3], base);
-      if (d2 === null) return;
-      var dd = d2 > 180 ? d2 - 360 : d2;
-      if (Math.abs(dd - sudutKunci) > 1e-3 && Math.abs(Math.abs(dd - sudutKunci) - 360) > 1e-3) return;
+      if (d2 === null || Math.abs(sudutBertanda(d2 - delta)) > 1e-3) return;
+      if (!letakSama(titikBerat(f), posKunci)) return;
       var pn = penandaFig(f);
       if (pn.length !== prediksiJml) return;
-      var isi = pn.map(function (u) { return u.isi ? 1 : 0; });
-      if (isi.join() !== prediksiIsi.join()) return;
+      if (pn.map(function (u) { return u.isi ? 1 : 0; }).join('') !== prediksiIsi) return;
       cocok.push(idx);
     });
-    if (cocok.length !== 1) m.push('opsi yang memenuhi pola putaran ada ' + cocok.length + ', seharusnya tepat satu');
+    if (cocok.length !== 1) m.push('opsi yang memenuhi pola deret ada ' + cocok.length + ', seharusnya tepat satu');
     else if (cocok[0] !== b.kunci) m.push('opsi yang memenuhi pola adalah ' + HURUF[cocok[0]] + ', kunci tercetak ' + HURUF[b.kunci]);
+    var gb = {};
+    b.opsi.forEach(function (o, k) {
+      try { var s = Gambar.svg(o.gambar).svg; if (gb[s] !== undefined) m.push('gambar opsi ' + HURUF[gb[s]] + ' dan ' + HURUF[k] + ' identik'); gb[s] = k; } catch (e) { m.push('gambar opsi ' + HURUF[k] + ' gagal'); }
+    });
   }
+
+  /** Sudut dalam rentang (-180, 180]. */
+  function sudutBertanda(d) { d = ((d % 360) + 360) % 360; return d > 180 ? d - 360 : d; }
+
+  /** Titik berat gambar tanpa titik penanda (cuplikan rapat sepanjang garis), terhadap pusat kotak. */
+  function titikBerat(fig) {
+    var s = Fig.sampel(tanpaPenanda(fig), 1.5), x = 0, y = 0;
+    s.forEach(function (p) { x += p[0]; y += p[1]; });
+    return s.length ? [x / s.length, y / s.length] : [0, 0];
+  }
+
+  function letakSama(p, q) { return Math.abs(p[0] - q[0]) < 1e-3 && Math.abs(p[1] - q[1]) < 1e-3; }
 
   // ------------------------------------------------- figural bentuk riset (5x5, 5x6, bersekat, kotak ganda)
 
@@ -863,15 +1317,36 @@
     var g = t.soal.grid, l = t.soal.lubang;
     if (sj(g) !== sj(b.model.grid) || sj(l) !== sj(b.model.lubang)) m.push('matriks yang tergambar berbeda dari data model');
     if (!l || !Array.isArray(g) || g.length !== 5) { m.push('matriks 5x5 tidak lengkap'); return; }
-    if (!lubangSesuai(g, function (r, c) { return r >= l.r && r < l.r + l.h && c >= l.c && c < l.c + l.w; }, m)) return;
+    // daerah "?" = kotak pembatas l, dikurangi kotak yang tidak tercantum di l.sel (potongan berbentuk L)
+    var diLubang = function (r, c) {
+      if (!(r >= l.r && r < l.r + l.h && c >= l.c && c < l.c + l.w)) return false;
+      return !l.sel || l.sel.some(function (x) { return x[0] === r - l.r && x[1] === c - l.c; });
+    };
+    if (!lubangSesuai(g, diLubang, m)) return;
     var r = Inf.latinLubang(g, 5);
     if (r.status !== 'unik') { m.push('matriks 5x5: ' + (r.status === 'ambigu' ? 'lubang dapat diisi dengan ' + r.semua.length + ' cara' : 'aturan tidak terbaca (' + (r.pesan || 'tak ada pengisian yang sah') + ')')); return; }
+    if (r.lubang.length < 2) m.push('matriks 5x5: daerah tanda tanya harus memuat sedikitnya dua kotak');
     var cocok = [];
     t.opsi.forEach(function (p, i) {
       if (!Array.isArray(p) || p.length !== l.h || p.some(function (row) { return !Array.isArray(row) || row.length !== l.w; })) { m.push('opsi ' + HURUF[i] + ' tidak sebentuk dengan daerah tanda tanya'); return; }
-      if (sj([].concat.apply([], p)) === sj(r.nilai)) cocok.push(i);
+      var isi = [], sebentuk = true;
+      p.forEach(function (row, rr) { row.forEach(function (v, cc) { var ada = diLubang(l.r + rr, l.c + cc); if (ada !== (v !== null)) sebentuk = false; if (ada) isi.push(v); }); });
+      if (!sebentuk) { m.push('opsi ' + HURUF[i] + ' tidak sebentuk dengan daerah tanda tanya'); return; }
+      if (sj(isi) === sj(r.nilai)) cocok.push(i);
     });
     tepatSatu(b, m, cocok, 'aturan baris dan kolom');
+  }
+
+  /** Matriks 3x3 simbol dan sambungan: hubungan banyak simbol dan banyak sambungan dibaca dari kedelapan kotak yang tampak. */
+  function periksaSambung(b, m) {
+    var t = bacaTampilan(b, m, 'matriks', 'sel', function (x) { return x.cell || null; });
+    if (!t) return;
+    var g = t.soal.grid, mr = t.soal.mr, mc = t.soal.mc;
+    if (sj(g) !== sj(b.model.grid) || mr !== b.model.mr || mc !== b.model.mc) m.push('matriks yang tergambar berbeda dari data model');
+    if (!Array.isArray(g) || g.length !== 3 || !Array.isArray(g[mr]) || g[mr][mc] !== null) { m.push('kotak kosong pada matriks tidak sama dengan kotak tanda tanya'); return; }
+    var r = Inf.sambung(g, t.opsi);
+    if (r.status !== 'unik') { m.push('matriks simbol dan sambungan: ' + (r.pesan || 'aturan tidak terbaca') + (r.aturan && r.aturan.length ? ' (aturan yang berlaku: ' + r.aturan.join(', ') + ')' : '')); return; }
+    tepatSatu(b, m, r.cocok, 'hubungan simbol dan sambungan');
   }
 
   /** Matriks 5x6: aturan bentuk dan warna yang berlaku harus menentukan satu deret pengganti. */
@@ -929,6 +1404,28 @@
     tepatSatu(b, m, cocok, 'kode belah ketupat');
   }
 
+  /**
+   * Gambar pembahasan figural (panduan revisi: visual tahapan pola beserta penandanya). Gambar ini
+   * BUKAN bagian pembuktian kunci; yang diperiksa: sedikitnya satu gambar (semuanya sudah digambar
+   * oleh periksaUmum), tiap gambar disebut di teks pembahasan ("Gambar n"), dan gambar yang
+   * menampilkan jawaban (`model.jawaban`) sama persis dengan isi gambar opsi kunci, sedikitnya satu.
+   */
+  function periksaPembahasanFigural(b, m) {
+    var g = b.gambarPembahasan || [];
+    if (!g.length) { m.push('pembahasan figural belum memuat gambar tahapan pola'); return; }
+    var teks = (b.pembahasan || []).join('\n'), ko = b.opsi && b.opsi[b.kunci] && b.opsi[b.kunci].gambar ? b.opsi[b.kunci].gambar.model : null;
+    var isiKunci = ko ? (ko.fig || ko.cell || ko.isi || ko.atas || null) : null, jawaban = 0;
+    g.forEach(function (d, i) {
+      if (d.id !== 'bahas-' + (i + 1)) m.push('gambar pembahasan ke-' + (i + 1) + ' seharusnya ber-id bahas-' + (i + 1));
+      if (teks.indexOf('Gambar ' + (i + 1)) < 0) m.push('gambar pembahasan ke-' + (i + 1) + ' tidak disebut di teks pembahasan');
+      if (d.model && d.model.jawaban !== undefined) {
+        jawaban++;
+        if (!isiKunci || sj(d.model.jawaban) !== sj(isiKunci)) m.push('gambar pembahasan ' + d.id + ' menampilkan jawaban yang berbeda dari gambar opsi kunci');
+      }
+    });
+    if (!jawaban) m.push('gambar pembahasan figural tidak memperlihatkan penerapan pola pada gambar jawaban');
+  }
+
   // ------------------------------------------------------------------ interaktif
 
   function periksaTeksTampil(b, m, env) {
@@ -984,6 +1481,40 @@
     });
   }
 
+  var POSISI_GARIS_MAKS = 120;
+
+  /**
+   * Semua yang dipakai rumus garis harus tertulis di soal. Rumus hanya boleh memuat parameter dan bilangan
+   * kecil (banyak langkah, 1, 2, 100); parameter tanpa tampilan hanya tanda arah (±1) atau turunan yang besarnya
+   * sama dengan parameter tertulis; setiap kejadian sekali-jadi (parameter eN) harus punya kalimat yang memuat
+   * waktu dan besarnya.
+   */
+  function periksaGarisTertulis(b, m, env) {
+    var mod = b.model, tampil = mod.tampil || {}, turunan = mod.turunan || {};
+    (b.langkah || []).forEach(function (l) {
+      // yang boleh: pengali banyak langkah (k*, k <= 5), pembagi persen (/100), dan faktor (1+ / (1-
+      var r = String(l.rumus).replace(/[A-Za-z_][A-Za-z_0-9]*/g, 'x').replace(/\s+/g, '').replace(/\/100(?![\d.])/g, '');
+      (r.match(/\d+(?:\.\d+)?\*/g) || []).forEach(function (x) { if (parseFloat(x) > 5) m.push('rumus ' + l.nama + ' memakai pengali ' + parseFloat(x) + ' yang tidak tertulis di soal'); });
+      var sisa = r.replace(/\d+(?:\.\d+)?\*/g, '').replace(/\(1[+-]/g, '(');
+      (sisa.match(/\d+(?:\.\d+)?/g) || []).forEach(function (x) { m.push('rumus ' + l.nama + ' memuat bilangan ' + x + ' yang tidak tertulis di soal sebagai parameter'); });
+    });
+    Object.keys(mod.param || {}).forEach(function (k) {
+      if (tampil[k] != null) return;
+      if (k === 'arah') { if (['1', '-1'].indexOf(String(mod.param.arah)) < 0) m.push('parameter arah harus 1 atau -1'); return; }
+      var dasar = turunan[k];
+      if (dasar && tampil[dasar] != null && env[k] && env[dasar] && H.sama(H.mutlak(env[k]), env[dasar])) return;
+      m.push('parameter ' + k + ' dipakai tanpa tertulis di soal');
+    });
+    var kalimat = (b.stimulus.teks || []).join(' ').split(/\.\s+/);
+    var dicatat = {};
+    (mod.peristiwa || []).forEach(function (e) {
+      dicatat[e.param] = true;
+      var t = tampil[e.param];
+      if (t == null || !kalimat.some(function (s) { return s.indexOf(e.waktu) >= 0 && s.indexOf(t) >= 0; })) m.push('kejadian ' + e.param + ' (' + e.waktu + ') tidak tertulis di soal beserta waktunya');
+    });
+    Object.keys(mod.param || {}).forEach(function (k) { if (/^e\d+$/.test(k) && !dicatat[k]) m.push('kejadian ' + k + ' tidak punya catatan waktu'); });
+  }
+
   function periksaPnGaris(b, m) {
     var mod = b.model, is = b.isian;
     var env = paramEnv(b, m), nilai = hitungLangkah(b, env, m);
@@ -996,6 +1527,8 @@
       if (is.kunci.nilai[i] < mod.min || is.kunci.nilai[i] > mod.maks) m.push('nilai ' + is.kunci.nilai[i] + ' di luar sumbu grafik');
     });
     if (is.awal.nilai.some(function (v) { return v !== null; })) m.push('tampilan awal tidak boleh memuat titik yang sudah terletak');
+    periksaGarisTertulis(b, m, env);
+    if ((mod.maks - mod.min) / mod.snap > POSISI_GARIS_MAKS) m.push('sumbu ' + mod.min + '-' + mod.maks + ' dengan langkah ' + mod.snap + ' terlalu rinci untuk digeser (' + (mod.maks - mod.min) / mod.snap + ' posisi)');
     // gambar kunci: posisi vertikal titik sesuai nilainya
     (b.gambarPembahasan || []).forEach(function (g) {
       var svg = Gambar.svg(g).svg, grid = [], titik = [];
@@ -1067,12 +1600,22 @@
     var jml = is.kunci.persen.reduce(function (s, x) { return s + x; }, 0);
     if (Math.abs(jml - 100) > 1e-9) m.push('jumlah persentase kunci ' + jml + ', seharusnya 100');
     if (is.awal.persen.every(function (v, i) { return v === is.kunci.persen[i]; })) m.push('kondisi awal sudah sama dengan kunci');
-    // setiap relasi tertulis di teks soal
+    // keterangan berupa satu kotak per irisan (judul = nama irisan, warna = warna irisan); setiap relasi
+    // tertulis di kotak irisannya, dan kotak irisan tanpa relasi (dasar bentuk kosong) benar-benar kosong
     var teks = ulangiTeks(b).toLowerCase(), grup = (mod.grup || []).map(function (x) { return x.toLowerCase(); });
+    var kartu = b.stimulus.kartu || [], irisanGbr = (((b.stimulus.gambar || [])[0] || {}).model || {}).irisan || [];
+    if (kartu.length !== n) m.push('keterangan pie harus berupa ' + n + ' kotak kategori, ada ' + kartu.length);
+    kartu.forEach(function (k, i) {
+      if (String(k.judul).toLowerCase().indexOf(grup[i]) < 0) m.push('judul kotak ' + (i + 1) + ' bukan ' + grup[i]);
+      if (!irisanGbr[i] || String(irisanGbr[i].warna || '').replace('#', '').toUpperCase() !== String(k.warna || '').toUpperCase()) m.push('warna kotak ' + (i + 1) + ' tidak sama dengan warna irisannya');
+      if (!rel.some(function (r) { return r.g === i; }) && String(k.teks || '').trim()) m.push('kotak ' + (i + 1) + ' berisi keterangan padahal irisannya tidak punya relasi');
+    });
+    if (/tidak disebutkan/.test(teks + ' ' + kartu.map(function (k) { return k.teks; }).join(' ').toLowerCase())) m.push('informasi kosong ditulis sebagai kalimat, seharusnya kotak kosong');
     rel.forEach(function (r) {
-      var kalimat = (b.stimulus.teks || []).filter(function (t) { return t.toLowerCase().indexOf(grup[r.g]) >= 0 && (r.r == null || t.toLowerCase().indexOf(grup[r.r]) >= 0); });
-      if (!kalimat.length) { m.push('relasi untuk ' + grup[r.g] + ' tidak tertulis di soal'); return; }
-      var s = kalimat.join(' ').toLowerCase();
+      var k = kartu[r.g];
+      if (!k || !String(k.teks || '').trim()) { m.push('relasi untuk ' + grup[r.g] + ' tidak tertulis di kotaknya'); return; }
+      if (r.r != null && String(k.teks).toLowerCase().indexOf(grup[r.r]) < 0) { m.push('kotak ' + grup[r.g] + ' tidak menyebut ' + grup[r.r]); return; }
+      var s = (k.judul + ' ' + k.teks).toLowerCase();
       var angka = function (v) { return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
       var ok = (r.tipe === 'nilai' && s.indexOf(angka(r.v)) >= 0) || (r.tipe === 'sama' && s.indexOf('sama') >= 0) ||
         (r.tipe === 'lebih' && s.indexOf('lebih banyak') >= 0 && s.indexOf(angka(r.k)) >= 0) || (r.tipe === 'kurang' && s.indexOf('lebih sedikit') >= 0 && s.indexOf(angka(r.k)) >= 0) ||
@@ -1124,6 +1667,73 @@
     if (is.awal.some(function (v) { return v !== null; })) m.push('tampilan awal tidak boleh sudah terjawab');
   }
 
+  // ---- pembahasan interaktif (panduan revisi paket-002): semua bentuk Penalaran Numerik memerlukan hitungan,
+  // jadi pembahasannya berurutan Diketahui, Ditanyakan, Pengerjaan, Kesimpulan; setiap hitungan berupa baris
+  // persamaan "§ " yang dapat diurai; Kesimpulan menyebut pengaturan akhir kontrol; semua nominal memakai USD.
+
+  var JUDUL_PN = ['Diketahui', 'Ditanyakan', 'Pengerjaan', 'Kesimpulan'];
+  var PENANDA_RUMUS = '§ ';
+
+  /** Pengurai persamaan dari rumus.js (modul format bersama, bukan penyusun soal); null bila tidak termuat. */
+  function modulRumus() {
+    if (typeof Rumus !== 'undefined' && Rumus && Rumus.periksa) return Rumus;
+    if (typeof require === 'function') { try { return require('./rumus.js'); } catch (e) { return null; } }
+    return null;
+  }
+
+  function barisRumus(t) { return typeof t === 'string' && t.indexOf(PENANDA_RUMUS) === 0; }
+
+  /** Nilai `v` tertulis sebagai bilangan utuh gaya Indonesia (mis. 1.200 pada "$1.200" atau "1.200 unit"). */
+  function memuatNilai(teks, v) {
+    var t = angkaId(Math.round(v)).replace(/\./g, '\\.');
+    return Math.abs(v - Math.round(v)) < 1e-9 && new RegExp('(^|[^\\d.,])' + t + '(?!\\d|[.,]\\d)').test(teks);
+  }
+
+  function periksaPembahasanPn(b, m) {
+    var p = (b.pembahasan || []).map(function (t) { return String(t); });
+    var pos = JUDUL_PN.map(function (j) { return p.indexOf(j); });
+    var jawab = p.length - 1;
+    JUDUL_PN.forEach(function (j) {
+      var n = p.filter(function (t) { return t.trim() === j; }).length;
+      if (n !== 1) m.push('pembahasan interaktif harus memuat judul "' + j + '" tepat sekali (ada ' + n + ')');
+    });
+    if (pos.some(function (x) { return x < 0; })) return;
+    if (pos.some(function (x, i) { return i && x <= pos[i - 1]; })) { m.push('judul pembahasan tidak berurutan Diketahui, Ditanyakan, Pengerjaan, Kesimpulan'); return; }
+    JUDUL_PN.forEach(function (j, i) {
+      var akhir = i < 3 ? pos[i + 1] : jawab;
+      if (akhir - pos[i] < 2) m.push('bagian "' + j + '" pada pembahasan kosong');
+    });
+    var R = modulRumus();
+    if (!R) m.push('pengurai persamaan (rumus.js) tidak termuat');
+    p.forEach(function (t, i) {
+      if (barisRumus(t)) {
+        var galat = R ? R.periksa(t.slice(PENANDA_RUMUS.length)) : null;
+        if (galat) m.push('persamaan baris ' + (i + 1) + ' pembahasan tidak dapat diurai: ' + galat);
+      } else if (/[×÷]/.test(t)) m.push('hitungan ditulis di luar baris persamaan: "' + t.slice(0, 60) + '"');
+    });
+    var rumusKerja = p.slice(pos[2] + 1, pos[3]).filter(barisRumus);
+    if (!rumusKerja.length) m.push('bagian Pengerjaan tidak memuat persamaan');
+    else if (rumusKerja[0].indexOf('\\text{') < 0 || rumusKerja[0].indexOf('=') < 0) m.push('Pengerjaan tidak diawali rumus umum berupa persamaan');
+    if (p.slice(pos[0] + 1, pos[2]).some(barisRumus)) m.push('persamaan ditulis sebelum bagian Pengerjaan');
+    // Kesimpulan menyebut pengaturan akhir setiap kontrol (nilai kunci yang dihitung ulang di atas)
+    var simpul = p.slice(pos[3] + 1, jawab).filter(function (t) { return !barisRumus(t); }).join(' ');
+    var is = b.isian, hilang = [];
+    if (is.jenis === 'bar-tumpuk') is.kunci.total.forEach(function (v, i) { [v, is.kunci.persen[i], 100 - is.kunci.persen[i]].forEach(function (x) { if (!memuatNilai(simpul, x)) hilang.push(x); }); });
+    else if (is.jenis === 'garis') is.kunci.nilai.forEach(function (v) { if (!memuatNilai(simpul, v)) hilang.push(v); });
+    else if (is.jenis === 'pie') is.kunci.persen.forEach(function (v) { if (!memuatNilai(simpul, v)) hilang.push(v + '%'); });
+    else if (is.jenis === 'tabel') (is.tab || []).forEach(function (nama, i) {
+      var pilihan = is.pilihan[is.kunci[i]];
+      if (!new RegExp(HURUF[is.kunci[i]] + ' \\(' + String(pilihan).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\) pada tab ' + nama + '(?![\\w])').test(simpul)) hilang.push(nama + ': ' + pilihan);
+    });
+    if (hilang.length) m.push('Kesimpulan tidak menyebut pengaturan akhir: ' + hilang.slice(0, 4).join(', '));
+  }
+
+  function periksaMataUang(b, m) {
+    var teks = JSON.stringify([b.stimulus, b.pertanyaan, b.perintah, b.pembahasan, b.kunciTeks, b.opsi, b.isian, b.gambarPembahasan]);
+    var asing = /[€£]/.exec(teks);
+    if (asing) m.push('nominal memakai ' + asing[0] + '; soal Penalaran Numerik wajib memakai USD ($)');
+  }
+
   function periksaIsian(b, m) {
     if (!b.isian) { m.push('butir interaktif tanpa spesifikasi isian'); return; }
     if (!b.kunciTeks) m.push('kunci dalam kalimat kosong');
@@ -1134,7 +1744,9 @@
     else if (j === 'garis') periksaPnGaris(b, m);
     else if (j === 'pie') periksaPnPie(b, m);
     else if (j === 'tabel') periksaPnTabel(b, m);
-    else m.push('jenis isian tidak dikenal: ' + j);
+    else { m.push('jenis isian tidak dikenal: ' + j); return; }
+    periksaMataUang(b, m);
+    periksaPembahasanPn(b, m);
   }
 
   // ------------------------------------------------------------------ API
@@ -1155,7 +1767,9 @@
         else if (tipe === 'matriks-isi') periksaIsi(b, m);
         else if (tipe === 'matriks-sekat') periksaSekat(b, m);
         else if (tipe === 'serial-ganda') periksaGanda(b, m);
+        else if (tipe === 'matriks-sambung') periksaSambung(b, m);
         else periksaFiguralAtribut(b, m);
+        periksaPembahasanFigural(b, m);
       } else periksaNumerik(b, m);
     } catch (e) { m.push('pemeriksaan gagal dijalankan: ' + (e && e.message ? e.message : e)); }
     return { lulus: m.length === 0, masalah: m };
@@ -1197,8 +1811,11 @@
     var m = b.model, kunci = m.pilihan ? m.pilihan[m.kunciIndex] : null;
     if (m.tipe === 'serial') return m.sels.map(sidikSel);
     if (m.tipe === 'serial-putar') {
-      // bentuk dasar (benihnya), pola putaran, dan letak tiap unsur pada kotak pertama
-      return [m.keluarga + '#' + m.deret[0].benih + '#' + m.pola.delta + '#' + m.pola.tumbuh + '#' + m.pola.selang];
+      // bentuk dasar (benihnya) dan seluruh pola perubahan (putar, pindah, jumlah, isi)
+      return [m.keluarga + '#' + m.deret[0].benih + '#' + JSON.stringify(m.pola)];
+    }
+    if (m.tipe === 'matriks-sambung') {
+      return [].concat.apply([], m.grid.map(function (row) { return row.map(function (x) { return sidikSel(x === null ? kunci : x); }); }));
     }
     // bentuk riset: gambar UTUH (lubang diisi kunci), jadi letak tanda tanya yang berbeda tidak membuat butir berbeda
     if (m.tipe === 'matriks-latin') {
@@ -1224,7 +1841,7 @@
   }
 
   /** Banyak kotak/bagian berbeda yang masih dianggap "nyaris sama" per bentuk figural. */
-  var BATAS_FIGURAL = { serial: 1, 'matriks-3': 1, 'matriks-latin': 4, 'matriks-isi': 3, 'matriks-sekat': 1, 'serial-ganda': 1 };
+  var BATAS_FIGURAL = { serial: 1, 'matriks-3': 1, 'matriks-sambung': 1, 'matriks-latin': 4, 'matriks-isi': 3, 'matriks-sekat': 1, 'serial-ganda': 1 };
 
   var AMBANG_KEMBAR = 0.85;
 

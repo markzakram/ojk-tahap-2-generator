@@ -36,6 +36,14 @@
  *                pola bentuk pojok 2x2
  *   ganda        deret kotak ganda: tiap bagian gambar atas dijelaskan oleh "tetap",
  *                "berubah tiap kotak", atau "berubah bila belah ketupat ke-d abu-abu"
+ *                (satu peralihan boleh mengaktifkan beberapa belah ketupat sekaligus)
+ *   sambung      matriks 3x3 simbol dan sambungan: dari tiap kotak dihitung banyak persegi,
+ *                lingkaran putih, lingkaran hitam, sambungan mendatar, dan sambungan tegak.
+ *                Pustaka aturannya: hubungan dua hitungan yang berlaku di semua kotak
+ *                (selisih tetap atau jumlah tetap), pola letak satu hitungan pada matriks
+ *                (sama sebaris/sekolom, bertambah tetap), dan jenis simbol di ujung sambungan. Opsi
+ *                yang sah memenuhi SEMUA aturan yang berlaku, dan hubungan simbol dengan
+ *                sambungan saja sudah harus menunjuk opsi yang sama
  *
  * Berkas ini sengaja tidak mengimpor penyusun soal: kalau penyusun dan
  * pemeriksa berbagi kode yang sama, keduanya hanya mengulangi asumsi yang sama.
@@ -558,8 +566,109 @@
     return hasil(status, nilai, { rinci: rinci });
   }
 
+  // ================================================== matriks 3x3 simbol dan sambungan
+
+  /*
+   * Satu kotak: enam simbol pada tiga baris x dua kolom (s[baris * 2 + kolom]: 0 persegi,
+   * 1 lingkaran putih, 2 lingkaran hitam), sambungan mendatar per baris (h[0..2]), dan
+   * sambungan tegak (v[0..3]: kolom kiri baris 1-2, kolom kiri baris 2-3, kolom kanan
+   * baris 1-2, kolom kanan baris 2-3).
+   */
+  var CIRI_SAMBUNG = ['persegi', 'putih', 'hitam', 'lingkaran', 'mendatar', 'tegak', 'sambungan'];
+  var CIRI_SIMBOL = 4;                                     // empat ciri pertama menghitung simbol
+  var UJUNG_TEGAK = [[0, 2], [2, 4], [1, 3], [3, 5]];
+
+  function sahKotakSambung(x) {
+    var biner = function (arr, n) { return Array.isArray(arr) && arr.length === n && arr.every(function (b) { return b === 0 || b === 1; }); };
+    return !!x && Array.isArray(x.s) && x.s.length === 6 && x.s.every(function (t) { return t === 0 || t === 1 || t === 2; }) && biner(x.h, 3) && biner(x.v, 4);
+  }
+
+  function ciriSambung(x) {
+    var n = [0, 0, 0];
+    x.s.forEach(function (t) { n[t]++; });
+    var h = x.h.reduce(function (s, b) { return s + b; }, 0), v = x.v.reduce(function (s, b) { return s + b; }, 0);
+    return [n[0], n[1], n[2], n[1] + n[2], h, v, h + v];
+  }
+
+  /** Pasangan jenis simbol di kedua ujung tiap sambungan. */
+  function ujungSambung(x) {
+    var out = [];
+    x.h.forEach(function (b, r) { if (b) out.push([x.s[r * 2], x.s[r * 2 + 1]]); });
+    x.v.forEach(function (b, j) { if (b) out.push([x.s[UJUNG_TEGAK[j][0]], x.s[UJUNG_TEGAK[j][1]]]); });
+    return out;
+  }
+
+  /**
+   * @param {Array<Array<object|null>>} grid matriks 3x3 kotak; tepat satu null (kotak "?")
+   * @param {Array<object>} opsi kotak pilihan jawaban
+   * @returns {{status, nilai: indeks opsi, cocok: Array<number>, aturan: Array<string>, relasi: Array<string>}}
+   */
+  function sambung(grid, opsi) {
+    if (!Array.isArray(grid) || grid.length !== 3 || grid.some(function (row) { return !Array.isArray(row) || row.length !== 3; })) return hasil('tidak-ada', null, { pesan: 'matriks bukan 3x3' });
+    var mr = -1, mc = -1, tampak = [], r, c;
+    for (r = 0; r < 3; r++) {
+      for (c = 0; c < 3; c++) {
+        if (grid[r][c] === null) { if (mr >= 0) return hasil('tidak-ada', null, { pesan: 'kotak kosong lebih dari satu' }); mr = r; mc = c; }
+        else if (!sahKotakSambung(grid[r][c])) return hasil('tidak-ada', null, { pesan: 'kotak (' + (r + 1) + ',' + (c + 1) + ') tidak sah' });
+        else tampak.push(grid[r][c]);
+      }
+    }
+    if (mr < 0) return hasil('tidak-ada', null, { pesan: 'tidak ada kotak tanda tanya' });
+    if (!Array.isArray(opsi) || !opsi.length || !opsi.every(sahKotakSambung)) return hasil('tidak-ada', null, { pesan: 'kotak opsi tidak sah' });
+    var ciri = tampak.map(ciriSambung), aturan = [], i, j, info = { n: 8, tipe: 'bilangan' };
+    // (1) pola letak tiap hitungan yang tampak mata: sama sebaris, sama sekolom, atau bertambah
+    //     tetap ke kanan/ke bawah. Jumlah per baris dan susunan latin hitungan sengaja tidak
+    //     dipakai: pada contoh riset keduanya muncul kebetulan dan bertentangan dengan kuncinya.
+    for (i = 0; i < CIRI_SAMBUNG.length; i++) {
+      var g = grid.map(function (row) { return row.map(function (x) { return x ? ciriSambung(x)[i] : null; }); }), t = transposisi(g);
+      var rm = ringkas([].concat(tetapBaris(info, g, mr, mc, 'baris-tetap'), tetapBaris(info, t, mc, mr, 'kolom-tetap'),
+        langkahBaris(info, g, mr, mc, 'langkah-baris'), langkahBaris(info, t, mc, mr, 'langkah-kolom')));
+      if (rm.status === 'ambigu') return hasil('ambigu', null, { pesan: 'banyak ' + CIRI_SAMBUNG[i] + ' menurut letaknya bisa ' + rm.semua.join(' atau '), aturan: [] });
+      if (rm.status === 'unik') {
+        aturan.push({ nama: CIRI_SAMBUNG[i] + ':' + rm.kandidat.map(function (k) { return k.aturan; }).join('/'), jenis: 'letak', uji: (function (ii, v) { return function (f) { return f[ii] === v; }; })(i, rm.nilai) });
+      }
+    }
+    // (2) hubungan dua hitungan pada SETIAP kotak: selisih tetap atau jumlah tetap
+    for (i = 0; i < CIRI_SAMBUNG.length; i++) {
+      for (j = i + 1; j < CIRI_SAMBUNG.length; j++) {
+        var A = ciri.map(function (f) { return f[i]; }), B = ciri.map(function (f) { return f[j]; });
+        if (A.every(function (x) { return x === A[0]; })) continue;        // hitungan tetap sudah tertangkap aturan letak
+        var jenis = (i < CIRI_SIMBOL) !== (j < CIRI_SIMBOL) ? 'relasi' : 'pendamping';
+        var d = B[0] - A[0], k = A[0] + B[0];
+        if (A.every(function (x, t) { return B[t] - x === d; })) aturan.push({ nama: 'selisih:' + CIRI_SAMBUNG[i] + ':' + CIRI_SAMBUNG[j] + ':' + d, jenis: jenis, uji: (function (ii, jj, dd) { return function (f) { return f[jj] - f[ii] === dd; }; })(i, j, d) });
+        if (A.every(function (x, t) { return B[t] + x === k; })) aturan.push({ nama: 'jumlah:' + CIRI_SAMBUNG[i] + ':' + CIRI_SAMBUNG[j] + ':' + k, jenis: jenis, uji: (function (ii, jj, kk) { return function (f) { return f[ii] + f[jj] === kk; }; })(i, j, k) });
+      }
+    }
+    // (3) jenis simbol di ujung sambungan (hanya bila sambungan yang tampak cukup banyak)
+    var ujung = [].concat.apply([], tampak.map(ujungSambung));
+    if (ujung.length >= 3) {
+      var semua = function (p) { return ujung.every(p); };
+      if (semua(function (u) { return u[0] === u[1]; })) aturan.push({ nama: 'ujung-sejenis', jenis: 'ujung', ujung: function (u) { return u[0] === u[1]; } });
+      if (semua(function (u) { return u[0] !== u[1]; })) aturan.push({ nama: 'ujung-berbeda', jenis: 'ujung', ujung: function (u) { return u[0] !== u[1]; } });
+      [0, 1, 2].forEach(function (t) {
+        if (semua(function (u) { return u[0] === t || u[1] === t; })) aturan.push({ nama: 'ujung-selalu-' + CIRI_SAMBUNG[t], jenis: 'ujung', ujung: function (u) { return u[0] === t || u[1] === t; } });
+        if (semua(function (u) { return u[0] !== t && u[1] !== t; })) aturan.push({ nama: 'ujung-tanpa-' + CIRI_SAMBUNG[t], jenis: 'ujung', ujung: function (u) { return u[0] !== t && u[1] !== t; } });
+      });
+    }
+    function penuhi(x, daftar) {
+      var f = ciriSambung(x), u = ujungSambung(x);
+      return daftar.every(function (a) { return a.ujung ? u.every(a.ujung) : a.uji(f); });
+    }
+    var relasi = aturan.filter(function (a) { return a.jenis === 'relasi'; });
+    var nama = aturan.map(function (a) { return a.nama; }), namaRelasi = relasi.map(function (a) { return a.nama; });
+    if (!relasi.length) return hasil('tidak-ada', null, { pesan: 'tak ada hubungan banyak simbol dan banyak sambungan yang berlaku di semua kotak', aturan: nama, relasi: [] });
+    var cocok = [], cocokRelasi = [];
+    opsi.forEach(function (x, idx) {
+      if (penuhi(x, aturan)) cocok.push(idx);
+      if (penuhi(x, relasi)) cocokRelasi.push(idx);
+    });
+    var status = cocok.length === 1 && cocokRelasi.length === 1 && cocok[0] === cocokRelasi[0] ? 'unik' : (cocok.length || cocokRelasi.length ? 'ambigu' : 'tidak-ada');
+    return hasil(status, cocok[0], { cocok: cocok, cocokRelasi: cocokRelasi, aturan: nama, relasi: namaRelasi, pesan: status === 'unik' ? null : 'opsi yang memenuhi semua aturan: ' + cocok.length + ', yang memenuhi hubungan simbol dan sambungan: ' + cocokRelasi.length });
+  }
+
   return {
     KANAL: KANAL, mod: mod, deret: deret, matriks3: matriks3, matriks2: matriks2,
-    pantulIndeks: pantulIndeks, latinLubang: latinLubang, bentukWarna: bentukWarna, sekat: sekat, peranBelahan: peranBelahan, ganda: ganda
+    pantulIndeks: pantulIndeks, latinLubang: latinLubang, bentukWarna: bentukWarna, sekat: sekat, peranBelahan: peranBelahan, ganda: ganda,
+    sambung: sambung, ciriSambung: ciriSambung, CIRI_SAMBUNG: CIRI_SAMBUNG
   };
 });

@@ -20,6 +20,15 @@
 
   var HURUF = 'Arial, Helvetica, sans-serif';
 
+  /**
+   * Palet gambar pembahasan figural (sama di semua bentuk soal): jawaban hijau, unsur yang berubah
+   * atau diisi jingga, unsur pembanding merah, arah dan urutan biru, yang tetap/redup abu-abu.
+   */
+  var BAHAS = {
+    jawab: '#12805c', latarJawab: '#e6f4ee', sorot: '#d35400', latarSorot: '#fdebd9', acuan: '#c0392b',
+    panah: '#1f6fd0', latarPanah: '#e3edfb', redup: '#9aa3b5', teks: '#1d2333', teksRedup: '#5b6478'
+  };
+
   /** Bilangan ringkas: maksimal 2 angka di belakang titik, tanpa nol tak perlu. */
   function num(v) {
     return String(Math.round(v * 100) / 100);
@@ -112,6 +121,47 @@
       ' text-anchor="' + (o.rata || 'start') + '"' + tf + '>' + esc(s) + '</text>';
   }
 
+  /** Mata panah tertutup dengan ujung di (x, y), menghadap arah satuan (ux, uy). */
+  function mataPanah(x, y, ux, uy, k, warna) {
+    var bx = x - ux * k, by = y - uy * k, lb = k * 0.5;
+    return poli([[x, y], [bx - uy * lb, by + ux * lb], [bx + uy * lb, by - ux * lb]], { tutup: true, isi: warna, garis: warna, tebal: 1, sambung: 'round' });
+  }
+
+  /**
+   * Panah lurus (gambar pembahasan figural): garis dari (x1, y1) dan mata panah tertutup di (x2, y2).
+   * @param {object} o { warna, tebal, kepala (panjang mata panah), putus, halo (alas putih supaya
+   *                     panah tetap terbaca di atas gambar) }
+   */
+  function panah(x1, y1, x2, y2, o) {
+    o = o || {};
+    var w = o.warna || '#1f6fd0', t = o.tebal || 2, k = o.kepala || Math.max(7, t * 3.4);
+    var dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+    var ax = x2 - ux * k * 0.8, ay = y2 - uy * k * 0.8, out = '';
+    if (o.halo) {
+      out += garis(x1, y1, ax, ay, { garis: '#ffffff', tebal: t + 4, ujung: 'round' });
+      out += mataPanah(x2 + ux * 1.5, y2 + uy * 1.5, ux, uy, k + 3, '#ffffff');
+    }
+    out += garis(x1, y1, ax, ay, { garis: w, tebal: t, ujung: 'round', putus: o.putus });
+    return out + mataPanah(x2, y2, ux, uy, k, w);
+  }
+
+  /**
+   * Busur berpanah pada lingkaran (cx, cy, r) dari sudut a0 ke a1 (derajat, 0 di atas, searah jarum
+   * jam bila a1 > a0, sama dengan `titikSudut`). Mata panah di ujung a1.
+   * @param {object} o { warna, tebal, kepala, halo }
+   */
+  function busurPanah(cx, cy, r, a0, a1, o) {
+    o = o || {};
+    var w = o.warna || '#1f6fd0', t = o.tebal || 2, k = o.kepala || Math.max(7, t * 3.4);
+    var arah = a1 >= a0 ? 1 : -1, kurang = Math.min(Math.abs(a1 - a0) * 0.6, k * 0.8 / r * 180 / Math.PI);
+    var aAkhir = a1 - arah * kurang, p0 = titikSudut(cx, cy, r, a0), p1 = titikSudut(cx, cy, r, aAkhir), pu = titikSudut(cx, cy, r, a1);
+    var d = 'M' + num(p0[0]) + ' ' + num(p0[1]) + ' A' + num(r) + ' ' + num(r) + ' 0 ' + (Math.abs(aAkhir - a0) > 180 ? 1 : 0) + ' ' + (arah > 0 ? 1 : 0) + ' ' + num(p1[0]) + ' ' + num(p1[1]);
+    var dx = pu[0] - p1[0], dy = pu[1] - p1[1], L = Math.hypot(dx, dy) || 1, out = '';
+    if (o.halo) out += '<path d="' + d + '"' + gaya({ isi: 'none', garis: '#ffffff', tebal: t + 4, ujung: 'round' }) + '/>';
+    out += '<path d="' + d + '"' + gaya({ isi: 'none', garis: w, tebal: t, ujung: 'round' }) + '/>';
+    return out + mataPanah(pu[0], pu[1], dx / L, dy / L, k, w);
+  }
+
   /** Kelompok dengan translasi dan (opsional) skala. */
   function kelompok(inner, tx, ty, skala) {
     var t = 'translate(' + num(tx || 0) + ',' + num(ty || 0) + ')';
@@ -128,8 +178,8 @@
   }
 
   return {
-    HURUF: HURUF, num: num, esc: esc, gaya: gaya, rect: rect, garis: garis, poli: poli,
+    HURUF: HURUF, BAHAS: BAHAS, num: num, esc: esc, gaya: gaya, rect: rect, garis: garis, poli: poli,
     lingkaran: lingkaran, sektor: sektor, titikSudut: titikSudut, teks: teks,
-    kelompok: kelompok, doc: doc
+    panah: panah, busurPanah: busurPanah, kelompok: kelompok, doc: doc
   };
 });

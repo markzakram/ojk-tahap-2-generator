@@ -54,8 +54,7 @@
     if (!pil) {
       pil = Pilihan.susun(ctx.a, {
         kunci: spec.kunci, fmt: spec.fmt, pengecoh: spec.pengecoh, desimal: spec.desimal,
-        min: spec.min, maks: spec.maks, urut: spec.urut, target: ctx.target, bulat: spec.bulat,
-        langkah: spec.langkahPilihan, tanpaPengali: spec.tanpaPengali
+        min: spec.min, maks: spec.maks, urut: spec.urut, target: ctx.target, bulat: spec.bulat
       });
     }
     if (!pil) return null;
@@ -76,28 +75,24 @@
       sidik: spec.sidik || {}
     };
     butir.pembahasan = susunPembahasan(butir, spec);
+    // keterangan riset dan pola penalaran (diekspor ke Excel/JSON; pola dipakai perakit paket)
+    ['pola', 'kategoriRiset', 'catatanRiset'].forEach(function (k) { if (spec[k]) butir[k] = spec[k]; });
     return butir;
   }
 
   /**
    * Pembahasan langkah demi langkah:
-   *   Jenis soal -> langkah-langkah -> mengapa pilihan lain keliru -> Jawaban.
-   * Alasan pengecoh yang berasal dari kesalahan hitung ditulis per huruf.
+   *   Jenis soal -> langkah-langkah (soal hitungan: Diketahui, Ditanyakan, Pengerjaan, Kesimpulan) -> Jawaban.
+   * Sesuai panduan revisi tim akademik, pembahasan hanya menjelaskan jawaban yang benar. Jalur
+   * kesalahan tiap pengecoh tetap tersimpan di `opsi[i].alasan` (diperiksa validator, ikut JSON),
+   * tetapi tidak dicetak.
    */
   function susunPembahasan(butir, spec) {
     var baris = [];
-    if (spec.jenisSoal) baris.push('Jenis soal: ' + spec.jenisSoal + '.');
-    (spec.pembahasan || []).forEach(function (b) { baris.push(b); });
-    var alasan = [];
-    butir.opsi.forEach(function (o, i) {
-      if (i === butir.kunci || !o.alasan) return;
-      alasan.push('• ' + o.huruf + (o.gambar ? '' : ' (' + o.teks + ')') + ': ' + o.alasan + '.');
-    });
-    if (alasan.length && !spec.tanpaAlasan) {
-      baris.push('Pilihan lain yang menjebak:');
-      alasan.forEach(function (b) { baris.push(b); });
-    }
     var k = butir.opsi[butir.kunci];
+    if (spec.jenisSoal) baris.push('Jenis soal: ' + spec.jenisSoal + '.');
+    // "{HURUF}" pada pembahasan (mis. baris Kesimpulan) diisi huruf kunci, yang baru diketahui setelah pilihan diacak
+    (spec.pembahasan || []).forEach(function (b) { baris.push(String(b).split('{HURUF}').join(k.huruf)); });
     baris.push('Jawaban: ' + k.huruf + (spec.tulisKunci === false ? '' : ' (' + k.teks + ')'));
     return baris;
   }

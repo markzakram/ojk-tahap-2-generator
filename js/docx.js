@@ -11,13 +11,13 @@
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
-    api = factory(require('./zip.js'));
+    api = factory(require('./zip.js'), require('./rumus.js'));
     module.exports = api;
   } else {
-    api = factory(root.Zip);
+    api = factory(root.Zip, root.Rumus);
     root.Docx = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Zip) {
+})(typeof self !== 'undefined' ? self : this, function (Zip, Rumus) {
   'use strict';
 
   var enc = new TextEncoder();
@@ -108,13 +108,20 @@
       case 'h3': return paragraf([{ teks: b.teks }], Object.assign({ gaya: 'Heading3', sesudah: 4, sebelum: 6 }, o, { keepNext: true }));
       case 'p': {
         var runs = b.runs.map(function (r) { return { teks: r.teks, tebal: r.tebal, miring: r.miring, warna: r.warna || b.warna, ukuran: r.ukuran }; });
-        return paragraf(runs, { ukuran: b.ukuran, rata: b.rata, indent: b.indent, gantung: b.gantung, sesudah: b.sesudah, keepNext: o.keepNext || b.keras, keepLines: o.keepLines });
+        var xml = paragraf(runs, { ukuran: b.ukuran, rata: b.rata, indent: b.indent, gantung: b.gantung, sesudah: b.sesudah, keepNext: o.keepNext || b.keras, keepLines: o.keepLines });
+        // paragraf boleh ditutup satu gambar sebaris (mis. pilihan bergambar "A. <gambar>" pada format SiAdu)
+        if (b.img) xml = xml.replace(/<\/w:p>$/, self.gambarInline(b.img, batasPt(b.img, b.lebarPt || 84, 300)) + '</w:p>');
+        return xml;
       }
       case 'jarak': return '<w:p><w:pPr><w:spacing w:after="' + Math.round(b.tinggi * 20) + '" w:line="20" w:lineRule="exact"/></w:pPr></w:p>';
       case 'jeda': return '<w:p><w:pPr><w:spacing w:after="0"/></w:pPr><w:r><w:br w:type="page"/></w:r></w:p>';
       case 'gambar': {
         var l = batasPt(b.img, b.lebarPt, 560);
         return '<w:p>' + ppr({ rata: b.rata === 'tengah' ? 'tengah' : null, sesudah: b.sesudah == null ? 5 : b.sesudah, keepNext: o.keepNext, keepLines: o.keepLines }) + self.gambarInline(b.img, l) + '</w:p>';
+      }
+      case 'rumus': {
+        // persamaan Word (OMML) rata kiri dalam paragrafnya sendiri; SiAdu mengubahnya menjadi MathML
+        return '<w:p>' + ppr({ sesudah: 4, keepNext: o.keepNext, keepLines: o.keepLines }) + '<m:oMathPara><m:oMathParaPr><m:jc m:val="left"/></m:oMathParaPr>' + Rumus.omml(b.notasi) + '</m:oMathPara></w:p>';
       }
       case 'galeri': return self.galeri(b, o);
       case 'tabel': return self.tabel(b, o);
@@ -158,14 +165,18 @@
     var lebar = b.lebarKol.map(function (x) { return Math.floor(LEBAR_ISI * x / jml); });
     var total = lebar.reduce(function (s, x) { return s + x; }, 0);
     var xml = '<w:tbl><w:tblPr><w:tblW w:w="' + total + '" w:type="dxa"/>' +
-      '<w:tblBorders>' + ['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(function (s) { return '<w:' + s + ' w:val="single" w:sz="4" w:space="0" w:color="B8C2D6"/>'; }).join('') + '</w:tblBorders>' +
+      '<w:tblBorders>' + ['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(function (s) { return '<w:' + s + ' w:val="single" w:sz="' + (b.garis ? 12 : 4) + '" w:space="0" w:color="' + (b.garis || 'B8C2D6') + '"/>'; }).join('') + '</w:tblBorders>' +
       '<w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="30" w:type="dxa"/><w:left w:w="80" w:type="dxa"/><w:bottom w:w="30" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr>' +
       '<w:tblGrid>' + lebar.map(function (w) { return '<w:gridCol w:w="' + w + '"/>'; }).join('') + '</w:tblGrid>';
     b.baris.forEach(function (row, r) {
-      xml += '<w:tr><w:trPr><w:cantSplit/>' + (r === 0 && b.header ? '<w:tblHeader/>' : '') + '</w:trPr>';
+      var minBaris = Math.max.apply(null, row.map(function (sel) { return sel.minBaris || 0; }));
+      xml += '<w:tr><w:trPr><w:cantSplit/>' + (r === 0 && b.header ? '<w:tblHeader/>' : '') + (minBaris ? '<w:trHeight w:val="' + Math.round(minBaris * 13.5 * 20 + 120) + '" w:hRule="atLeast"/>' : '') + '</w:trPr>';
       row.forEach(function (sel, c) {
+        var lanjut = o.keepNext || r < b.baris.length - 1;
         xml += '<w:tc><w:tcPr><w:tcW w:w="' + lebar[c] + '" w:type="dxa"/>' + (sel.isi ? '<w:shd w:val="clear" w:color="auto" w:fill="' + sel.isi + '"/>' : '') + '</w:tcPr>';
-        xml += paragraf([{ teks: sel.teks == null ? '' : sel.teks, tebal: sel.tebal }], { ukuran: 10, rata: sel.rata, sesudah: 0, keepNext: o.keepNext || r < b.baris.length - 1, keepLines: true });
+        // sel kotak keterangan: judul tebal di atas isinya (keduanya boleh berwarna)
+        if (sel.judul != null) xml += paragraf([{ teks: sel.judul, tebal: true, warna: sel.warnaTeks }], { ukuran: 10, rata: sel.rata, sesudah: 3, keepNext: true, keepLines: true });
+        xml += paragraf([{ teks: sel.teks == null ? '' : sel.teks, tebal: sel.tebal, warna: sel.warnaTeks }], { ukuran: 10, rata: sel.rata, sesudah: sel.judul != null ? 4 : 0, keepNext: lanjut, keepLines: true });
         xml += '</w:tc>';
       });
       xml += '</w:tr>';
@@ -220,7 +231,8 @@
       'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" ' +
       'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" ' +
       'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" ' +
-      'xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><w:body>' + isi.join('') +
+      'xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture" ' +
+      'xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"><w:body>' + isi.join('') +
       '<w:sectPr><w:footerReference w:type="default" r:id="rId2"/>' +
       '<w:pgSz w:w="' + HAL_LEBAR + '" w:h="' + HAL_TINGGI + '"/>' +
       '<w:pgMar w:top="' + TEPI + '" w:right="' + TEPI + '" w:bottom="' + TEPI + '" w:left="' + TEPI + '" w:header="567" w:footer="567" w:gutter="0"/></w:sectPr></w:body></w:document>';

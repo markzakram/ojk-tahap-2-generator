@@ -24,7 +24,7 @@
     <li><b>Generate.</b> Setiap soal dibuat dari fakta dan angka yang dihitung ulang oleh <i>validator</i> dari nol. Hasil baru tampil bila lolos semua pemeriksaan (jawaban, pengecoh, dan tidak ada soal kembar).</li>
     <li><b>Lihat paket.</b> Pilih paket dan subtes di tengah. Tombol <i>Tampilkan kunci &amp; pembahasan</i> membuka jawaban dan langkah penyelesaian. Klik pilihan A&ndash;E untuk berlatih.</li>
     <li><b>Penalaran Numerik</b> berbentuk interaktif: tekan <i>Coba interaktif</i> pada soalnya, geser batang, titik, atau batas irisan (atau isi kolomnya), lalu tekan <i>Periksa jawaban</i>.</li>
-    <li><b>Unduh.</b> Word dan PDF per paket; Excel, JSON, dan ZIP untuk semua paket. Untuk puluhan sampai ratusan paket gunakan CLI (perintahnya ada di panel kanan).</li>
+    <li><b>Unduh.</b> Word format input SiAdu (satu berkas per subtes) dan PDF per paket; Excel, JSON, dan ZIP untuk semua paket. Untuk puluhan sampai ratusan paket gunakan CLI (perintahnya ada di panel kanan).</li>
   </ol>
 </div>
 
@@ -101,7 +101,7 @@
     <h2><span class="step">7</span> Unduh</h2>
     <p class="hint">Paket yang sedang dilihat:</p>
     <div class="row wrap gap-s">
-      <button class="ghost" id="btn-docx" type="button" disabled>Word (.docx)</button>
+      <button class="ghost" id="btn-docx" type="button" disabled>Word SiAdu (.docx)</button>
       <button class="ghost" id="btn-pdf" type="button" disabled>PDF</button>
     </div>
     <p class="hint">Semua paket:</p>
@@ -133,6 +133,7 @@
 <script src="js/rng.js"></script>
 <script src="js/metrik.js"></script>
 <script src="js/format.js"></script>
+<script src="js/rumus.js"></script>
 <script src="js/hitung.js"></script>
 <script src="js/svg.js"></script>
 <script src="js/font.js"></script>
@@ -147,6 +148,7 @@
 <script src="js/cerita.js"></script>
 <script src="js/tabelku.js"></script>
 <script src="js/grafikku.js"></script>
+<script src="js/verbal-topik.js"></script>
 <script src="js/verbal.js"></script>
 <script src="js/inferensi.js"></script>
 <script src="js/figure.js"></script>
@@ -164,6 +166,8 @@
 <script src="js/pn-garis.js"></script>
 <script src="js/pn-pie.js"></script>
 <script src="js/gambar.js"></script>
+<script src="js/variasi.js"></script>
+<script src="js/kerangka.js"></script>
 <script src="js/bank.js"></script>
 <script src="js/validator.js"></script>
 <script src="js/paket.js"></script>

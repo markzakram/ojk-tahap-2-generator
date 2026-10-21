@@ -11,22 +11,35 @@
  *            diketahui adalah jumlah seluruhnya
  *
  * Keterangan ditulis sebagai relasi terstruktur (`model.relasi`) sekaligus
- * kalimat. Validator menyelesaikan sistem persamaan linear itu dari nol dengan
- * pecahan eksak dan memastikan jawabannya tunggal dan bulat persen.
+ * kalimat. Seperti contoh riset, kalimatnya disajikan dalam empat KOTAK kategori
+ * (`stimulus.kartu`) yang warnanya sama dengan irisannya; pada bentuk "1 informasi
+ * kosong" kotak dasar tetap tampil dengan judulnya tetapi isinya kosong. Validator
+ * menyelesaikan sistem persamaan linear itu dari nol dengan pecahan eksak dan
+ * memastikan jawabannya tunggal dan bulat persen.
+ *
+ * Tingkat: penuh mudah = sama/lebih/kurang, sedang = ditambah "kali", sulit = rantai
+ * lebih/kurang/kali; kosong mudah = semua relatif terhadap dasar, sedang = ada relasi
+ * berantai (relatif terhadap irisan lain), sulit = rantai ditambah selisih tetap.
+ *
+ * Pembahasan: Diketahui, Ditanyakan, Pengerjaan (rumus persentase = jumlah/total x 100% lebih
+ * dahulu; jumlah tiap kategori diturunkan sebagai persamaan "§", pada bentuk kosong lewat
+ * permisalan a·p + b; lalu setiap persentase sebagai pecahan), dan Kesimpulan berupa ukuran irisan.
  */
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
-    api = factory(require('./rng.js'), require('./format.js'), require('./butir.js'));
+    api = factory(require('./rng.js'), require('./format.js'), require('./butir.js'), require('./rumus.js'));
     module.exports = api;
   } else {
-    api = factory(root.Rng, root.Fmt, root.Butir);
+    api = factory(root.Rng, root.Fmt, root.Butir, root.Rumus);
     root.PnPie = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Rng, Fmt, Butir) {
+})(typeof self !== 'undefined' ? self : this, function (Rng, Fmt, Butir, Rumus) {
   'use strict';
 
   var WARNA = ['biru', 'hijau', 'jingga', 'merah'];
+  // sama dengan warna seri pertama chart.js, jadi kotak keterangan dan irisan berwarna sama
+  var WARNA_HEX = ['1E88C9', '4C9A14', 'F57A22', 'F2443F'];
 
   var FRAME = [
     { id: 'komite', gaya: 'subjek', judul: 'Informasi', unit: 'sukarelawan', grup: ['Komite Makanan', 'Komite Dekorasi', 'Komite Tempat', 'Komite Pemasaran'],
@@ -65,6 +78,42 @@
     }
   }
 
+  /** Isi kotak kategori: gaya subjek tidak mengulang nama kategori yang sudah menjadi judul kotak. */
+  function kalimatKartu(f, r) {
+    if (f.gaya !== 'subjek') return kalimat(f, r);
+    var R = r.r != null ? f.grup[r.r] : null;
+    switch (r.tipe) {
+      case 'nilai': return 'Memiliki ' + Fmt.angka(r.v) + ' ' + f.unit + '.';
+      case 'sama': return 'Memiliki jumlah ' + f.unit + ' yang sama dengan ' + R + '.';
+      case 'lebih': return 'Memiliki ' + Fmt.angka(r.k) + ' ' + f.unit + ' lebih banyak daripada ' + R + '.';
+      case 'kurang': return 'Memiliki ' + Fmt.angka(r.k) + ' ' + f.unit + ' lebih sedikit daripada ' + R + '.';
+      default: return 'Jumlah ' + f.unit + 'nya ' + r.k + ' kali jumlah ' + f.unit + ' ' + R + '.';
+    }
+  }
+
+  function judulKartu(f, i) {
+    var kap = function (x) { return x.charAt(0).toUpperCase() + x.slice(1); };
+    return f.gaya === 'subjek' ? f.grup[i] : kap(f.unit) + ' ' + kap(f.grup[i]);
+  }
+
+  /** Irisan sebagai a·p + b (p = jumlah irisan dasar), mengikuti urutan relasi. */
+  function bentukP(rel, dasar) {
+    var A = [null, null, null, null], B = [0, 0, 0, 0];
+    A[dasar] = 1;
+    for (var putar = 0; putar < 4; putar++) {
+      rel.forEach(function (r) {
+        if (A[r.g] !== null || A[r.r] === null) return;
+        if (r.tipe === 'kali') { A[r.g] = r.k * A[r.r]; B[r.g] = r.k * B[r.r]; }
+        else { A[r.g] = A[r.r]; B[r.g] = B[r.r] + (r.tipe === 'lebih' ? r.k : r.tipe === 'kurang' ? -r.k : 0); }
+      });
+    }
+    return { A: A, B: B };
+  }
+
+  function teksP(a, b) {
+    return (a === 1 ? '' : a) + 'p' + (b ? (b > 0 ? ' + ' : ' - ') + Fmt.angka(Math.abs(b)) : '');
+  }
+
   function buat(id, level, benih) {
     var a = Rng.alat(benih);
     var bentuk = id === 'pie-kosong' ? 'kosong' : 'penuh';
@@ -94,29 +143,32 @@
         if (cnt.reduce(function (s2, x) { return s2 + x; }, 0) !== dasarN) continue;
         cnt = cnt.map(function (x) { return x * faktor; });
       } else {
+        // susun dalam satuan kecil lalu skalakan ke N: dasar = 1 satuan, irisan lain relatif terhadap dasar
+        // (mudah) atau terhadap irisan yang sudah terdefinisi (sedang/sulit, berantai)
         dasar = a.bulat(0, 3);
-        var jmlKoef = a.pilih([10, 20, 25, 50]);
-        var koef = [1, 1, 1, 1], sisa = jmlKoef - 4, c2 = 0;
-        if (sisa < 0) continue;
-        while (sisa > 0 && c2 < 200) {
-          var gi = a.bulat(0, 3);
-          if (gi === dasar && a.untung(0.7)) { c2++; continue; }
-          var tambah = a.bulat(1, Math.min(sisa, jmlKoef > 20 ? 12 : 8));
-          koef[gi] += tambah; sisa -= tambah; c2++;
-        }
-        if (sisa !== 0) continue;
-        if (koef[dasar] > 1 && koef[dasar] !== 1) { /* dasar boleh lebih dari 1 hanya bila pembagi cocok */ }
-        // semua irisan dinyatakan "k kali" dasar: koef harus kelipatan koef[dasar]
-        var kd = koef[dasar];
-        if (koef.some(function (x) { return x % kd !== 0; })) continue;
-        if (kd !== 1) continue;
-        if (N % jmlKoef !== 0) continue;
-        cnt = koef.map(function (x) { return x * N / jmlKoef; });
-        for (var gg = 0; gg < 4; gg++) {
-          if (gg === dasar) continue;
-          if (koef[gg] === koef[dasar]) rel.push({ tipe: 'sama', g: gg, r: dasar, k: 0 });
-          else rel.push({ tipe: 'kali', g: gg, r: dasar, k: koef[gg] / kd });
-        }
+        var unitC = [0, 0, 0, 0], sudahAda = [dasar], relU = [], gagalK = false;
+        unitC[dasar] = 1;
+        a.kocok([0, 1, 2, 3].filter(function (x) { return x !== dasar; })).forEach(function (g) {
+          if (gagalK) return;
+          var bukanDasar = sudahAda.filter(function (x) { return x !== dasar; });
+          var r = level === 'mudah' || !bukanDasar.length || a.untung(0.4) ? dasar : a.pilih(bukanDasar);
+          var tipe = level === 'sulit' ? a.pilih(['kali', 'kali', 'lebih', 'kurang']) : a.pilih(['kali', 'kali', 'kali', 'sama']);
+          var k = 0, v;
+          if (tipe === 'kali') { k = a.bulat(2, r === dasar ? 16 : 4); v = k * unitC[r]; }
+          else if (tipe === 'sama') v = unitC[r];
+          else { k = a.bulat(1, 4); v = tipe === 'lebih' ? unitC[r] + k : unitC[r] - k; }
+          if (!(v >= 1)) { gagalK = true; return; }
+          unitC[g] = v; relU.push({ tipe: tipe, g: g, r: r, k: k }); sudahAda.push(g);
+        });
+        if (gagalK) continue;
+        var berantai = relU.some(function (x) { return x.r !== dasar; }), selisih = relU.some(function (x) { return x.tipe === 'lebih' || x.tipe === 'kurang'; });
+        if (level !== 'mudah' && !berantai) continue;
+        if (level === 'sulit' && !selisih) continue;
+        var S = unitC.reduce(function (s2, x) { return s2 + x; }, 0);
+        if (N % S !== 0) continue;
+        var u = N / S;
+        cnt = unitC.map(function (x) { return x * u; });
+        relU.forEach(function (x) { rel.push({ tipe: x.tipe, g: x.g, r: x.r, k: x.tipe === 'lebih' || x.tipe === 'kurang' ? x.k * u : x.k }); });
       }
       var persen = cnt.map(function (x) { return x / N * 100; });
       if (persen.some(function (x) { return Math.abs(x - Math.round(x)) > 1e-9 || x < 1; })) continue;
@@ -124,16 +176,25 @@
       if (bentuk === 'penuh' && persen.every(function (x) { return x === 25; })) continue;
       if (Math.max.apply(null, persen) - Math.min.apply(null, persen) < 5) continue;
 
-      // ----- teks
-      var kal = a.kocok(rel.map(function (r2) { return kalimat(f, r2); }));
-      if (bentuk === 'kosong') kal.push('Jumlah ' + f.unit + ' ' + f.grup[dasar] + ' tidak disebutkan.');
-      var teks = [f.pembuka(N, f.grup)].concat(kal);
+      // ----- teks: kalimat pembuka, lalu satu kotak per kategori (kotak dasar pada bentuk kosong tanpa isi)
+      var teks = [f.pembuka(N, f.grup)];
+      var kartu = f.grup.map(function (n, i) {
+        var r2 = rel.filter(function (x) { return x.g === i; })[0];
+        return { judul: judulKartu(f, i), warna: WARNA_HEX[i], teks: r2 ? kalimatKartu(f, r2) : '' };
+      });
       var kunciTeks = f.grup.map(function (n, i) { return (f.gaya === 'subjek' ? n : n.charAt(0).toUpperCase() + n.slice(1)) + ' ' + persen[i] + '% (' + Fmt.angka(cnt[i]) + ')'; }).join('; ') + '.';
-      var pem = [];
+      // ----- pembahasan: Diketahui, Ditanyakan, Pengerjaan (persamaan "§"), Kesimpulan
+      var R = Rumus.baris, rA = function (v) { return Fmt.angka(v); }, rT = function (t) { return '\\text{' + t + '}'; };
+      var nama = function (i) { return rT(judulKartu(f, i)); };
+      var pem = ['Diketahui', 'Jumlah seluruh ' + f.unit + ': ' + Fmt.angka(N) + '.'];
+      rel.forEach(function (x) { pem.push(kalimat(f, x)); });
+      if (bentuk === 'kosong') pem.push('Kotak ' + judulKartu(f, dasar) + ' kosong, jadi jumlah ' + f.unit + ' ' + f.grup[dasar] + ' harus dicari dari jumlah seluruhnya.');
+      pem.push('Ditanyakan', 'Persentase setiap kategori (' + f.grup.join(', ') + ') pada diagram lingkaran, dalam kelipatan 1%.');
+      pem.push('Pengerjaan', 'Persentase tiap irisan adalah jumlah kategorinya dibagi jumlah seluruhnya:',
+        R(rT('persentase') + ' = \\frac{' + rT('jumlah') + '}{' + rT('total') + '} \\times 100\\%'));
       if (bentuk === 'penuh') {
-        var tampil = rel.slice().sort(function (x, y) { return (x.tipe === 'nilai' ? 0 : 1) - (y.tipe === 'nilai' ? 0 : 1); });
-        var sudah = {};
         // urutkan penjelasan menurut ketergantungan (anchor dahulu)
+        var sudah = {};
         var urutan = [rel.filter(function (x) { return x.tipe === 'nilai'; })[0]];
         sudah[urutan[0].g] = true;
         while (urutan.length < 4) {
@@ -141,27 +202,61 @@
           rel.forEach(function (x) { if (!sudah[x.g] && sudah[x.r]) { urutan.push(x); sudah[x.g] = true; maju = true; } });
           if (!maju) break;
         }
+        pem.push('Jumlah tiap kategori dihitung lebih dahulu dari keterangan, mulai dari kategori yang jumlahnya diketahui:');
         urutan.forEach(function (x) {
-          var G = f.grup[x.g], R = x.r != null ? f.grup[x.r] : null;
-          if (x.tipe === 'nilai') pem.push(G + ' = ' + Fmt.angka(x.v) + '.');
-          else if (x.tipe === 'sama') pem.push(G + ' = ' + R + ' = ' + Fmt.angka(cnt[x.g]) + '.');
-          else if (x.tipe === 'lebih') pem.push(G + ' = ' + R + ' + ' + x.k + ' = ' + Fmt.angka(cnt[x.r]) + ' + ' + x.k + ' = ' + Fmt.angka(cnt[x.g]) + '.');
-          else if (x.tipe === 'kurang') pem.push(G + ' = ' + R + ' - ' + x.k + ' = ' + Fmt.angka(cnt[x.r]) + ' - ' + x.k + ' = ' + Fmt.angka(cnt[x.g]) + '.');
-          else pem.push(G + ' = ' + x.k + ' × ' + R + ' = ' + x.k + ' × ' + Fmt.angka(cnt[x.r]) + ' = ' + Fmt.angka(cnt[x.g]) + '.');
+          var G = nama(x.g), Rn = x.r != null ? nama(x.r) : null;
+          if (x.tipe === 'nilai') pem.push(R(G + ' = ' + rA(x.v)));
+          else if (x.tipe === 'sama') pem.push(R(G + ' = ' + Rn + ' = ' + rA(cnt[x.g])));
+          else if (x.tipe === 'kali') pem.push(R(G + ' = ' + x.k + ' \\times ' + Rn + ' = ' + x.k + ' \\times ' + rA(cnt[x.r]) + ' = ' + rA(cnt[x.g])));
+          else {
+            var tanda = x.tipe === 'lebih' ? ' + ' : ' - ';
+            pem.push(R(G + ' = ' + Rn + tanda + rA(x.k) + ' = ' + rA(cnt[x.r]) + tanda + rA(x.k) + ' = ' + rA(cnt[x.g])));
+          }
         });
-        pem.push('Jumlah = ' + cnt.map(function (x) { return Fmt.angka(x); }).join(' + ') + ' = ' + Fmt.angka(N) + ' (cocok dengan jumlah yang diketahui).');
-        pem.push('Persentase = jumlah ÷ ' + Fmt.angka(N) + ': ' + f.grup.map(function (n, i) { return n + ' ' + persen[i] + '%'; }).join(', ') + '.');
+        pem.push('Periksa bahwa jumlah keempat kategori sama dengan jumlah seluruhnya:', R(cnt.map(rA).join(' + ') + ' = ' + rA(N)));
       } else {
-        var pasang = f.grup.map(function (n, i) { return i === dasar ? 'p' : (rel.filter(function (x) { return x.g === i; })[0].tipe === 'sama' ? 'p' : rel.filter(function (x) { return x.g === i; })[0].k + 'p'); });
-        pem.push('Misalkan jumlah ' + f.unit + ' ' + f.grup[dasar] + ' = p. Maka ' + f.grup.map(function (n, i) { return n + ' = ' + pasang[i]; }).join(', ') + '.');
-        pem.push('Jumlah seluruhnya: ' + pasang.join(' + ') + ' = ' + jmlKoefStr(cnt, dasar) + 'p = ' + Fmt.angka(N) + ', sehingga p = ' + Fmt.angka(cnt[dasar]) + '.');
-        pem.push(f.grup.map(function (n, i) { return n + ' = ' + Fmt.angka(cnt[i]) + ' (' + persen[i] + '%)'; }).join('; ') + '.');
+        var bp = bentukP(rel, dasar), sA = bp.A.reduce(function (x, y) { return x + y; }, 0), sB = bp.B.reduce(function (x, y) { return x + y; }, 0);
+        var ekspr = function (i) { return teksP(bp.A[i], bp.B[i]); };
+        pem.push('Misalkan jumlah ' + f.unit + ' ' + f.grup[dasar] + ' adalah p, lalu nyatakan kategori lain dalam p:', R(nama(dasar) + ' = p'));
+        // relasi diuraikan menurut ketergantungan: yang mengacu ke dasar lebih dahulu
+        var sudahP = {}; sudahP[dasar] = true;
+        for (var putar = 0; putar < 4; putar++) {
+          rel.forEach(function (x) {
+            if (sudahP[x.g] || !sudahP[x.r]) return;
+            sudahP[x.g] = true;
+            var acuan = ekspr(x.r), berbaur = bp.B[x.r] !== 0;
+            var rumus = x.tipe === 'kali' ? x.k + ' \\times ' + (berbaur ? '(' + acuan + ')' : acuan)
+              : x.tipe === 'sama' ? acuan : acuan + (x.tipe === 'lebih' ? ' + ' : ' - ') + rA(x.k);
+            var bagian = [nama(x.g), x.tipe === 'kali' ? x.k + ' \\times ' + nama(x.r) : x.tipe === 'sama' ? nama(x.r) : nama(x.r) + (x.tipe === 'lebih' ? ' + ' : ' - ') + rA(x.k), rumus];
+            if (rumus !== ekspr(x.g)) bagian.push(ekspr(x.g));
+            pem.push(R(bagian.join(' = ')));
+          });
+        }
+        pem.push('Jumlah keempat kategori sama dengan jumlah seluruhnya:');
+        pem.push(R(bp.A.map(function (x, i) { return bp.B[i] ? '(' + ekspr(i) + ')' : ekspr(i); }).join(' + ') + ' = ' + rA(N)));
+        if (sB) {
+          pem.push(R(teksP(sA, sB) + ' = ' + rA(N)));
+          pem.push(R(sA + 'p = ' + rA(N) + (sB > 0 ? ' - ' : ' + ') + rA(Math.abs(sB)) + ' = ' + rA(N - sB)));
+        } else pem.push(R(sA + 'p = ' + rA(N)));
+        pem.push(R('p = \\frac{' + rA(N - sB) + '}{' + sA + '} = ' + rA(cnt[dasar])));
+        pem.push('Substitusikan p ke setiap kategori:');
+        f.grup.forEach(function (n, i) {
+          var a = bp.A[i], b = bp.B[i];
+          var subst = (a === 1 ? rA(cnt[dasar]) : a + ' \\times ' + rA(cnt[dasar])) + (b ? (b > 0 ? ' + ' : ' - ') + rA(Math.abs(b)) : '');
+          pem.push(R(nama(i) + ' = ' + (a === 1 && !b ? 'p = ' : subst + ' = ') + rA(cnt[i])));
+        });
       }
-      var model = { irisan: f.grup.map(function (n, i) { return { nama: f.gaya === 'subjek' ? n : f.unit.charAt(0).toUpperCase() + f.unit.slice(1) + ' ' + n }; }) };
+      pem.push('Ubah setiap jumlah menjadi persentase dengan total ' + Fmt.angka(N) + ':');
+      f.grup.forEach(function (n, i) {
+        pem.push(R(rT('persentase ' + judulKartu(f, i)) + ' = \\frac{' + rA(cnt[i]) + '}{' + rA(N) + '} \\times 100\\% = ' + persen[i] + '\\%'));
+      });
+      pem.push('Keempat persentase berjumlah 100%:', R(persen.join('\\% + ') + '\\% = 100\\%'));
+      pem.push('Kesimpulan', 'Atur irisan ' + Fmt.daftarKata(f.grup.map(function (n, i) { return judulKartu(f, i) + ' ke ' + persen[i] + '%'; })) + '.');
+      var model = { irisan: f.grup.map(function (n, i) { return { nama: f.gaya === 'subjek' ? n : f.unit.charAt(0).toUpperCase() + f.unit.slice(1) + ' ' + n, warna: '#' + WARNA_HEX[i] }; }) };
       var awal = { persen: [25, 25, 25, 25] };
       var kunci = { persen: persen };
       var ctx = { submateri: 'pie', keluarga: id, level: level, benih: benih };
-      return Butir.rakitIsian(ctx, {
+      var butir = Butir.rakitIsian(ctx, {
         jenisSoal: bentuk === 'penuh' ? 'Pie Chart (informasi penuh)' : 'Pie Chart (1 informasi kosong)',
         judul: f.judul + ' · Pie Chart (' + (bentuk === 'penuh' ? 'informasi penuh' : '1 informasi kosong') + ')', teks: teks, pertanyaan: f.tanya,
         perintah: 'Geser batas antar-irisan sampai persentase tiap irisan sesuai dengan keterangan.',
@@ -172,13 +267,12 @@
         model: { param: { N: String(N) }, tampil: { N: Fmt.angka(N) }, toleransi: 0, topik: 'Pie Chart', relasi: rel, total: N, bentuk: bentuk, dasar: dasar, jumlahGrup: 4, grup: f.grup, unit: f.unit, gaya: f.gaya },
         sidik: { inti: 'pn-pie|' + f.id + '|' + bentuk + '|' + N + '|' + cnt.join(','), param: cnt.concat([N]), entitas: f.id + bentuk }
       });
+      butir.stimulus.kartu = kartu;
+      butir.pola = 'pie-' + f.id;
+      butir.kategoriRiset = 'acuan';
+      return butir;
     }
     return null;
-  }
-
-  function jmlKoefStr(cnt, dasar) {
-    var d = cnt[dasar];
-    return String(cnt.reduce(function (s, x) { return s + x / d; }, 0));
   }
 
   var KELUARGA = [
