@@ -16,8 +16,16 @@
  * tiap belah ketupat dari kotak 1-4, lalu menerapkan kode kotak kelima pada kotak keempat.
  *
  *   mudah   tiap peralihan hanya satu belah ketupat abu-abu; kotak kelima satu
- *   sedang  ada peralihan dengan dua belah ketupat abu-abu; kotak kelima dua
- *   sulit   dua peralihan berkode ganda dan bingkai ikut dipakai; kotak kelima dua atau tiga
+ *   sedang  satu atau dua peralihan dengan DUA belah ketupat abu-abu sekaligus (dua bagian
+ *           berubah bersamaan); kotak kelima juga dua
+ *   sulit   dua atau tiga peralihan berkode ganda, bingkai ikut dipakai (berubah atau tetap);
+ *           kotak kelima dua atau tiga belah ketupat abu-abu
+ *
+ * Pada peralihan berkode ganda arti tiap belah ketupat tetap dapat dipisahkan: pola abu-abu
+ * ketiga belah ketupat pada kotak 2-4 selalu berbeda, jadi setiap bagian gambar atas hanya
+ * cocok dengan satu belah ketupat (diperiksa validator lewat `Inferensi.ganda`). `pola` butir
+ * mencatat banyak kode per peralihan, cara warna berubah, dan dipakainya bingkai, mis.
+ * "serial-ganda:dua-kode+warna-putar+bingkai"; penyusun mendahulukan pola yang belum dipakai.
  *
  * Pola kode dipilih supaya arti tiap belah ketupat pasti terbaca: setiap belah ketupat
  * abu-abu sedikitnya sekali pada kotak 2-4, tidak abu-abu terus, dan pola abu-abunya
@@ -28,13 +36,13 @@
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
-    api = factory(require('./rng.js'), require('./svg.js'), require('./bentuk.js'), require('./butir.js'), require('./format.js'));
+    api = factory(require('./rng.js'), require('./svg.js'), require('./bentuk.js'), require('./butir.js'), require('./format.js'), require('./metrik.js'));
     module.exports = api;
   } else {
-    api = factory(root.Rng, root.Svg, root.Bentuk, root.Butir, root.Fmt);
+    api = factory(root.Rng, root.Svg, root.Bentuk, root.Butir, root.Fmt, root.Metrik);
     root.SerialGanda = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Rng, S, Bentuk, Butir, Fmt) {
+})(typeof self !== 'undefined' ? self : this, function (Rng, S, Bentuk, Butir, Fmt, Metrik) {
   'use strict';
 
   var PERINTAH = 'Gunakan gambar di bagian atas untuk menentukan jawaban yang benar dari pilihan di bawah. Pilih jawaban yang menggantikan tanda tanya. Jika tidak ada tanda tanya, pilih jawaban yang merupakan kelanjutan dari urutan tersebut.';
@@ -94,6 +102,138 @@
     return { svg: S.doc(atasSvg(at, pad, pad), W, W, { latar: '#ffffff' }), lebar: W, tinggi: W };
   }
 
+  // --------------------------------------------------------- gambar pembahasan
+
+  /*
+   *   ganda-arti   arti tiap belah ketupat: belah ketupat itu (berwarna sendiri), contoh perubahan
+   *                bagian yang diaturnya dari deret soal (kotak t -> t+1), dan uraian singkatnya
+   *   ganda-akhir  kotak 4 -> kotak 5: belah ketupat abu-abu kotak 5 dan bagian yang diubahnya
+   *                dilingkari warna yang sama; bagian lain ditulis "tetap"
+   */
+  var BH = S.BAHAS, WARNA_KODE = ['#d35400', '#8e44ad', '#0e7c86'];
+
+  function teksB(s, x, y, o) {
+    o = o || {};
+    return S.teks(s, x, y, { ukuran: o.ukuran || 11, tebal: o.tebal, isi: o.isi || BH.teks, rata: o.rata });
+  }
+
+  /** Teks yang dipenggal sesuai lebar; mengembalikan { svg, baris }. */
+  function paragrafB(s, x, y, lebar, o) {
+    o = o || {};
+    var uk = o.ukuran || 11, baris = Metrik.penggal(s, lebar, uk, o.tebal);
+    return { svg: baris.map(function (b, i) { return teksB(b, x, y + i * (uk + 4), o); }).join(''), baris: baris.length };
+  }
+
+  /** Satu bagian gambar atas saja (koordinat 0..B), garis dipertebal `kali` untuk gambar kecil. */
+  function atasBagian(at, bagian, kali) {
+    var o = [S.rect(0, 0, B, B, { isi: '#ffffff', garis: '#c4cad6', tebal: 1.2 * kali })];
+    if (bagian === 'warna' || bagian === 'bingkai') {
+      at.warna.forEach(function (w, i) {
+        var redup = bagian === 'bingkai';
+        o.push(S.lingkaran(PUSAT[i][0], PUSAT[i][1], 9.5, { isi: redup ? '#ffffff' : ISI[w], garis: redup ? '#b5bccb' : TINTA, tebal: 1.5 * kali }));
+      });
+    }
+    if (bagian === 'bingkai' && at.bingkai >= 0) {
+      var pb = PUSAT[at.bingkai];
+      o.push(S.rect(pb[0] - 15, pb[1] - 15, 30, 30, { isi: 'none', garis: TINTA, tebal: 1.6 * kali }));
+    }
+    if (bagian === 'panah') {
+      var d = [[0, -1], [1, 0], [0, 1], [-1, 0]][at.panah];
+      o.push(S.panah(48 - d[0] * 22, 48 - d[1] * 22, 48 + d[0] * 22, 48 + d[1] * 22, { warna: TINTA, tebal: 2.2 * kali, kepala: 14 }));
+    }
+    if (bagian === 'penanda') {
+      var pp = [[41.5, 0], [83, 41.5], [41.5, 83], [0, 41.5]][at.penanda];
+      o.push(S.rect(pp[0], pp[1], 13, 13, { isi: TINTA, garis: TINTA, tebal: 1.4 * kali }));
+    }
+    return o.join('');
+  }
+
+  /** Cincin penanda di sekeliling bagian yang berubah pada gambar atas (koordinat kotak). */
+  function cincinBagian(at, bagian, x0, y0, warna) {
+    var g = { isi: 'none', garis: warna, tebal: 2.2 };
+    if (bagian === 'warna') return PUSAT.map(function (p) { return S.lingkaran(x0 + p[0], y0 + p[1], 12.5, g); }).join('');
+    if (bagian === 'panah') return S.lingkaran(x0 + 48, y0 + 48, 20, g);
+    if (bagian === 'penanda') { var pp = [[41.5, 0], [83, 41.5], [41.5, 83], [0, 41.5]][at.penanda]; return S.rect(x0 + pp[0] - 3.5, y0 + pp[1] - 3.5, 20, 20, Object.assign({ rx: 4 }, g)); }
+    var pb = PUSAT[at.bingkai];
+    return S.rect(x0 + pb[0] - 18, y0 + pb[1] - 18, 36, 36, Object.assign({ rx: 5 }, g));
+  }
+
+  function labelUbah(ub) {
+    var jam = ub.k > 0 ? 'searah jarum jam' : 'berlawanan arah jarum jam';
+    if (ub.bagian === 'warna') return ub.cara === 'putar' ? 'warna keempat lingkaran berpindah satu pojok ' + jam : 'warna tiap lingkaran maju satu langkah: putih → abu-abu → hitam → putih';
+    if (ub.bagian === 'panah') return ub.k === 2 ? 'panah berbalik arah' : 'panah berputar 90° ' + jam;
+    if (ub.bagian === 'penanda') return ub.k === 2 ? 'penanda pindah ke sisi seberangnya' : 'penanda pindah satu sisi ' + jam;
+    return 'bingkai pindah ke lingkaran berikutnya ' + jam;
+  }
+
+  /** Belah ketupat kecil bertumpuk; yang ke-j disorot dengan warnanya. */
+  function ketupatKecil(x, y, j) {
+    return [0, 1, 2].map(function (i) {
+      return Bentuk.svg('belah-ketupat', x, y + i * 18, 7, { isi: i === j ? '#9a9a9a' : '#ffffff', garis: i === j ? WARNA_KODE[j] : '#9aa3b5', tebal: i === j ? 2.4 : 1.2 });
+    }).join('');
+  }
+
+  /** Arti tiap belah ketupat beserta contoh perubahannya dari deret soal. */
+  function svgArti(m, judul) {
+    var pad = 8, W = 500, tinggiBaris = 80, y0 = pad + 26, o = [teksB(judul, pad, pad + 13, { ukuran: 13, tebal: true })];
+    var atas = m.kotak.map(function (k) { return k.atas; }), bawah = m.kotak.map(function (k) { return k.bawah; });
+    m.arti.forEach(function (ub, j) {
+      var y = y0 + j * tinggiBaris, abu = [];
+      for (var t = 1; t < 4; t++) if (bawah[t][j]) abu.push(t);
+      o.push(S.rect(pad, y, W - pad * 2, tinggiBaris - 6, { rx: 5, isi: j % 2 ? '#ffffff' : '#f6f8fc' }));
+      o.push(ketupatKecil(pad + 18, y + 18, j));
+      // contoh: peralihan pertama yang belah ketupat ini abu-abu
+      var t0 = abu[0], u = 52, s = u / B;
+      o.push('<g transform="translate(' + (pad + 44) + ',' + (y + 6) + ') scale(' + s + ')">' + atasBagian(atas[t0 - 1], ub.bagian, 1.6) + '</g>');
+      o.push(S.panah(pad + 44 + u + 5, y + 6 + u / 2, pad + 44 + u + 25, y + 6 + u / 2, { warna: WARNA_KODE[j], tebal: 2, kepala: 7 }));
+      o.push('<g transform="translate(' + (pad + 44 + u + 30) + ',' + (y + 6) + ') scale(' + s + ')">' + atasBagian(atas[t0], ub.bagian, 1.6) + '</g>');
+      o.push(teksB('kotak ' + t0, pad + 44 + u / 2, y + u + 18, { ukuran: 10, rata: 'middle', isi: BH.teksRedup }));
+      o.push(teksB('kotak ' + (t0 + 1), pad + 44 + u * 1.5 + 30, y + u + 18, { ukuran: 10, rata: 'middle', isi: BH.teksRedup }));
+      var tx = pad + 44 + u * 2 + 44, lebar = W - pad - tx - 6;
+      o.push(teksB('Belah ketupat ' + LETAK_KETUPAT[j] + ' = ' + LABEL[ub.bagian], tx, y + 17, { ukuran: 12, tebal: true, isi: WARNA_KODE[j] }));
+      o.push(paragrafB('Abu-abu pada kotak ' + daftarKata(abu.map(function (x) { return String(x + 1); })) + '; setiap kali abu-abu: ' + labelUbah(ub) + '.', tx, y + 34, lebar).svg);
+    });
+    var H = y0 + m.arti.length * tinggiBaris;
+    if (m.tetap) { o.push(teksB(Fmt.kapital(LABEL[m.tetap]) + ' tidak diatur belah ketupat mana pun, jadi tidak pernah berubah.', pad + 4, H + 8, { isi: BH.teksRedup })); H += 18; }
+    H += pad;
+    return { svg: S.doc(o.join(''), W, H, { latar: '#ffffff' }), lebar: W, tinggi: H };
+  }
+
+  /** Kotak 4 -> kotak 5: kode aktif dan bagian yang diubahnya dilingkari warna yang sama. */
+  function svgAkhir(m, judul) {
+    var pad = 8, y0 = pad + 26 + 16, x4 = pad, x5 = pad + B + 64, tx = x5 + B + 18, W = 500, o = [teksB(judul, pad, pad + 13, { ukuran: 13, tebal: true })];
+    o.push(teksB('Kotak 4', x4 + B / 2, y0 - 6, { rata: 'middle', tebal: true }));
+    o.push(teksB('Kotak 5 (jawaban)', x5 + B / 2, y0 - 6, { rata: 'middle', tebal: true, isi: BH.jawab }));
+    o.push(atasSvg(m.k4.atas, x4, y0));
+    o.push(bawahSvg(m.k4.bawah, x4, y0 + B));
+    o.push(atasSvg(m.jawaban, x5, y0));
+    o.push(bawahSvg(m.kode5, x5, y0 + B));
+    o.push(S.rect(x5 - 2, y0 - 2, B + 4, 2 * B + 4, { isi: 'none', garis: BH.jawab, tebal: 2.6 }));
+    o.push(S.panah(x4 + B + 10, y0 + B / 2, x5 - 10, y0 + B / 2, { warna: BH.panah, tebal: 2.2, kepala: 9 }));
+    var aktif = [0, 1, 2].filter(function (j) { return m.kode5[j]; });
+    aktif.forEach(function (j) {
+      o.push(S.lingkaran(x5 + 48, y0 + B + 22 + j * 26, 15, { isi: 'none', garis: WARNA_KODE[j], tebal: 2.4 }));
+      o.push(cincinBagian(m.jawaban, m.arti[j].bagian, x5, y0, WARNA_KODE[j]));
+    });
+    var y = y0 + 4;
+    o.push(teksB('Kode kotak 5:', tx, y + 10, { ukuran: 12, tebal: true }));
+    y += 28;
+    aktif.forEach(function (j) {
+      o.push(S.rect(tx, y - 9, 10, 10, { isi: WARNA_KODE[j] }));
+      var p = paragrafB('belah ketupat ' + LETAK_KETUPAT[j] + ' abu-abu: ' + labelUbah(m.arti[j]), tx + 16, y, W - pad - tx - 16, { isi: WARNA_KODE[j] });
+      o.push(p.svg);
+      y += p.baris * 15 + 6;
+    });
+    var tetap = [0, 1, 2].filter(function (j) { return !m.kode5[j]; }).map(function (j) { return LABEL[m.arti[j].bagian]; });
+    if (m.tetap) tetap.push(LABEL[m.tetap]);
+    if (tetap.length) {
+      var q = paragrafB('Tetap: ' + daftarKata(tetap) + '.', tx, y + 4, W - pad - tx, { isi: BH.teksRedup });
+      o.push(q.svg);
+    }
+    var H = y0 + 2 * B + pad + 2;
+    return { svg: S.doc(o.join(''), W, H, { latar: '#ffffff' }), lebar: W, tinggi: H };
+  }
+
   // --------------------------------------------------------------- perubahan
 
   function mod(a, n) { return ((a % n) + n) % n; }
@@ -117,7 +257,7 @@
     var arahJam = function (k) { return k > 0 ? 'searah jarum jam' : 'berlawanan arah jarum jam'; };
     if (ub.bagian === 'warna') {
       if (ub.cara === 'putar') return 'warna keempat lingkaran berpindah satu pojok ' + arahJam(ub.k);
-      return 'warna tiap lingkaran berganti (putih menjadi abu-abu, abu-abu menjadi hitam, hitam menjadi putih)';
+      return 'warna tiap lingkaran maju satu langkah pada siklus putih → abu-abu → hitam → putih';
     }
     if (ub.bagian === 'panah') return ub.k === 2 ? 'panah berbalik arah' : 'panah berputar 90 derajat ' + arahJam(ub.k);
     if (ub.bagian === 'penanda') return ub.k === 2 ? 'penanda pindah ke sisi seberangnya' : 'penanda pindah ke sisi berikutnya ' + arahJam(ub.k);
@@ -125,7 +265,7 @@
   }
 
   function pilihUbah(a, bagian, level) {
-    if (bagian === 'warna') return a.pilih(level === 'mudah' ? [{ cara: 'putar', k: 1 }, { cara: 'putar', k: -1 }] : [{ cara: 'putar', k: 1 }, { cara: 'putar', k: -1 }, { cara: 'siklus', k: 1 }]);
+    if (bagian === 'warna') return a.pilih([{ cara: 'putar', k: 1 }, { cara: 'putar', k: -1 }, { cara: 'siklus', k: 1 }]);
     if (bagian === 'panah') return { cara: 'geser', k: a.pilih(level === 'mudah' ? [1, -1] : [1, -1, 2]) };
     if (bagian === 'penanda') return { cara: 'geser', k: a.pilih(level === 'mudah' ? [1, -1] : [1, -1, 2]) };
     return { cara: 'geser', k: a.pilih([1, -1]) };
@@ -211,6 +351,8 @@
       '; panah ke ' + ARAH[at.panah] + '; penanda di sisi ' + ARAH[at.penanda] + (at.bingkai >= 0 ? '; bingkai pada lingkaran ' + POJOK[at.bingkai] : '');
   }
 
+  function jumlahAbu(kode) { return kode.reduce(function (s, x) { return s + x; }, 0); }
+
   function daftarKata(xs) { return xs.length <= 1 ? xs.join('') : xs.slice(0, -1).join(', ') + ' dan ' + xs[xs.length - 1]; }
 
   // --------------------------------------------------------------------- butir
@@ -227,6 +369,10 @@
       var arti = a.kocok(dikode).map(function (bg) { var u = pilihUbah(a, bg, level); u.bagian = bg; return u; });
       var T = pilihKode(a, level);
       if (!T) continue;
+      var warnaUb = arti.filter(function (u) { return u.bagian === 'warna'; })[0];
+      var pola = 'serial-ganda:' + (level === 'mudah' ? 'satu-kode' : 'dua-kode') + '+warna-' + (warnaUb ? warnaUb.cara : 'tetap') + (pakaiBingkai ? '+bingkai' : '');
+      // mekanisme yang sudah dipakai butir serial lain pada paket ini dihindari selama percobaan masih banyak
+      if (coba < 20 && (opsi.polaDipakai || []).indexOf(pola) >= 0) continue;
       var kode5;
       if (level === 'mudah') kode5 = a.pilih([[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
       else if (level === 'sedang') kode5 = a.pilih([[1, 1, 0], [1, 0, 1], [0, 1, 1]]);
@@ -246,16 +392,19 @@
       var peng = buatPengecoh(a, level, atas[3], arti, kode5, tetap);
       if (!peng) continue;
 
-      var pem = ['Bagian bawah tiap kotak adalah kode perubahan. Setiap belah ketupat mewakili satu bagian gambar atas: bila abu-abu, bagian itu berubah dengan cara yang sama setiap kali dibanding kotak sebelumnya; bila putih, bagian itu tetap. Kotak pertama adalah keadaan awal (ketiga belah ketupatnya putih).'];
+      var pem = ['Bagian bawah tiap kotak adalah kode perubahan. Setiap belah ketupat mewakili satu bagian gambar atas: bila abu-abu, bagian itu berubah dengan cara yang sama setiap kali dibanding kotak sebelumnya; bila putih, bagian itu tetap. Kotak pertama adalah keadaan awal (ketiga belah ketupatnya putih). Gambar 1 memasangkan tiap belah ketupat dengan bagian yang diaturnya beserta contoh perubahannya dari deret soal.'];
       [0, 1, 2].forEach(function (j) {
         var kotakAbu = [];
         for (var tt = 1; tt < 4; tt++) if (bawah[tt][j]) kotakAbu.push(tt + 1);
-        pem.push('• Belah ketupat ' + LETAK_KETUPAT[j] + ' abu-abu pada kotak ' + daftarKata(kotakAbu.map(String)) + ', dan hanya pada kotak itu ' + LABEL[arti[j].bagian] + ' berubah: ' + uraianUbah(arti[j]) + '.');
+        pem.push('• Belah ketupat ' + LETAK_KETUPAT[j] + ' abu-abu pada kotak ' + daftarKata(kotakAbu.map(String)) + ', dan hanya pada ' + (kotakAbu.length > 1 ? 'kotak-kotak' : 'kotak') + ' itu ' + LABEL[arti[j].bagian] + ' berubah: ' + uraianUbah(arti[j]) + '.');
       });
       if (tetap) pem.push('• ' + Fmt.kapital(LABEL[tetap]) + ' tidak pernah berubah.');
+      var kodeGanda = [1, 2, 3].filter(function (tt) { return jumlahAbu(bawah[tt]) > 1; });
+      if (kodeGanda.length) pem.push('Pada kotak ' + daftarKata(kodeGanda.map(function (tt) { return String(tt + 1); })) + ' ada lebih dari satu belah ketupat abu-abu sekaligus, jadi beberapa bagian berubah bersamaan; arti tiap belah ketupat tetap dapat dipisahkan karena pola abu-abunya pada kotak 2-4 berbeda-beda.');
       var abuJ = [0, 1, 2].filter(function (j) { return kode5[j]; }), putihJ = [0, 1, 2].filter(function (j) { return !kode5[j]; });
-      pem.push('Kotak kelima: belah ketupat ' + daftarKata(abuJ.map(function (j) { return LETAK_KETUPAT[j]; })) + ' abu-abu' + (putihJ.length ? ', ' + daftarKata(putihJ.map(function (j) { return LETAK_KETUPAT[j]; })) + ' putih' : '') +
-        '. Dari kotak keempat: ' + daftarKata(abuJ.map(function (j) { return uraianUbah(arti[j]); })) + '; bagian lain tetap.');
+      var bagianTetap = putihJ.map(function (j) { return LABEL[arti[j].bagian]; }).concat(tetap ? [LABEL[tetap]] : []);
+      pem.push('Gambar 2 menerapkan kode kotak kelima pada kotak keempat. Kotak kelima: belah ketupat ' + daftarKata(abuJ.map(function (j) { return LETAK_KETUPAT[j]; })) + ' abu-abu' + (putihJ.length ? ', ' + daftarKata(putihJ.map(function (j) { return LETAK_KETUPAT[j]; })) + ' putih' : '') +
+        '. Dari kotak keempat: ' + daftarKata(abuJ.map(function (j) { return uraianUbah(arti[j]); })) + ' (dilingkari warna yang sama dengan belah ketupatnya)' + (bagianTetap.length ? '; ' + daftarKata(bagianTetap) + ' tetap' : '') + '.');
       pem.push('Hasilnya: ' + uraianAtas(kunci) + '.');
 
       var daftar = a.kocok(peng.map(function (p) { return { at: p.at, alasan: p.alasan, kunci: false }; }));
@@ -266,7 +415,7 @@
       });
       var kotak = atas.map(function (at, i) { return { atas: i === 4 ? null : at, bawah: bawah[i] }; });
       var ctx = { subtes: 'ku', submateri: 'figural', keluarga: id, level: level, benih: benih, a: a };
-      return Butir.rakitPg(ctx, {
+      var butir = Butir.rakitPg(ctx, {
         jenisSoal: 'Figural Serial - The Next Double Box',
         judul: 'Figural Serial - The Next Double Box', teks: [], pertanyaan: '', perintah: PERINTAH,
         gambar: [{ id: 'soal', jenis: 'ganda', model: { kotak: kotak }, judul: 'Deret kotak ganda' }],
@@ -278,11 +427,20 @@
         },
         sidik: { inti: 'serial-ganda|' + atas.map(sidikAtas).join('/') + '|' + bawah.map(function (x) { return x.join(''); }).join('/'), param: [], entitas: arti.map(function (u) { return u.bagian; }).join(',') }
       });
+      if (!butir) continue;
+      var artiPolos = arti.map(function (u) { return { bagian: u.bagian, cara: u.cara, k: u.k }; });
+      butir.gambarPembahasan = [
+        { id: 'bahas-1', jenis: 'ganda-arti', judul: 'Gambar 1. Arti tiap belah ketupat', model: { kotak: kotak, arti: artiPolos, tetap: tetap } },
+        { id: 'bahas-2', jenis: 'ganda-akhir', judul: 'Gambar 2. Kotak 4 → kotak 5', model: { k4: kotak[3], kode5: kode5, jawaban: kunci, arti: artiPolos, tetap: tetap } }
+      ];
+      butir.pola = pola;
+      butir.kategoriRiset = 'acuan';
+      return butir;
     }
     return null;
   }
 
   var KELUARGA = [{ id: 'serial-ganda', nama: 'Deret kotak ganda (The Next Double Box)', submateri: 'figural' }];
 
-  return { KELUARGA: KELUARGA, PERINTAH: PERINTAH, buat: buat, svgDeret: svgDeret, svgAtas: svgAtas };
+  return { KELUARGA: KELUARGA, PERINTAH: PERINTAH, buat: buat, svgDeret: svgDeret, svgAtas: svgAtas, svgArti: svgArti, svgAkhir: svgAkhir };
 });

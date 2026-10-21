@@ -1,7 +1,59 @@
 {
-  "_keterangan": "Daftar pekerjaan tanpa token untuk Agent Office (project Tes OJK Generator Tahap 1). Meniru cli/generate.js dan layar pengaturan index.html. Kalau opsi atau perilaku bawaan cli/generate.js berubah, sesuaikan file ini di perubahan yang sama. Format: README Agent Office bagian \"agent-office.json\".",
+  "_keterangan": "Daftar pekerjaan tanpa token untuk Agent Office (project Tes OJK Generator Tahap 1). Meniru cli/generate.js dan layar pengaturan index.html, ditambah cli/buka.js (server lokal untuk index.html, pekerjaan aplikasi). Kalau opsi atau perilaku bawaan cli/generate.js atau cli/buka.js berubah (opsi, port baku 3300, atau baris alamat yang dicetak), sesuaikan file ini di perubahan yang sama. Pekerjaan aplikasi menulis port baku secara eksplisit (--port=3300, supaya cek kesehatan Agent Office ikut memeriksa opsinya) dan tidak memakai batas_menit: servernya dibiarkan menyala sampai dimatikan. Format: README Agent Office bagian \"agent-office.json\".",
   "nama": "Tes OJK Generator Tahap 1",
   "pekerjaan": [
+    {
+      "id": "aplikasi",
+      "judul": "Buka Generator OJK Tahap 1",
+      "singkat": "Buka Generator OJK",
+      "jenis": "aplikasi",
+      "prioritas": 2,
+      "kata_kunci": [
+        "buka generator ojk",
+        "jalankan generator ojk",
+        "nyalakan generator ojk",
+        "aplikasi generator ojk",
+        "buka ojk generator",
+        "situs generator ojk",
+        "web generator ojk",
+        "buka aplikasi ojk",
+        "jalankan aplikasi ojk",
+        "nyalakan aplikasi ojk",
+        "generator ojk",
+        "ojk",
+        "aplikasi",
+        "situs",
+        "web",
+        "buka",
+        "jalankan",
+        "nyalakan"
+      ],
+      "wajib_salah_satu": [
+        "buka generator ojk",
+        "jalankan generator ojk",
+        "nyalakan generator ojk",
+        "aplikasi generator ojk",
+        "situs generator ojk",
+        "web generator ojk",
+        "buka ojk generator",
+        "jalankan ojk generator",
+        "nyalakan ojk generator",
+        "buka aplikasi ojk",
+        "jalankan aplikasi ojk",
+        "nyalakan aplikasi ojk"
+      ],
+      "perintah": [
+        "cli/buka.js",
+        "--port=3300"
+      ],
+      "alamat": "(http://localhost:\\d+)",
+      "catatan": [
+        "sama dengan node cli/buka.js --port=3300: alamat http://localhost:3300 (kalau port itu terpakai, port berikutnya sampai 3310; Agent Office membaca alamat yang dicetak)",
+        "akses satu jaringan kantor aktif: bagikan link Jaringan kantor (IP Wi-Fi/LAN) yang dicetak server; tombol Buka tetap memakai localhost, dimatikan lewat tombol Matikan",
+        "untuk akses hanya dari komputer ini, jalankan node cli/buka.js --lokal; perangkat lain perlu Wi-Fi/LAN yang sama dan izin Node.js pada jaringan Privat di Windows Firewall",
+        "isinya sama dengan membuka index.html dari disk: pembuatan paket berjalan di peramban, tanpa internet dan tanpa token"
+      ]
+    },
     {
       "id": "paket",
       "judul": "Buat paket OJK PCAM Tahap 1",
@@ -112,7 +164,7 @@
         },
         "docx": {
           "jenis": "tanda",
-          "label": "Word (.docx)",
+          "label": "Word input SiAdu (.docx)",
           "kelompok": "Format",
           "bawaan": true,
           "jika_disebut": [
@@ -180,7 +232,7 @@
       },
       "catatan": [
         "tanpa internet dan tanpa instalasi apa pun (Node.js 20 atau lebih baru)",
-        "hasil ditulis ke output/<waktu>/ di folder project: Word, PDF, dan gambar PNG per paket, ditambah Excel dan JSON untuk semua paket",
+        "hasil ditulis ke output/<waktu>/ di folder project: Word input SiAdu per subtes, PDF, dan gambar PNG per paket, ditambah Excel dan JSON untuk semua paket",
         "setiap soal dicek ulang oleh validator lebih dulu; kalau ada yang gagal, tidak satu berkas pun ditulis",
         "tanpa centang format sama sekali, semua format dibuat; ratusan paket sebaiknya Excel dan JSON saja",
         "benih yang sama dengan pengaturan yang sama menghasilkan paket yang sama persis"
@@ -224,15 +276,15 @@
       "parameter": {
         "cepat": {
           "jenis": "tanda",
-          "label": "Mode cepat (paket lebih sedikit, sekitar 30 detik)",
-          "bantuan": "Tanpa centang: uji lengkap (60 paket per subtes dengan tiga benih berbeda, validator negatif, ekspor, CLI, agent-office.json, dan antarmuka), sekitar 1 menit.",
+          "label": "Mode cepat (paket lebih sedikit, sekitar 1 menit)",
+          "bantuan": "Tanpa centang: uji lengkap (60 paket per subtes dengan tiga benih berbeda, validator negatif, ekspor, CLI, agent-office.json, server lokal, dan antarmuka), sekitar 1,5 menit.",
           "jika_disebut": [
             "cepat"
           ]
         },
         "besar": {
           "jenis": "tanda",
-          "label": "Tambah uji kapasitas (500 paket ku, pn, dan keduanya; 250 paket tingkat mudah)",
+          "label": "Tambah uji kapasitas (500 paket ku, pn, dan keduanya; 500 paket tingkat mudah)",
           "bantuan": "Menambah sekitar 3 menit.",
           "jika_disebut": [
             "besar",
@@ -249,9 +301,9 @@
         }
       },
       "catatan": [
-        "memeriksa generator dari nol: bank soal, validator (juga dengan soal yang sengaja dirusak), ekspor Word/PDF/Excel/JSON/ZIP, CLI, agent-office.json, dan antarmuka",
+        "memeriksa generator dari nol: bank soal, validator (juga dengan soal yang sengaja dirusak), ekspor Word/PDF/Excel/JSON/ZIP, CLI, agent-office.json, server lokal cli/buka.js, dan antarmuka (lewat file:// dan http://localhost)",
         "uji antarmuka memakai Chrome atau Edge yang sudah terpasang; kalau tidak ada, bagian itu dilewati",
-        "tidak mengubah apa pun di folder project (hasil sementara ditulis ke folder sementara)"
+        "tidak mengubah apa pun di folder project (hasil sementara ditulis ke folder sementara); server uji memakai port acak, bukan 3300"
       ],
       "hasil": "HASIL:\\s*(.+)$",
       "gagal": "GAGAL:\\s*(.+)",

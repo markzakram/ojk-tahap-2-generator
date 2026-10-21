@@ -152,16 +152,18 @@
     b.baris.forEach(function (row, r) {
       var maksBaris = 1, sel = [];
       row.forEach(function (c, i) {
-        var lines = Metrik.penggal(c.teks == null ? '' : c.teks, lebar[i] - 10, size, c.tebal);
-        maksBaris = Math.max(maksBaris, lines.length);
+        // sel kotak keterangan: baris judul tebal di atas isinya
+        var judul = c.judul != null ? Metrik.penggal(c.judul, lebar[i] - 10, size, true).map(function (t) { return { t: t, tebal: true }; }) : [];
+        var lines = judul.concat(Metrik.penggal(c.teks == null ? '' : c.teks, lebar[i] - 10, size, c.tebal).map(function (t) { return { t: t, tebal: c.tebal }; }));
+        maksBaris = Math.max(maksBaris, lines.length, c.minBaris || 1);
         sel.push({ lines: lines, c: c });
       });
       var tinggi = maksBaris * lead + 7, prim = [], x = 0;
       row.forEach(function (c, i) {
-        prim.push({ k: 'rect', x: x, y: 0, w: lebar[i], h: tinggi, isi: c.isi || null, garis: 'B8C2D6' });
+        prim.push({ k: 'rect', x: x, y: 0, w: lebar[i], h: tinggi, isi: c.isi || null, garis: b.garis || 'B8C2D6' });
         sel[i].lines.forEach(function (ln, j) {
-          var lw = Metrik.lebar(ln, size, c.tebal), tx = c.rata === 'tengah' ? x + (lebar[i] - lw) / 2 : (c.rata === 'kanan' ? x + lebar[i] - lw - 5 : x + 5);
-          prim.push({ k: 'teks', x: tx, y: 3.5 + j * lead + size * 0.95, s: size, f: fontKunci(c.tebal, false), warna: '1B2130', teks: ln });
+          var lw = Metrik.lebar(ln.t, size, ln.tebal), tx = c.rata === 'tengah' ? x + (lebar[i] - lw) / 2 : (c.rata === 'kanan' ? x + lebar[i] - lw - 5 : x + 5);
+          prim.push({ k: 'teks', x: tx, y: 3.5 + j * lead + size * 0.95, s: size, f: fontKunci(ln.tebal, false), warna: c.warnaTeks || '1B2130', teks: ln.t });
         });
         x += lebar[i];
       });

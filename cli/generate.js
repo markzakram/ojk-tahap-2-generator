@@ -20,7 +20,7 @@
 var fs = require('fs');
 var path = require('path');
 
-var VERSI = '1.0.0';
+var VERSI = '1.1.0';
 var AKAR = path.resolve(__dirname, '..');
 var JS = path.join(AKAR, 'js');
 var FORMAT = ['docx', 'pdf', 'xlsx', 'json'];
@@ -43,7 +43,7 @@ var BANTUAN = [
   '                         (boleh digabung dengan --format).',
   '  --zip                  Bungkus semua hasil menjadi satu berkas ZIP (soal-ojk-tahap1.zip).',
   '  --benih <n>            Bilangan bulat 0 sampai 4294967295. Benih dan opsi yang sama menghasilkan',
-  '                         paket yang sama persis. Tanpa --benih, benih diacak dan dicetak di akhir.',
+  '                         paket identik pada versi bank yang sama. Tanpa --benih, benih diacak.',
   '  --keluaran <folder>    Folder induk hasil. Baku: output (di folder generator). Hasil ditulis ke',
   '                         <folder>/<waktu>/ dengan waktu berbentuk 2026-10-15_101530.',
   '  --tanpa-waktu          Tulis langsung ke folder --keluaran, tanpa subfolder waktu.',
@@ -65,8 +65,9 @@ var BANTUAN = [
   '  --bantuan, --help, -h  Tampilkan bantuan ini.',
   '',
   'Hasil (di <folder>/<waktu>/):',
-  '  paket-001/paket-001.docx   naskah soal, lembar kunci, dan pembahasan (Word)',
-  '  paket-001/paket-001.pdf    isi yang sama dalam PDF',
+  '  paket-001/paket-001-kemampuan-umum.docx     Word format input SiAdu, satu berkas per subtes',
+  '  paket-001/paket-001-penalaran-numerik.docx  (Soal N, Tingkat Kesulitan, Bentuk Soal, Jawaban, Pembahasan)',
+  '  paket-001/paket-001.pdf    naskah baca: soal, jawaban, dan pembahasan tiap nomor (PDF)',
   '  paket-001/gambar/*.png     gambar soal dan kondisi kunci (nama sama dengan kolom berkas_gambar)',
   '  soal-ojk-tahap1.xlsx       satu baris per soal untuk semua paket (+ lembar Ringkasan)',
   '  soal-ojk-tahap1.json       seluruh data soal, kunci, pembahasan, dan hasil validator',

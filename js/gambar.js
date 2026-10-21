@@ -47,6 +47,20 @@
       case 'sekat-opsi': return MatriksSekat.svgPojok(m.fig, m.q);
       case 'ganda': return SerialGanda.svgDeret(m.kotak);
       case 'ganda-opsi': return SerialGanda.svgAtas(m.atas);
+      // gambar pembahasan figural (tahapan pola beserta penandanya); judul ikut digambar di atasnya
+      case 'putar-tahap': return SerialPutar.svgTahap(m, d.judul);
+      case 'putar-pojok': return SerialPutar.svgPojok(m, d.judul);
+      case 'putar-sudut': return SerialPutar.svgSudut(m, d.judul);
+      case 'serial-tabel': return Figural.svgTabelSerial(m, d.judul);
+      case 'matriks3-letak': return Figural.svgLetak3(m, d.judul);
+      case 'matriks3-aturan': return Figural.svgAturan3(m, d.judul);
+      case 'sambung-hitung': return Figural.svgHitungSambung(m, d.judul);
+      case 'latin-tahap': return MatriksLatin.svgTahap(m, d.judul);
+      case 'isi-hitung': return MatriksIsi.svgHitung(m, d.judul);
+      case 'sekat-asal': return MatriksSekat.svgAsal(m, d.judul);
+      case 'sekat-gabung': return MatriksSekat.svgGabung(m, d.judul);
+      case 'ganda-arti': return SerialGanda.svgArti(m, d.judul);
+      case 'ganda-akhir': return SerialGanda.svgAkhir(m, d.judul);
       default: throw new Error('jenis gambar tidak dikenal: ' + d.jenis);
     }
   }

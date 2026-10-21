@@ -15,13 +15,13 @@
   var api;
   if (typeof module === 'object' && module.exports) {
     api = factory(require('./gambar.js'), require('./dokumen.js'), require('./docx.js'), require('./pdf.js'),
-      require('./xlsx.js'), require('./zip.js'), require('./raster.js'), require('./png.js'));
+      require('./xlsx.js'), require('./zip.js'), require('./raster.js'), require('./png.js'), require('./rumus.js'));
     module.exports = api;
   } else {
-    api = factory(root.Gambar, root.Dokumen, root.Docx, root.Pdf, root.Xlsx, root.Zip, root.Raster, root.Png);
+    api = factory(root.Gambar, root.Dokumen, root.Docx, root.Pdf, root.Xlsx, root.Zip, root.Raster, root.Png, root.Rumus);
     root.Ekspor = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Gambar, Dokumen, Docx, Pdf, Xlsx, Zip, Raster, Png) {
+})(typeof self !== 'undefined' ? self : this, function (Gambar, Dokumen, Docx, Pdf, Xlsx, Zip, Raster, Png, Rumus) {
   'use strict';
 
   var enc = new TextEncoder();
@@ -29,6 +29,10 @@
   function nomor(n, lebar) { var s = String(n); while (s.length < lebar) s = '0' + s; return s; }
 
   function folderPaket(paket) { return 'paket-' + nomor(paket.no, 3); }
+
+  var SLUG_SUBTES = { ku: 'kemampuan-umum', pn: 'penalaran-numerik' };
+  /** Nama berkas Word (format input SiAdu) satu subtes, mis. paket-001-kemampuan-umum.docx. */
+  function namaWord(paket, subtes) { return 'paket-' + nomor(paket.no, 3) + '-' + (SLUG_SUBTES[subtes] || subtes) + '.docx'; }
 
   /** Nama berkas PNG sebuah gambar butir, relatif terhadap folder keluaran. */
   function namaGambar(paket, butir, desc) {
@@ -89,8 +93,11 @@
       var model = Dokumen.dariPaket(paket, img, { benih: opsi.benih });
       var rantai = Promise.resolve();
       if (opsi.docx) {
-        rantai = rantai.then(function () { return Docx.buat(model); }).then(function (u8) {
-          hasil.push({ nama: folder + '/paket-' + nomor(paket.no, 3) + '.docx', data: u8, jenis: 'docx' });
+        // Word mengikuti template input SiAdu, satu berkas per subtes; PDF tetap naskah baca satu paket
+        Dokumen.siaduPaket(paket, img, { benih: opsi.benih }).forEach(function (m) {
+          rantai = rantai.then(function () { return Docx.buat(m); }).then(function (u8) {
+            hasil.push({ nama: folder + '/' + namaWord(paket, m.subtes), data: u8, jenis: 'docx', subtes: m.subtes });
+          });
         });
       }
       if (opsi.pdf) {
@@ -121,7 +128,9 @@
     ['no', 6], ['paket', 9], ['subtes', 18], ['submateri', 26], ['level', 9], ['soal', 72],
     ['opsi_a', 26], ['opsi_b', 26], ['opsi_c', 26], ['opsi_d', 26], ['opsi_e', 26],
     ['jawaban_benar', 22], ['pembahasan', 86], ['berkas_gambar', 44],
-    ['id', 14], ['benih', 12], ['keluarga', 20], ['bentuk_isian', 48], ['kunci_isian', 40], ['berkas_gambar_pembahasan', 40]
+    ['id', 14], ['benih', 12], ['keluarga', 20], ['bentuk_isian', 48], ['kunci_isian', 40], ['berkas_gambar_pembahasan', 40],
+    ['pola', 22], ['kategori_riset', 14], ['catatan_riset', 60],
+    ['category', 18], ['lesson', 18], ['chapter', 16], ['subchapter', 34], ['naskah_lengkap', 100]
   ];
 
   function barisExcel(paket, st, b) {
@@ -134,8 +143,10 @@
     return [
       b.no, paket.id, st.nama, b.submateriLabel || b.submateri, b.tingkatNama || b.level,
       Dokumen.teksSoal(b), opsi[0], opsi[1], opsi[2], opsi[3], opsi[4],
-      Dokumen.jawabanBenar(b), b.pembahasan.join('\n'), gSoal.join('; '),
-      b.id, b.benih, b.keluarga, Dokumen.bentukIsian(b), b.jenis === 'isian' ? JSON.stringify(b.isian.kunci) : '', gPem.join('; ')
+      Dokumen.jawabanBenar(b), b.pembahasan.map(function (t) { return Rumus.barisTeks(t); }).join('\n'), gSoal.join('; '),
+      b.id, b.benih, b.keluarga, Dokumen.bentukIsian(b), b.jenis === 'isian' ? JSON.stringify(b.isian.kunci) : '', gPem.join('; '),
+      b.pola || '', b.kategoriRiset || '', b.catatanRiset || '',
+      (b.klasifikasi || {}).category || '', (b.klasifikasi || {}).lesson || '', (b.klasifikasi || {}).chapter || '', (b.klasifikasi || {}).subchapter || '', Dokumen.naskahLengkap(b)
     ];
   }
 
@@ -194,8 +205,10 @@
                 return {
                   id: b.id, no: b.no, paket: b.paket, subtes: b.subtes, submateri: b.submateri, submateriNama: b.submateriNama,
                   komposisi: b.submateriKomposisi, keluarga: b.keluarga, level: b.level, tingkat: b.tingkatNama, benih: b.benih, jenis: b.jenis,
+                  pola: b.pola || null, kategoriRiset: b.kategoriRiset || null, catatanRiset: b.catatanRiset || null, klasifikasi: b.klasifikasi || null,
                   soal: Dokumen.teksSoal(b),
-                  stimulus: { judul: b.stimulus.judul, teks: b.stimulus.teks, gambar: (b.stimulus.gambar || []).map(function (d) { return desk(p, b, d); }) },
+                  naskah_lengkap: Dokumen.naskahLengkap(b),
+                  stimulus: { judul: b.stimulus.judul, teks: b.stimulus.teks, kartu: b.stimulus.kartu || null, gambar: (b.stimulus.gambar || []).map(function (d) { return desk(p, b, d); }) },
                   pertanyaan: b.pertanyaan, perintah: b.perintah,
                   opsi: b.opsi.map(function (o) { return { huruf: o.huruf, teks: o.teks, alasan: o.alasan, gambar: o.gambar ? desk(p, b, o.gambar) : null }; }),
                   kunci: b.jenis === 'pg' ? Dokumen.HURUF[b.kunci] : null,
@@ -227,7 +240,7 @@
   }
 
   return {
-    nomor: nomor, folderPaket: folderPaket, namaGambar: namaGambar, rasterGambar: rasterGambar,
+    nomor: nomor, folderPaket: folderPaket, namaGambar: namaGambar, namaWord: namaWord, rasterGambar: rasterGambar,
     siapkanGambarPaket: siapkanGambarPaket, berkasPaket: berkasPaket, xlsx: xlsx, json: json, ringkasan: ringkasan,
     barisExcel: barisExcel, KOLOM: KOLOM, enc: enc
   };

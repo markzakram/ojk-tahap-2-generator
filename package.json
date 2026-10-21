@@ -1,0 +1,10 @@
+{
+  "name": "ojk-generator-tahap-1",
+  "private": true,
+  "scripts": {
+    "dev": "node cli/buka.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

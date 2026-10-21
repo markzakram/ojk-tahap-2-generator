@@ -5,7 +5,7 @@
  * submateri. Untuk tiap butir:
  *
  *   1. tingkat kesulitan ditetapkan lebih dulu (kuota per subtes, diacak),
- *   2. keluarga soal berputar di dalam submateri supaya tidak ada dua butir
+ *   2. keluarga soal diacak tanpa pengulangan di dalam submateri supaya tidak ada dua butir
  *      sekeluarga pada satu paket selama keluarganya masih cukup,
  *   3. posisi kunci A-E ditetapkan lebih dulu (tiap huruf hampir sama banyak per
  *      paket); penyusun diminta memenuhinya dan, bila belum, diulang dengan
@@ -32,7 +32,7 @@
 })(typeof self !== 'undefined' ? self : this, function (Rng, Bank, Validator, Fmt) {
   'use strict';
 
-  var VERSI = 1;
+  var VERSI = 5;
   var MAKS_PAKET = 500;
   var LEVEL = ['mudah', 'sedang', 'sulit'];
   var PROPORSI_BAKU = { mudah: 3, sedang: 5, sulit: 2 };
@@ -118,6 +118,59 @@
     return kocok;
   }
 
+  /** Pilih keluarga tanpa pengulangan per siklus. Entri berbobot (matriks 3x3)
+   * tetap ikut undian, tetapi semua entri dengan id yang sama dikeluarkan setelah terpilih.
+   * Dengan demikian pasangan keluarga tidak selalu bertetangga dalam katalog.
+   */
+  function rencanaKeluarga(a, subtes, kunci, jumlah) {
+    var keluarga = Bank.ambil(subtes, kunci).keluarga, semua = keluarga.map(function (_, i) { return i; });
+    var sisa = [], hasil = [], terakhir = null;
+    for (var i = 0; i < jumlah; i++) {
+      if (!sisa.length) sisa = semua.slice();
+      var pilihan = sisa.filter(function (idx) { return keluarga[idx].id !== terakhir; });
+      if (!pilihan.length) pilihan = sisa;
+      var idx = a.pilih(pilihan);
+      hasil.push(idx); terakhir = keluarga[idx].id;
+      sisa = sisa.filter(function (j) { return keluarga[j].id !== terakhir; });
+    }
+    return hasil;
+  }
+
+  /** Selaraskan isi dengan tingkat tanpa mengubah kuota mudah/sedang/sulit pengguna. */
+  function selaraskanTingkat(slot, level, st) {
+    var wajibGanda = -1;
+    var serial = slot.map(function (s, i) { return s.kunci === 'serial' ? i : -1; }).filter(function (i) { return i >= 0; });
+    var donor = level.findIndex(function (l) { return l !== 'mudah'; });
+    if (st === 'ku' && serial.length && donor >= 0) {
+      var keluargaSerial = Bank.ambil(st, 'serial').keluarga;
+      wajibGanda = serial.find(function (i) { return keluargaSerial[slot[i].keluarga].id === 'serial-ganda'; });
+      // Dua atau lebih soal serial pada paket campuran selalu mencakup kotak ganda.
+      if (wajibGanda == null && serial.length >= 2) {
+        wajibGanda = serial[serial.length - 1];
+        slot[wajibGanda].keluarga = keluargaSerial.findIndex(function (k) { return k.id === 'serial-ganda'; });
+      }
+      if (wajibGanda == null) wajibGanda = -1;
+      if (wajibGanda >= 0 && level[wajibGanda] === 'mudah') {
+        level[wajibGanda] = level[donor]; level[donor] = 'mudah';
+      }
+    }
+    slot.forEach(function (sl, i) {
+      if (Bank.tingkatBoleh(st, sl.kunci, sl.keluarga, level[i])) return;
+      var tukar = slot.findIndex(function (s, j) {
+        return j !== wajibGanda && j !== i && Bank.tingkatBoleh(st, sl.kunci, sl.keluarga, level[j]) &&
+          Bank.tingkatBoleh(st, s.kunci, s.keluarga, level[i]);
+      });
+      if (tukar >= 0) { var tmp = level[i]; level[i] = level[tukar]; level[tukar] = tmp; return; }
+      // Misalnya pengguna memilih semua mudah: pilih keluarga lain yang sesuai,
+      // dahulukan keluarga yang paling sedikit terwakili di submateri itu.
+      var keluarga = Bank.ambil(st, sl.kunci).keluarga;
+      var calon = keluarga.map(function (_, j) { return j; }).filter(function (j) { return Bank.tingkatBoleh(st, sl.kunci, j, level[i]); });
+      var jumlah = function (j) { return slot.filter(function (s) { return s.kunci === sl.kunci && s.keluarga === j; }).length; };
+      calon.sort(function (x, y) { return jumlah(x) - jumlah(y) || x - y; });
+      sl.keluarga = calon[0];
+    });
+  }
+
   // -------------------------------------------------------------- penjaga
 
   function buatPenjaga() {
@@ -151,7 +204,7 @@
     var o = normalisasi(opsiMentah);
     var penjaga = buatPenjaga();
     var paket = [];
-    var statistik = { percobaan: 0, ditolakValidator: 0, ditolakKembar: 0, ditolakKosong: 0, kunciMeleset: 0, butir: 0 };
+    var statistik = { percobaan: 0, ditolakValidator: 0, ditolakKembar: 0, ditolakKosong: 0, kunciMeleset: 0, polaUlang: 0, butir: 0 };
     var sudah = 0;
 
     function buatSatu(no) {
@@ -160,10 +213,11 @@
         var info = Bank.SUBTES[st], komp = o.komposisi[st], a = Rng.alat(Rng.turunan(o.benih, no, st, 'rencana'));
         var slot = [];
         Bank.URUTAN[st].forEach(function (kunci) {
-          var c = komp[kunci] || 0, nFam = Bank.jumlahKeluarga(st, kunci), offset = a.bulat(0, nFam - 1);
-          for (var j = 0; j < c; j++) slot.push({ kunci: kunci, keluarga: (offset + j) % nFam });
+          var c = komp[kunci] || 0;
+          rencanaKeluarga(a, st, kunci, c).forEach(function (fam) { slot.push({ kunci: kunci, keluarga: fam }); });
         });
         var level = bagiTingkat(a, slot.length, o), kunciRencana = rencanaKunci(a, slot.length);
+        selaraskanTingkat(slot, level, st);
         // butir verbal hanya punya tiga pilihan: letak D/E yang jatuh padanya ditukar dengan butir lain
         slot.forEach(function (sl, i) {
           if (sl.kunci !== 'verbal' || kunciRencana[i] < 3) return;
@@ -171,15 +225,16 @@
             if (slot[j].kunci !== 'verbal' && kunciRencana[j] < 3 && st === 'ku') { var tmp = kunciRencana[i]; kunciRencana[i] = kunciRencana[j]; kunciRencana[j] = tmp; break; }
           }
         });
-        var butir = [], pakaiKel = {};
+        var butir = [], pakaiKel = {}, pakaiPola = {};
         slot.forEach(function (sl, idx) {
           var target = kunciRencana[idx], lv = level[idx], diterima = null, terbaik = null;
+          var polaDipakai = pakaiPola[sl.kunci] = pakaiPola[sl.kunci] || [];
           for (var coba = 0; coba < o.cobaMaks && !diterima; coba++) {
             statistik.percobaan++;
             var seed = Rng.turunan(o.benih, no, st, idx, coba);
             var fam = sl.keluarga;
             var b = null;
-            try { b = Bank.buat(st, sl.kunci, fam, lv, seed, { target: target }); } catch (e) { b = null; }
+            try { b = Bank.buat(st, sl.kunci, fam, lv, seed, { target: target, polaDipakai: polaDipakai.slice() }); } catch (e) { b = null; }
             if (!b) { statistik.ditolakKosong++; continue; }
             b.id = p.id + '-' + st.toUpperCase() + '-' + nomor(idx + 1, 2);
             b.no = idx + 1; b.paket = no;
@@ -187,17 +242,33 @@
             if (!r.lulus) { statistik.ditolakValidator++; continue; }
             var sd = Validator.buatSidik(b);
             if (cekKembar(penjaga, sd)) { statistik.ditolakKembar++; continue; }
+            // pola penalaran yang sama dengan butir sesubmateri sebelumnya dihindari selama percobaan masih banyak
+            // (polaTerpaksa: penyusun sudah tahu semua pola untuk tingkat ini terpakai, jadi tidak perlu mengulang)
+            var ulangPola = !!b.pola && polaDipakai.indexOf(b.pola) >= 0;
+            if (ulangPola && coba < 30 && !b.polaTerpaksa) {
+              statistik.polaUlang++;
+              if (!terbaik) terbaik = { b: b, sd: sd, ulang: true };
+              continue;
+            }
             // posisi kunci: dikejar pada percobaan awal saja
-            if (b.jenis === 'pg' && coba < 14 && b.kunci !== (b.opsi.length === 3 ? target % 3 : target)) {
+            if (b.jenis === 'pg' && coba < 24 && b.kunci !== (b.opsi.length === 3 ? target % 3 : target)) {
               statistik.kunciMeleset++;
-              if (!terbaik) terbaik = { b: b, sd: sd };
+              if (!terbaik || terbaik.ulang) terbaik = { b: b, sd: sd, ulang: ulangPola };
               continue;
             }
             diterima = { b: b, sd: sd };
           }
           if (!diterima && terbaik) diterima = terbaik;
           if (!diterima) throw new Error('butir ' + p.id + '-' + st.toUpperCase() + '-' + nomor(idx + 1, 2) + ' (' + sl.kunci + ', tingkat ' + lv + ') gagal disusun setelah ' + o.cobaMaks + ' percobaan; kapasitas bank untuk submateri ini mungkin habis, kurangi jumlah paket atau ganti benih');
+          // posisi kunci meleset (pengecoh jalur kesalahan tidak selalu bisa mengapit kunci di posisi rencana):
+          // tukar rencana dengan butir berikutnya yang direncanakan berhuruf ini, supaya A-E per paket tetap merata
+          if (diterima.b.jenis === 'pg' && diterima.b.opsi.length === 5 && diterima.b.kunci !== target) {
+            for (var j = idx + 1; j < slot.length; j++) {
+              if (slot[j].kunci !== 'verbal' && kunciRencana[j] === diterima.b.kunci) { kunciRencana[j] = target; break; }
+            }
+          }
           catat(penjaga, diterima.sd);
+          if (diterima.b.pola) polaDipakai.push(diterima.b.pola);
           statistik.butir++;
           pakaiKel[diterima.b.keluarga] = (pakaiKel[diterima.b.keluarga] || 0) + 1;
           diterima.b.tingkatNama = { mudah: 'Mudah', sedang: 'Sedang', sulit: 'Sulit' }[diterima.b.level];

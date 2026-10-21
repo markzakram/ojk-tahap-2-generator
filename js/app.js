@@ -369,6 +369,15 @@
   function isiTeks(induk, daftar) {
     var ul = null;
     (daftar || []).forEach(function (t) {
+      // baris persamaan pembahasan ("§ ...") dan judul bagian (Diketahui, Ditanyakan, ...)
+      if (Rumus.adalah(t)) {
+        ul = null;
+        var pr = el('p', 'baris-rumus');
+        try { pr.innerHTML = Rumus.html(Rumus.isi(t)); } catch (e) { pr.textContent = Rumus.isi(t); }
+        induk.appendChild(pr);
+        return;
+      }
+      if (Rumus.judulBagian(t)) { ul = null; induk.appendChild(el('p', 'judul-bagian', t)); return; }
       if (/^• /.test(t)) {
         if (!ul) { ul = el('ul', 'poin'); induk.appendChild(ul); }
         ul.appendChild(el('li', null, t.slice(2)));
@@ -419,14 +428,21 @@
 
     if (b.submateri === 'verbal') {
       isiTeks(badan, b.stimulus.teks);
-      var pern = el('p', 'pernyataan');
-      pern.appendChild(el('b', null, 'Pernyataan: '));
-      pern.appendChild(document.createTextNode(b.pertanyaan));
-      badan.appendChild(pern);
-      badan.appendChild(el('p', 'petunjuk', 'Berdasarkan bacaan di atas, apakah pernyataan tersebut Benar, Salah, atau Tidak Diketahui?'));
+      badan.appendChild(el('p', 'pernyataan', b.pertanyaan));
     } else if (b.jenis === 'isian') {
       if (b.stimulus.judul) badan.appendChild(el('h4', null, b.stimulus.judul));
       isiTeks(badan, b.stimulus.teks);
+      if (b.stimulus.kartu) {
+        var kotak = el('div', 'kartu-daftar');
+        b.stimulus.kartu.forEach(function (kt) {
+          var satu = el('div', 'kartu');
+          satu.style.background = '#' + kt.warna;
+          satu.appendChild(el('b', null, kt.judul));
+          if (kt.teks) satu.appendChild(el('span', null, kt.teks));
+          kotak.appendChild(satu);
+        });
+        badan.appendChild(kotak);
+      }
       badan.appendChild(el('p', 'pertanyaan', b.pertanyaan));
       if (b.perintah) badan.appendChild(el('p', 'petunjuk', b.perintah));
     } else if (b.submateri === 'figural') {
@@ -479,7 +495,9 @@
   }
 
   function opsiEl(p, b, kartuEl) {
-    var w = el('div', 'opsi-daftar' + (b.opsi[0].gambar ? ' bergambar' : ''));
+    // opsi bergambar yang melebar (potongan 5x6/5x5 berisi 3-4 simbol) ditampilkan tiga kolom
+    var melebar = b.opsi[0].gambar && b.opsi.some(function (o) { var g = Gambar.svg(o.gambar); return g.lebar / g.tinggi > 2.2; });
+    var w = el('div', 'opsi-daftar' + (b.opsi[0].gambar ? ' bergambar' : '') + (melebar ? ' melebar' : ''));
     var tombol = [];
     b.opsi.forEach(function (o, i) {
       var t = el('button', 'opsi');
@@ -540,9 +558,10 @@
         docx: jenis === 'docx', pdf: jenis === 'pdf', gambar: false, skala: 2, benih: state.hasil.meta.benih,
         kemajuan: function (s, t) { setKemajuan('kemajuan-unduh', s, t); }
       });
-      var f = berkas.filter(function (x) { return x.jenis === jenis; })[0];
-      unduh(f.nama.split('/').pop(), f.data, jenis);
-      setStatus('status-unduh', f.nama.split('/').pop() + ' diunduh.', 'ok');
+      // Word format input SiAdu: satu berkas per subtes, jadi bisa lebih dari satu unduhan
+      var daftar = berkas.filter(function (x) { return x.jenis === jenis; });
+      daftar.forEach(function (f) { unduh(f.nama.split('/').pop(), f.data, jenis); });
+      setStatus('status-unduh', daftar.map(function (f) { return f.nama.split('/').pop(); }).join(' dan ') + ' diunduh.', 'ok');
     } catch (e) {
       setStatus('status-unduh', 'Gagal: ' + e.message, 'error');
     }

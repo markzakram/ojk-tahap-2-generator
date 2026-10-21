@@ -1,10 +1,11 @@
 /*
  * verbal.js — Kemampuan Umum > Verbal (Verbal Reasoning).
  *
- * Bacaan argumentatif 120-180 kata bertema umum diikuti SATU pernyataan; peserta
- * memilih Benar, Salah, atau Tidak Diketahui. Pernyataannya harus DISIMPULKAN dari
- * bacaan (golongan dua langkah, rantai sebab-akibat, kuantor, "secara teori",
- * syarat perlu/cukup, ...), bukan disalin.
+ * Bacaan informatif 120-180 kata bertema umum diikuti SATU pernyataan polos (tanpa label
+ * dan tanpa kalimat perintah, seperti contoh riset); peserta memilih Benar, Salah, atau
+ * Tidak Diketahui. Pernyataan bisa berupa fakta tersurat yang diparafrasakan (mudah) atau
+ * harus DISIMPULKAN dari bacaan (golongan dua langkah, kuantor, teori lawan bukti, batas
+ * waktu, rantai sebab-akibat, syarat perlu/cukup, generalisasi, ...).
  *
  * Bacaan tidak ditulis bebas. Tiap topik punya kerangka kalimat (slot) dengan
  * beberapa versi, dan tiap kalimat membawa FAKTA berstruktur:
@@ -15,28 +16,37 @@
  *   sebab     x menaikkan / menurunkan y; dua sebab dapat berantai
  *   kuantor   semua / tidak semua / sebagian / tidak ada anggota kelompok yang ...
  *   status    "secara teori", "secara teori, tetapi belum terbukti", atau "terbukti"
+ *   temuan    hasil yang hanya diamati di lingkup tertentu ("pemantauan di dua kota
+ *             menunjukkan bahwa x menaikkan y"); tidak berlaku umum
  *   syarat    syarat perlu ("hanya ... sekurang-kurangnya t") atau syarat cukup
  *             ("setiap ... t atau lebih otomatis ..."); angka kasusnya ada di pernyataan
+ *   batas     batas waktu ("paling lambat t hari setelah ..."); angka kasusnya ada di pernyataan
  *   urutan    "pertama kali di a, kemudian diperluas ke b dan c"
- *   banding   a lebih ... daripada b
- *   latar     pembuka, pendapat ("dinilai", "berpendapat"), atau penutup; tidak pernah
+ *   banding   a lebih ... daripada b (berantai a > b > c, atau bercabang a > b dan a > c)
+ *   latar     pembuka, penjelas, pendapat ("dinilai"), atau penutup; tidak pernah
  *             dijadikan dasar pernyataan
  *
+ * Bacaan berpusat pada fakta yang ditanyakan: ditambah 2-3 fakta setema di dekatnya
+ * sebagai pengecoh, lalu kalimat latar. Ketentuan (syarat, batas waktu) hanya ikut bila
+ * pernyataan bergantung padanya.
+ *
  * Pernyataan dibuat menurut JENIS-nya (mis. golongan-silang, kuantor-sebagian-besar,
- * syarat-perlu-lulus) dengan jawaban yang dituju. Penyusun MEMBANGUN kebenarannya; yang
- * MENURUNKAN kebenaran dari fakta adalah validator (`Validator.turunkanVerbal`), yang juga
- * memeriksa bahwa kata penanda tiap fakta memang tertulis di kalimatnya.
+ * syarat-perlu-lulus) dengan jawaban yang dituju; tiap jenis punya POLA penalaran
+ * (`butir.pola`) agar paket tidak mengulang jebakan yang sama. Penyusun MEMBANGUN
+ * kebenarannya; yang MENURUNKAN kebenaran dari fakta adalah validator
+ * (`Validator.turunkanVerbal`), yang juga memeriksa bahwa kata penanda tiap fakta memang
+ * tertulis di kalimatnya.
  */
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
-    api = factory(require('./rng.js'), require('./format.js'), require('./butir.js'));
+    api = factory(require('./rng.js'), require('./format.js'), require('./butir.js'), require('./verbal-topik.js'));
     module.exports = api;
   } else {
-    api = factory(root.Rng, root.Fmt, root.Butir);
+    api = factory(root.Rng, root.Fmt, root.Butir, root.TopikVerbalTambahan);
     root.Verbal = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Rng, Fmt, Butir) {
+})(typeof self !== 'undefined' ? self : this, function (Rng, Fmt, Butir, TopikTambahan) {
   'use strict';
 
   var OPSI = ['Benar', 'Salah', 'Tidak Diketahui'];
@@ -53,6 +63,8 @@
     {
       id: 'penerbangan', judul: 'Penerbangan Sipil',
       istilah: {
+        rute: 'rute ke pulau-pulau kecil', wisata: 'kunjungan wisatawan', provKep: 'dua provinsi kepulauan', pilotLokal: 'jumlah pilot muda dari daerah setempat',
+        kesehatan: 'pemeriksaan kesehatan ulang', ujiTerbang: 'uji terbang ulang',
         sipil: 'penerbangan sipil', umum: 'penerbangan umum', terjadwal: 'transportasi udara terjadwal',
         pribadi: 'penerbangan pribadi', latih: 'penerbangan latih', olahraga: 'penerbangan olahraga',
         berjadwal: 'penerbangan berjadwal yang dijalankan maskapai', kargo: 'penerbangan kargo berjadwal',
@@ -73,6 +85,9 @@
           { t: 'Penerbangan umum mencakup, antara lain, {masuk}, tetapi tidak termasuk {keluar}.', pm: 'mencakup', pk: 'tidak termasuk' },
           { t: 'Yang tergolong penerbangan umum antara lain {masuk}, sedangkan {keluar} tidak termasuk di dalamnya.', pm: 'tergolong', pk: 'tidak termasuk' },
           { t: 'Penerbangan umum mencakup {masuk}, namun tidak termasuk {keluar}.', pm: 'mencakup', pk: 'tidak termasuk' }] },
+        { id: 'konteks', jenis: 'latar', var: [
+          'Pesawat yang dipakai dalam penerbangan umum umumnya berukuran kecil dan dapat terbang tanpa jadwal tetap.',
+          'Berbeda dengan pesawat penumpang besar, pesawat penerbangan umum biasanya hanya memuat beberapa orang.'] },
         { id: 'tesis', jenis: 'latar', var: [
           'Banyak pengamat menilai penerbangan umum berpotensi besar mengubah cara orang bepergian.',
           'Penerbangan umum kerap disebut memiliki potensi besar untuk mengubah cara orang bepergian.'] },
@@ -90,6 +105,22 @@
           klaim: {
             terbuka: { ya: ['Penerbangan umum dapat dimanfaatkan untuk {x}.', 'Kemajuan dalam penerbangan umum dapat digunakan untuk {x}.'], tidak: ['Penerbangan umum tidak dapat dimanfaatkan untuk {x}.'] },
             tertutup: { ya: ['Izin penerbangan umum untuk keperluan kerja sudah diberikan untuk {x}.'], tidak: ['Izin penerbangan umum untuk keperluan kerja belum diberikan untuk {x}.'] } } },
+        { id: 'sebab', jenis: 'sebab', ket: ['penerbangan umum menambah rute ke pulau-pulau kecil', 'rute ke pulau-pulau kecil menambah kunjungan wisatawan'], akhir: 'penerbangan umum pada akhirnya ikut menambah kunjungan wisatawan ke pulau-pulau kecil', mata: [
+          { dari: 'umum', ke: 'rute', arah: 'naik', var: [{ t: 'Penerbangan umum menambah rute ke pulau-pulau kecil yang belum dilayani maskapai.', p: 'menambah rute ke pulau-pulau kecil' }] },
+          { dari: 'rute', ke: 'wisata', arah: 'naik', var: [{ t: 'Rute ke pulau-pulau kecil itu pada gilirannya menambah kunjungan wisatawan.', p: 'menambah kunjungan wisatawan' }] }],
+          gabung: [{ t: 'Penerbangan umum menambah rute ke pulau-pulau kecil yang belum dilayani maskapai, dan rute baru itu pada gilirannya menambah kunjungan wisatawan.', p: ['menambah rute ke pulau-pulau kecil', 'menambah kunjungan wisatawan'] }],
+          klaim: {
+            m0: { sama: [{ t: 'Rute ke pulau-pulau kecil bertambah berkat penerbangan umum.', p: 'rute ke pulau-pulau kecil bertambah' }], balik: [{ t: 'Penerbangan umum mengurangi rute ke pulau-pulau kecil.', p: 'mengurangi rute ke pulau-pulau kecil' }] },
+            m1: { sama: [{ t: 'Rute ke pulau-pulau kecil ikut menambah kunjungan wisatawan.', p: 'menambah kunjungan wisatawan' }], balik: [{ t: 'Rute ke pulau-pulau kecil mengurangi kunjungan wisatawan.', p: 'mengurangi kunjungan wisatawan' }] },
+            rantai: { sama: [{ t: 'Penerbangan umum turut menambah kunjungan wisatawan ke pulau-pulau kecil.', p: 'menambah kunjungan wisatawan' }], balik: [{ t: 'Penerbangan umum mengurangi kunjungan wisatawan ke pulau-pulau kecil.', p: 'mengurangi kunjungan wisatawan' }] },
+            terbalik: [{ t: 'Kunjungan wisatawan yang ramai mendorong dibukanya rute penerbangan umum.', p: 'mendorong dibukanya rute penerbangan umum', dari: 'wisata', ke: 'umum', arah: 'naik' }] } },
+        { id: 'temuan', jenis: 'temuan', hal: 'pilotLokal', lingkup: 'provKep', arah: 'naik',
+          var: [{ t: 'Pendataan di dua provinsi kepulauan menunjukkan bahwa sekolah penerbangan yang baru dibuka menaikkan jumlah pilot muda dari daerah setempat.', p: 'menaikkan jumlah pilot muda dari daerah setempat' }],
+          pancing: ['Temuan itu mendorong rencana pembukaan sekolah serupa di provinsi lain.'],
+          klaim: {
+            sama: [{ t: 'Di dua provinsi kepulauan tersebut, sekolah penerbangan yang baru dibuka menambah jumlah pilot muda dari daerah setempat.', p: 'menambah jumlah pilot muda dari daerah setempat' }],
+            arah: [{ t: 'Di dua provinsi kepulauan tersebut, sekolah penerbangan yang baru dibuka mengurangi jumlah pilot muda dari daerah setempat.', p: 'mengurangi jumlah pilot muda dari daerah setempat' }],
+            umum: [{ t: 'Sekolah penerbangan yang baru dibuka menaikkan jumlah pilot muda dari daerah setempat di semua provinsi.', p: 'menaikkan jumlah pilot muda dari daerah setempat' }] } },
         { id: 'hambatan', jenis: 'daftar', subjek: 'umum', himp: 'hambatan', pool: ['harga', 'biaya', 'aman', 'bengkel', 'cuaca'], n: [2, 3],
           var: { terbuka: ['Namun demikian, ada hambatan yang berarti, antara lain {daftar}.', 'Meski demikian, perkembangannya masih terganjal sejumlah hambatan, seperti {daftar}.'] },
           klaim: { terbuka: { ya: ['{x} merupakan salah satu hambatan bagi penerbangan umum.', '{x} termasuk hambatan dalam perkembangan penerbangan umum.'], tunggal: ['Satu-satunya hambatan bagi penerbangan umum adalah {x}.'] } } },
@@ -103,6 +134,12 @@
           perlu: ['Ujian lisensi pilot pribadi hanya terbuka bagi calon pilot yang telah menempuh sekurang-kurangnya {t} jam terbang.'],
           cukup: ['Setiap calon pilot yang telah menempuh {t} jam terbang atau lebih otomatis dapat mengikuti ujian lisensi pilot pribadi.'] },
           klaim: { pasti: ['Calon pilot yang telah menempuh {v} jam terbang pasti dapat mengikuti ujian lisensi pilot pribadi.'], tidak: ['Calon pilot yang telah menempuh {v} jam terbang tidak dapat mengikuti ujian lisensi pilot pribadi.'] } },
+        { id: 'batas', jenis: 'batas', aksi: 'kesehatan', satuan: 'bulan', min: 6, maks: 36, langkah: 6, var: [
+          'Pemegang lisensi pilot pribadi wajib menjalani pemeriksaan kesehatan ulang paling lambat {t} bulan setelah pemeriksaan sebelumnya.'],
+          klaim: {
+            memenuhi: ['Pilot yang menjalani pemeriksaan kesehatan ulang {v} bulan setelah pemeriksaan sebelumnya masih memenuhi batas waktu.'],
+            melewati: ['Pilot yang menjalani pemeriksaan kesehatan ulang {v} bulan setelah pemeriksaan sebelumnya sudah melewati batas waktu.'] },
+          lain: { aksi: 'ujiTerbang', klaim: ['Pemegang lisensi pilot pribadi wajib menjalani uji terbang ulang paling lambat {t} bulan setelah uji sebelumnya.'] } },
         { id: 'penutup', jenis: 'latar', var: [
           'Karena itu, perkembangan penerbangan umum masih memerlukan dukungan kebijakan yang konsisten.',
           'Arah perkembangannya dalam beberapa tahun ke depan masih akan terus diperdebatkan.'] }
@@ -111,6 +148,7 @@
     {
       id: 'upah', judul: 'Upah Minimum',
       istilah: {
+        tigaKawasan: 'tiga kawasan industri', pindahKerja: 'angka perpindahan pekerja ke perusahaan lain', bayarBaru: 'upah minimum yang baru', keberatan: 'keberatan atas besaran upah',
         upahMin: 'upah minimum', jasa: 'industri jasa', tani: 'sektor pertanian', manufaktur: 'sektor manufaktur',
         tambang: 'sektor pertambangan', konstruksi: 'sektor konstruksi', cakupanUpah: 'cakupan ketentuan upah minimum',
         magang: 'pekerja magang yang masih menjalani masa pelatihan', prt: 'pekerja rumah tangga yang tinggal bersama pemberi kerja',
@@ -152,9 +190,16 @@
           gabung: [{ t: 'Upah yang lebih layak meningkatkan daya beli pekerja, dan daya beli yang tumbuh pada gilirannya mendorong penjualan usaha kecil di sekitar kawasan industri.', p: ['meningkatkan daya beli', 'mendorong penjualan usaha kecil'] }],
           klaim: {
             m0: { sama: [{ t: 'Upah yang lebih layak membuat daya beli pekerja meningkat.', p: 'daya beli pekerja meningkat' }], balik: [{ t: 'Upah yang lebih layak menurunkan daya beli pekerja.', p: 'menurunkan daya beli' }] },
-            m1: { sama: [{ t: 'Daya beli pekerja yang tumbuh ikut menaikkan penjualan usaha kecil di sekitar kawasan industri.', p: 'menaikkan penjualan usaha kecil' }], balik: [{ t: 'Daya beli pekerja yang tumbuh justru mengurangi penjualan usaha kecil di sekitar kawasan industri.', p: 'mengurangi penjualan usaha kecil' }] },
-            rantai: { sama: [{ t: 'Upah yang lebih layak turut mendorong penjualan usaha kecil di sekitar kawasan industri.', p: 'mendorong penjualan usaha kecil' }], balik: [{ t: 'Upah yang lebih layak justru menekan penjualan usaha kecil di sekitar kawasan industri.', p: 'menekan penjualan usaha kecil' }] },
+            m1: { sama: [{ t: 'Daya beli pekerja yang tumbuh ikut menaikkan penjualan usaha kecil di sekitar kawasan industri.', p: 'menaikkan penjualan usaha kecil' }], balik: [{ t: 'Daya beli pekerja yang tumbuh mengurangi penjualan usaha kecil di sekitar kawasan industri.', p: 'mengurangi penjualan usaha kecil' }] },
+            rantai: { sama: [{ t: 'Upah yang lebih layak turut mendorong penjualan usaha kecil di sekitar kawasan industri.', p: 'mendorong penjualan usaha kecil' }], balik: [{ t: 'Upah yang lebih layak menekan penjualan usaha kecil di sekitar kawasan industri.', p: 'menekan penjualan usaha kecil' }] },
             terbalik: [{ t: 'Penjualan usaha kecil yang meningkat mendorong pemberi kerja menaikkan upah pekerja.', p: 'menaikkan upah', dari: 'usaha', ke: 'layak', arah: 'naik', nk: 'upah' }] } },
+        { id: 'temuan', jenis: 'temuan', hal: 'pindahKerja', lingkup: 'tigaKawasan', arah: 'turun',
+          var: [{ t: 'Survei di tiga kawasan industri menunjukkan bahwa kenaikan upah minimum menurunkan angka perpindahan pekerja ke perusahaan lain.', p: 'menurunkan angka perpindahan pekerja ke perusahaan lain' }],
+          pancing: ['Hasil survei itu kerap dikutip untuk mendukung kenaikan upah di daerah lain.'],
+          klaim: {
+            sama: [{ t: 'Di tiga kawasan industri yang disurvei, kenaikan upah minimum mengurangi angka perpindahan pekerja ke perusahaan lain.', p: 'mengurangi angka perpindahan pekerja ke perusahaan lain' }],
+            arah: [{ t: 'Di tiga kawasan industri yang disurvei, kenaikan upah minimum menaikkan angka perpindahan pekerja ke perusahaan lain.', p: 'menaikkan angka perpindahan pekerja ke perusahaan lain' }],
+            umum: [{ t: 'Kenaikan upah minimum menurunkan angka perpindahan pekerja ke perusahaan lain di seluruh kawasan industri.', p: 'menurunkan angka perpindahan pekerja ke perusahaan lain' }] } },
         { id: 'hambatan', jenis: 'daftar', subjek: 'upahMin', himp: 'hambatan', pool: ['awas', 'informal', 'bedaHidup', 'inflasi', 'pindah'], n: [2, 3],
           var: { terbuka: ['Meski demikian, kebijakan ini masih menghadapi tantangan, seperti {daftar}.', 'Namun, penerapannya tidak lepas dari kendala, antara lain {daftar}.'] },
           klaim: { terbuka: { ya: ['{x} merupakan salah satu tantangan dalam penerapan upah minimum.'], tunggal: ['Satu-satunya tantangan dalam penerapan upah minimum adalah {x}.'] } } },
@@ -162,12 +207,19 @@
           perlu: ['Tunjangan masa kerja hanya diberikan kepada pekerja yang telah bekerja sekurang-kurangnya {t} tahun di perusahaan yang sama.'],
           cukup: ['Setiap pekerja yang telah bekerja {t} tahun atau lebih di perusahaan yang sama otomatis memperoleh tunjangan masa kerja.'] },
           klaim: { pasti: ['Pekerja yang telah bekerja {v} tahun di perusahaan yang sama pasti memperoleh tunjangan masa kerja.'], tidak: ['Pekerja yang telah bekerja {v} tahun di perusahaan yang sama tidak dapat memperoleh tunjangan masa kerja.'] } },
+        { id: 'batas', jenis: 'batas', aksi: 'bayarBaru', satuan: 'hari', min: 10, maks: 60, langkah: 5, var: [
+          'Setelah diumumkan, upah minimum yang baru wajib mulai dibayarkan paling lambat {t} hari kemudian.'],
+          klaim: {
+            memenuhi: ['Perusahaan yang mulai membayarkan upah minimum yang baru {v} hari setelah pengumuman masih memenuhi batas waktu.'],
+            melewati: ['Perusahaan yang mulai membayarkan upah minimum yang baru {v} hari setelah pengumuman sudah melewati batas waktu.'] },
+          lain: { aksi: 'keberatan', klaim: ['Serikat pekerja harus mengajukan keberatan atas besaran upah paling lambat {t} hari setelah pengumuman.'] } },
         { id: 'penutup', jenis: 'latar', var: ['Karena itu, besaran upah minimum setiap tahun selalu menjadi bahan perundingan yang alot.'] }
       ]
     },
     {
       id: 'sampah', judul: 'Bank Sampah',
       istilah: {
+        kelurahanUji: 'lima kelurahan percontohan', setoran: 'jumlah setoran warga',
         diterima: 'sampah yang diterima bank sampah', organik: 'sampah organik', anorganik: 'sampah anorganik',
         botol: 'botol plastik', kertas: 'kertas bekas', kaleng: 'kaleng minuman', kardus: 'kardus',
         sisa: 'sisa makanan', daun: 'daun kering', kulit: 'kulit buah',
@@ -183,6 +235,9 @@
         { id: 'def', jenis: 'latar', wajib: true, var: [
           'Bank sampah adalah tempat warga menyetorkan sampah yang sudah dipilah untuk ditukar dengan saldo tabungan.',
           'Bank sampah menampung sampah terpilah dari warga dan mencatat nilainya sebagai saldo tabungan.'] },
+        { id: 'konteks', jenis: 'latar', var: [
+          'Setiap setoran ditimbang, dicatat, lalu dihargai menurut jenis sampahnya.',
+          'Petugas menimbang tiap setoran dan mencatat nilainya di buku tabungan nasabah.'] },
         { id: 'gol', jenis: 'golongan', induk: 'diterima', anggota: ['organik', 'anorganik'], kata: 'golongan', var: [
           'Sampah yang diterima bank sampah dibagi menjadi dua golongan, yaitu sampah organik dan sampah anorganik.',
           'Ada dua golongan sampah yang diterima bank sampah, yaitu sampah organik dan sampah anorganik.'] },
@@ -198,9 +253,9 @@
           gabung: [{ t: 'Pemilahan sejak dari rumah meningkatkan mutu bahan daur ulang, dan mutu yang lebih baik pada gilirannya menaikkan harga jualnya kepada pengepul.', p: ['meningkatkan mutu', 'menaikkan harga'] }],
           klaim: {
             m0: { sama: [{ t: 'Pemilahan sejak dari rumah membuat mutu bahan daur ulang lebih baik.', p: 'mutu bahan daur ulang lebih baik' }], balik: [{ t: 'Pemilahan sejak dari rumah menurunkan mutu bahan daur ulang.', p: 'menurunkan mutu' }] },
-            m1: { sama: [{ t: 'Bahan daur ulang yang mutunya lebih baik dapat dijual dengan harga lebih tinggi.', p: 'harga lebih tinggi' }], balik: [{ t: 'Bahan daur ulang yang mutunya lebih baik justru dijual dengan harga lebih rendah.', p: 'harga lebih rendah' }] },
+            m1: { sama: [{ t: 'Bahan daur ulang yang mutunya lebih baik dapat dijual dengan harga lebih tinggi.', p: 'harga lebih tinggi' }], balik: [{ t: 'Bahan daur ulang yang mutunya lebih baik dijual dengan harga lebih rendah.', p: 'harga lebih rendah' }] },
             rantai: { sama: [{ t: 'Pemilahan sampah sejak dari rumah turut membuat bahan daur ulang dapat dijual dengan harga lebih tinggi.', p: 'harga lebih tinggi' }, { t: 'Pemilahan sejak dari rumah pada akhirnya ikut menaikkan harga jual bahan daur ulang.', p: 'menaikkan harga' }],
-              balik: [{ t: 'Pemilahan sejak dari rumah pada akhirnya justru menurunkan harga jual bahan daur ulang.', p: 'menurunkan harga' }] },
+              balik: [{ t: 'Pemilahan sejak dari rumah pada akhirnya menurunkan harga jual bahan daur ulang.', p: 'menurunkan harga' }] },
             terbalik: [{ t: 'Harga jual yang tinggi mendorong warga memilah sampah sejak dari rumah.', p: 'mendorong warga memilah', dari: 'harga', ke: 'pilah', arah: 'naik', nk: 'memilah' }] } },
         { id: 'status', jenis: 'status', hal: 'tpa', var: {
           teori: ['Secara teori, bila setiap rumah tangga memilah sampahnya, volume sampah yang dibuang ke tempat pembuangan akhir dapat berkurang secara nyata.'],
@@ -210,6 +265,13 @@
             terbukti: ['Pemilahan sampah oleh rumah tangga telah terbukti mengurangi volume sampah yang dibuang ke tempat pembuangan akhir secara nyata.'],
             mungkin: ['Pada prinsipnya, pemilahan oleh rumah tangga dapat mengurangi volume sampah yang dibuang ke tempat pembuangan akhir.'],
             belum: ['Manfaat pemilahan sampah bagi berkurangnya volume sampah di tempat pembuangan akhir belum terbukti.'] } },
+        { id: 'temuan', jenis: 'temuan', hal: 'setoran', lingkup: 'kelurahanUji', arah: 'naik',
+          var: [{ t: 'Pencatatan di lima kelurahan percontohan menunjukkan bahwa penimbangan dengan timbangan digital menaikkan jumlah setoran warga.', p: 'menaikkan jumlah setoran warga' }],
+          pancing: ['Pemerintah kota pun berencana menyediakan timbangan serupa di kelurahan lain.'],
+          klaim: {
+            sama: [{ t: 'Di lima kelurahan percontohan, penimbangan dengan timbangan digital menambah jumlah setoran warga.', p: 'menambah jumlah setoran warga' }],
+            arah: [{ t: 'Di lima kelurahan percontohan, penimbangan dengan timbangan digital mengurangi jumlah setoran warga.', p: 'mengurangi jumlah setoran warga' }],
+            umum: [{ t: 'Penimbangan dengan timbangan digital menaikkan jumlah setoran warga di semua kelurahan.', p: 'menaikkan jumlah setoran warga' }] } },
         { id: 'kuantor', jenis: 'kuantor', kelompok: 'warga', var: {
           'tidak-semua': ['Akan tetapi, tidak semua warga bersedia memilah sampah secara rutin.'],
           sebagian: ['Sejauh ini, sebagian warga sudah terbiasa memilah sampah secara rutin.'] },
@@ -227,12 +289,16 @@
           klaim: { pasti: ['Nasabah yang setorannya telah mencapai {v} kilogram pasti dapat mencairkan saldo tabungannya.'], tidak: ['Nasabah yang setorannya {v} kilogram tidak dapat mencairkan saldo tabungannya.'] } },
         { id: 'hambatan', jenis: 'daftar', subjek: 'bank', himp: 'hambatan', pool: ['tempat', 'jadwal', 'tenaga', 'modal', 'hargaBekas'], n: [2, 3],
           var: { terbuka: ['Pengelola juga menghadapi sejumlah kendala, seperti {daftar}.', 'Di banyak tempat, bank sampah masih menghadapi kendala, antara lain {daftar}.'] },
-          klaim: { terbuka: { ya: ['{x} merupakan salah satu kendala yang dihadapi pengelola bank sampah.'], tunggal: ['Satu-satunya kendala yang dihadapi pengelola bank sampah adalah {x}.'] } } }
+          klaim: { terbuka: { ya: ['{x} merupakan salah satu kendala yang dihadapi pengelola bank sampah.'], tunggal: ['Satu-satunya kendala yang dihadapi pengelola bank sampah adalah {x}.'] } } },
+        { id: 'penutup', jenis: 'latar', var: [
+          'Pada akhirnya, keberhasilan bank sampah sangat bergantung pada kebiasaan warga di rumah masing-masing.',
+          'Karena itu, bank sampah kerap disebut sebagai gerakan warga, bukan sekadar tempat menabung.'] }
       ]
     },
     {
       id: 'pjj', judul: 'Pembelajaran Jarak Jauh',
       istilah: {
+        empatSekolah: 'empat sekolah menengah', nilai: 'nilai ujian siswa', tugas: 'tugas dari kelas daring', nilaiTugas: 'penilaian tugas',
         pjj: 'pembelajaran jarak jauh', sinkron: 'pembelajaran sinkron', asinkron: 'pembelajaran asinkron',
         kelas: 'kelas video langsung', diskusi: 'diskusi daring terjadwal', tanya: 'sesi tanya jawab langsung dengan guru',
         modul: 'modul rekaman yang dapat diputar kapan saja', forum: 'forum diskusi tertulis yang dapat diikuti kapan saja',
@@ -248,6 +314,9 @@
         { id: 'cakupan', jenis: 'cakupan', x: 'sinkron', masuk: ['kelas', 'diskusi', 'tanya'], keluar: ['modul', 'forum'], var: [
           { t: 'Pembelajaran sinkron mencakup {masuk}, tetapi tidak termasuk {keluar}.', pm: 'mencakup', pk: 'tidak termasuk' },
           { t: 'Yang tergolong pembelajaran sinkron antara lain {masuk}, sedangkan {keluar} tidak termasuk di dalamnya.', pm: 'tergolong', pk: 'tidak termasuk' }] },
+        { id: 'konteks', jenis: 'latar', var: [
+          'Dalam model ini, guru dan siswa bertemu lewat layar, sementara bahan ajar dibagikan melalui aplikasi.',
+          'Siswa tidak harus berada di ruang kelas yang sama dengan gurunya untuk mengikuti pelajaran.'] },
         { id: 'tesis', jenis: 'latar', var: [
           'Model ini dipandang mampu memperluas akses pendidikan bagi siswa yang tinggal jauh dari sekolah.',
           'Penggunaannya meluas sejak banyak sekolah harus menutup kelas tatap muka untuk sementara.'] },
@@ -258,6 +327,13 @@
             terbukti: ['Pembelajaran jarak jauh telah terbukti membuat siswa di pelosok belajar dari guru-guru terbaik tanpa pindah ke kota.'],
             mungkin: ['Pada prinsipnya, pembelajaran jarak jauh memungkinkan siswa di pelosok belajar dari guru-guru terbaik.'],
             belum: ['Manfaat pembelajaran jarak jauh bagi siswa di pelosok belum terbukti dalam praktik.'] } },
+        { id: 'temuan', jenis: 'temuan', hal: 'nilai', lingkup: 'empatSekolah', arah: 'naik',
+          var: [{ t: 'Pengamatan di empat sekolah menengah menunjukkan bahwa rekaman pelajaran yang dapat diputar ulang menaikkan nilai ujian siswa.', p: 'menaikkan nilai ujian siswa' }],
+          pancing: ['Dinas pendidikan kemudian menganjurkan sekolah lain membuat rekaman serupa.'],
+          klaim: {
+            sama: [{ t: 'Di empat sekolah menengah yang diamati, rekaman pelajaran yang dapat diputar ulang meningkatkan nilai ujian siswa.', p: 'meningkatkan nilai ujian siswa' }],
+            arah: [{ t: 'Di empat sekolah menengah yang diamati, rekaman pelajaran yang dapat diputar ulang menurunkan nilai ujian siswa.', p: 'menurunkan nilai ujian siswa' }],
+            umum: [{ t: 'Rekaman pelajaran yang dapat diputar ulang menaikkan nilai ujian siswa di semua sekolah.', p: 'menaikkan nilai ujian siswa' }] } },
         { id: 'kuantor', jenis: 'kuantor', kelompok: 'siswa', var: {
           'tidak-semua': ['Kenyataannya, tidak semua siswa di daerah terpencil memiliki sambungan internet yang stabil.'],
           sebagian: ['Kenyataannya, sebagian siswa di daerah terpencil harus menempuh perjalanan jauh untuk mendapatkan sinyal.'] },
@@ -270,8 +346,8 @@
           gabung: [{ t: 'Pendampingan orang tua meningkatkan keaktifan siswa selama kelas berlangsung, dan keaktifan itu pada gilirannya mempercepat pemahaman materi.', p: ['meningkatkan keaktifan', 'mempercepat pemahaman materi'] }],
           klaim: {
             m0: { sama: [{ t: 'Keaktifan siswa selama kelas meningkat berkat pendampingan orang tua.', p: 'keaktifan siswa selama kelas meningkat' }], balik: [{ t: 'Pendampingan orang tua menurunkan keaktifan siswa selama kelas berlangsung.', p: 'menurunkan keaktifan' }] },
-            m1: { sama: [{ t: 'Keaktifan siswa yang tinggi ikut mempercepat pemahaman materi.', p: 'mempercepat pemahaman materi' }], balik: [{ t: 'Keaktifan siswa yang tinggi justru memperlambat pemahaman materi.', p: 'memperlambat pemahaman materi' }] },
-            rantai: { sama: [{ t: 'Pendampingan orang tua turut mempercepat pemahaman materi siswa.', p: 'mempercepat pemahaman materi' }], balik: [{ t: 'Pendampingan orang tua justru memperlambat pemahaman materi siswa.', p: 'memperlambat pemahaman materi' }] },
+            m1: { sama: [{ t: 'Keaktifan siswa yang tinggi ikut mempercepat pemahaman materi.', p: 'mempercepat pemahaman materi' }], balik: [{ t: 'Keaktifan siswa yang tinggi memperlambat pemahaman materi.', p: 'memperlambat pemahaman materi' }] },
+            rantai: { sama: [{ t: 'Pendampingan orang tua turut mempercepat pemahaman materi siswa.', p: 'mempercepat pemahaman materi' }], balik: [{ t: 'Pendampingan orang tua memperlambat pemahaman materi siswa.', p: 'memperlambat pemahaman materi' }] },
             terbalik: [{ t: 'Pemahaman materi yang cepat mendorong orang tua lebih sering mendampingi anaknya.', p: 'mendorong orang tua lebih sering mendampingi', dari: 'paham', ke: 'dampingan', arah: 'naik', nk: 'mendampingi' }] } },
         { id: 'hambatan', jenis: 'daftar', subjek: 'pjj', himp: 'hambatan', pool: ['perangkat', 'beban', 'listrik', 'guru', 'layar'], n: [2, 3],
           var: { terbuka: ['Model ini juga menghadapi sejumlah kendala, seperti {daftar}.', 'Di lapangan masih ada berbagai kendala, antara lain {daftar}.'] },
@@ -280,12 +356,19 @@
           perlu: ['Untuk membantu, pemerintah daerah menyediakan bantuan kuota belajar, tetapi bantuan itu hanya diberikan kepada siswa yang tingkat kehadiran daringnya sekurang-kurangnya {t} persen.'],
           cukup: ['Pemerintah daerah juga menyediakan bantuan kuota belajar yang otomatis diberikan kepada setiap siswa dengan tingkat kehadiran daring {t} persen atau lebih.'] },
           klaim: { pasti: ['Siswa yang tingkat kehadiran daringnya {v} persen pasti memperoleh bantuan kuota belajar.'], tidak: ['Siswa yang tingkat kehadiran daringnya {v} persen tidak dapat memperoleh bantuan kuota belajar.'] } },
+        { id: 'batas', jenis: 'batas', aksi: 'tugas', satuan: 'hari', min: 1, maks: 10, langkah: 1, var: [
+          'Tugas dari kelas daring harus dikumpulkan paling lambat {t} hari setelah kelas berakhir.'],
+          klaim: {
+            memenuhi: ['Tugas dari kelas daring yang dikumpulkan {v} hari setelah kelas berakhir masih memenuhi batas waktu.'],
+            melewati: ['Tugas dari kelas daring yang dikumpulkan {v} hari setelah kelas berakhir sudah melewati batas waktu.'] },
+          lain: { aksi: 'nilaiTugas', klaim: ['Guru harus menyelesaikan penilaian tugas paling lambat {t} hari setelah tugas dikumpulkan.'] } },
         { id: 'penutup', jenis: 'latar', var: ['Karena itu, keberhasilannya sangat bergantung pada kesiapan sarana di tiap daerah.'] }
       ]
     },
     {
       id: 'telemedisin', judul: 'Telemedisin',
       istilah: {
+        tigaPuskesmas: 'tiga puskesmas', kontrol: 'jumlah pasien yang melewatkan jadwal kontrol', lab: 'hasil pemeriksaan laboratorium', jelas: 'penjelasan hasil kepada pasien',
         tele: 'telemedisin', pasien: 'konsultasi antara pasien dan dokter', antar: 'konsultasi antarfasilitas kesehatan',
         rontgen: 'pengiriman hasil rontgen', kasus: 'diskusi kasus antardokter', rekam: 'pertukaran rekam medis antarklinik',
         bicara: 'percakapan langsung antara dokter dan pasien',
@@ -300,6 +383,9 @@
         { id: 'def', jenis: 'latar', wajib: true, var: [
           'Layanan kesehatan jarak jauh atau telemedisin berkembang pesat seiring meluasnya penggunaan ponsel pintar.',
           'Telemedisin, yaitu layanan kesehatan jarak jauh, berkembang pesat seiring meluasnya penggunaan ponsel pintar.'] },
+        { id: 'tesis', jenis: 'latar', var: [
+          'Banyak kalangan menilai telemedisin sebagai jalan keluar bagi daerah yang kekurangan dokter.',
+          'Layanan ini dianggap membantu daerah yang jauh dari rumah sakit besar.'] },
         { id: 'gol', jenis: 'golongan', induk: 'tele', anggota: ['pasien', 'antar'], kata: 'jenis', var: [
           'Layanan ini terbagi menjadi dua jenis, yaitu konsultasi antara pasien dan dokter serta konsultasi antarfasilitas kesehatan.',
           'Ada dua jenis telemedisin, yaitu konsultasi antara pasien dan dokter serta konsultasi antarfasilitas kesehatan.'] },
@@ -317,9 +403,16 @@
           gabung: [{ t: 'Telemedisin memperluas jangkauan layanan dokter spesialis, dan jangkauan yang lebih luas pada gilirannya mempercepat penanganan pasien di daerah terpencil.', p: ['memperluas jangkauan', 'mempercepat penanganan pasien'] }],
           klaim: {
             m0: { sama: [{ t: 'Telemedisin membuat jangkauan layanan dokter spesialis menjadi lebih luas.', p: 'jangkauan layanan dokter spesialis menjadi lebih luas' }], balik: [{ t: 'Telemedisin mempersempit jangkauan layanan dokter spesialis.', p: 'mempersempit jangkauan' }] },
-            m1: { sama: [{ t: 'Jangkauan layanan dokter spesialis yang lebih luas ikut mempercepat penanganan pasien di daerah terpencil.', p: 'mempercepat penanganan pasien' }], balik: [{ t: 'Jangkauan layanan dokter spesialis yang lebih luas justru memperlambat penanganan pasien di daerah terpencil.', p: 'memperlambat penanganan pasien' }] },
-            rantai: { sama: [{ t: 'Telemedisin turut mempercepat penanganan pasien di daerah terpencil.', p: 'mempercepat penanganan pasien' }], balik: [{ t: 'Telemedisin justru memperlambat penanganan pasien di daerah terpencil.', p: 'memperlambat penanganan pasien' }] },
+            m1: { sama: [{ t: 'Jangkauan layanan dokter spesialis yang lebih luas ikut mempercepat penanganan pasien di daerah terpencil.', p: 'mempercepat penanganan pasien' }], balik: [{ t: 'Jangkauan layanan dokter spesialis yang lebih luas memperlambat penanganan pasien di daerah terpencil.', p: 'memperlambat penanganan pasien' }] },
+            rantai: { sama: [{ t: 'Telemedisin turut mempercepat penanganan pasien di daerah terpencil.', p: 'mempercepat penanganan pasien' }], balik: [{ t: 'Telemedisin memperlambat penanganan pasien di daerah terpencil.', p: 'memperlambat penanganan pasien' }] },
             terbalik: [{ t: 'Penanganan pasien yang cepat di daerah terpencil mendorong makin banyak warga memakai telemedisin.', p: 'mendorong makin banyak warga memakai telemedisin', dari: 'tangani', ke: 'tele', arah: 'naik' }] } },
+        { id: 'temuan', jenis: 'temuan', hal: 'kontrol', lingkup: 'tigaPuskesmas', arah: 'turun',
+          var: [{ t: 'Data dari tiga puskesmas menunjukkan bahwa konsultasi lanjutan lewat video menurunkan jumlah pasien yang melewatkan jadwal kontrol.', p: 'menurunkan jumlah pasien yang melewatkan jadwal kontrol' }],
+          pancing: ['Dinas kesehatan pun mempertimbangkan cara serupa untuk puskesmas lainnya.'],
+          klaim: {
+            sama: [{ t: 'Di tiga puskesmas tersebut, konsultasi lanjutan lewat video mengurangi jumlah pasien yang melewatkan jadwal kontrol.', p: 'mengurangi jumlah pasien yang melewatkan jadwal kontrol' }],
+            arah: [{ t: 'Di tiga puskesmas tersebut, konsultasi lanjutan lewat video menambah jumlah pasien yang melewatkan jadwal kontrol.', p: 'menambah jumlah pasien yang melewatkan jadwal kontrol' }],
+            umum: [{ t: 'Konsultasi lanjutan lewat video menurunkan jumlah pasien yang melewatkan jadwal kontrol di semua puskesmas.', p: 'menurunkan jumlah pasien yang melewatkan jadwal kontrol' }] } },
         { id: 'status', jenis: 'status', hal: 'antrean', var: {
           teori: ['Secara teori, layanan ini juga dapat mengurangi antrean di poliklinik rumah sakit secara nyata.'],
           belum: ['Secara teori, layanan ini juga dapat mengurangi antrean di poliklinik rumah sakit, tetapi dampak itu belum terbukti dalam praktik.'] },
@@ -339,12 +432,21 @@
             'tidak-semua': { semua: ['Semua dokter bersedia memberikan diagnosis tanpa pemeriksaan fisik.'], 'ada-tidak': ['Ada dokter yang tidak bersedia memberikan diagnosis tanpa pemeriksaan fisik.'] } } },
         { id: 'hambatan', jenis: 'daftar', subjek: 'tele', himp: 'hambatan', pool: ['data', 'internet', 'digital', 'aturan', 'tarif'], n: [2, 3],
           var: { terbuka: ['Telemedisin juga masih menghadapi sejumlah tantangan, seperti {daftar}.', 'Tantangan yang masih perlu dijawab antara lain {daftar}.'] },
-          klaim: { terbuka: { ya: ['{x} merupakan salah satu tantangan telemedisin.'], tunggal: ['Satu-satunya tantangan telemedisin adalah {x}.'] } } }
+          klaim: { terbuka: { ya: ['{x} merupakan salah satu tantangan telemedisin.'], tunggal: ['Satu-satunya tantangan telemedisin adalah {x}.'] } } },
+        { id: 'batas', jenis: 'batas', aksi: 'lab', satuan: 'jam', min: 6, maks: 72, langkah: 6, var: [
+          'Hasil pemeriksaan laboratorium harus diunggah ke aplikasi paling lambat {t} jam setelah sampel diambil.'],
+          klaim: {
+            memenuhi: ['Hasil pemeriksaan laboratorium yang diunggah {v} jam setelah sampel diambil masih memenuhi batas waktu.'],
+            melewati: ['Hasil pemeriksaan laboratorium yang diunggah {v} jam setelah sampel diambil sudah melewati batas waktu.'] },
+          lain: { aksi: 'jelas', klaim: ['Dokter wajib memberikan penjelasan hasil kepada pasien paling lambat {t} jam setelah hasil diunggah.'] } },
+        { id: 'penutup', jenis: 'latar', var: [
+          'Ke depan, telemedisin diperkirakan akan menjadi bagian biasa dari layanan kesehatan sehari-hari.'] }
       ]
     },
     {
       id: 'surya', judul: 'Listrik Surya Atap',
       istilah: {
+        duaKompleks: 'dua kompleks perumahan', siang: 'pemakaian listrik rumah tangga pada siang hari', laporPasang: 'perusahaan listrik', gantiMeter: 'penggantian meter',
         surya: 'panel surya atap', pasang: 'pemasangan panel', pasokan: 'pasokan listrik', fosil: 'pemakaian pembangkit',
         mono: 'panel monokristal', poli: 'panel polikristal', tipis: 'panel lapisan tipis', tagihan: 'tagihan listrik', listrikPanel: 'listrik dari panel',
         lampu: 'penerangan rumah', pompa: 'pompa air', kulkas: 'lemari pendingin', kipas: 'kipas angin',
@@ -357,6 +459,9 @@
         { id: 'def', jenis: 'latar', wajib: true, var: [
           'Panel surya atap memungkinkan rumah tangga menghasilkan listrik sendiri dari sinar matahari.',
           'Semakin banyak rumah tangga memasang panel surya di atap untuk menghasilkan listrik sendiri.'] },
+        { id: 'konteks', jenis: 'latar', var: [
+          'Panel dipasang di atas genteng dan dihubungkan ke instalasi listrik rumah.',
+          'Panel bekerja sepanjang siang selama sinar matahari cukup terang.'] },
         { id: 'tesis', jenis: 'latar', var: [
           'Banyak pihak menilai teknologi ini penting untuk mempercepat peralihan ke energi bersih.',
           'Teknologi ini dianggap sebagai salah satu cara paling mudah bagi warga untuk ikut beralih ke energi bersih.'] },
@@ -370,9 +475,16 @@
           gabung: [{ t: 'Pemasangan panel di atap meningkatkan pasokan listrik dari sumber terbarukan, dan pasokan listrik yang bertambah pada gilirannya mengurangi pemakaian pembangkit berbahan bakar fosil.', p: ['meningkatkan pasokan listrik', 'mengurangi pemakaian pembangkit'] }],
           klaim: {
             m0: { sama: [{ t: 'Pemasangan panel di atap menambah pasokan listrik dari sumber terbarukan.', p: 'menambah pasokan listrik' }], balik: [{ t: 'Pemasangan panel di atap mengurangi pasokan listrik dari sumber terbarukan.', p: 'mengurangi pasokan listrik' }] },
-            m1: { sama: [{ t: 'Pasokan listrik terbarukan yang bertambah ikut mengurangi pemakaian pembangkit berbahan bakar fosil.', p: 'mengurangi pemakaian pembangkit' }], balik: [{ t: 'Pasokan listrik terbarukan yang bertambah justru meningkatkan pemakaian pembangkit berbahan bakar fosil.', p: 'meningkatkan pemakaian pembangkit' }] },
-            rantai: { sama: [{ t: 'Pemasangan panel di atap turut mengurangi pemakaian pembangkit berbahan bakar fosil.', p: 'mengurangi pemakaian pembangkit' }], balik: [{ t: 'Pemasangan panel di atap justru menambah pemakaian pembangkit berbahan bakar fosil.', p: 'menambah pemakaian pembangkit' }] },
+            m1: { sama: [{ t: 'Pasokan listrik terbarukan yang bertambah ikut mengurangi pemakaian pembangkit berbahan bakar fosil.', p: 'mengurangi pemakaian pembangkit' }], balik: [{ t: 'Pasokan listrik terbarukan yang bertambah meningkatkan pemakaian pembangkit berbahan bakar fosil.', p: 'meningkatkan pemakaian pembangkit' }] },
+            rantai: { sama: [{ t: 'Pemasangan panel di atap turut mengurangi pemakaian pembangkit berbahan bakar fosil.', p: 'mengurangi pemakaian pembangkit' }], balik: [{ t: 'Pemasangan panel di atap menambah pemakaian pembangkit berbahan bakar fosil.', p: 'menambah pemakaian pembangkit' }] },
             terbalik: [{ t: 'Pemakaian pembangkit berbahan bakar fosil yang tinggi mendorong warga memasang panel di atap.', p: 'mendorong warga memasang panel', dari: 'fosil', ke: 'pasang', arah: 'naik', nk: 'memasang panel' }] } },
+        { id: 'temuan', jenis: 'temuan', hal: 'siang', lingkup: 'duaKompleks', arah: 'naik',
+          var: [{ t: 'Pemantauan di dua kompleks perumahan menunjukkan bahwa pemasangan panel menaikkan pemakaian listrik rumah tangga pada siang hari.', p: 'menaikkan pemakaian listrik rumah tangga pada siang hari' }],
+          pancing: ['Temuan itu kini dipakai sejumlah pengembang untuk merancang perumahan baru.'],
+          klaim: {
+            sama: [{ t: 'Di dua kompleks perumahan yang dipantau, pemasangan panel menambah pemakaian listrik rumah tangga pada siang hari.', p: 'menambah pemakaian listrik rumah tangga pada siang hari' }],
+            arah: [{ t: 'Di dua kompleks perumahan yang dipantau, pemasangan panel mengurangi pemakaian listrik rumah tangga pada siang hari.', p: 'mengurangi pemakaian listrik rumah tangga pada siang hari' }],
+            umum: [{ t: 'Pemasangan panel menaikkan pemakaian listrik rumah tangga pada siang hari di semua perumahan.', p: 'menaikkan pemakaian listrik rumah tangga pada siang hari' }] } },
         { id: 'status', jenis: 'status', hal: 'tagihan', var: {
           teori: ['Secara teori, rumah tangga yang memasang panel dapat memangkas tagihan listriknya hingga separuh.'],
           belum: ['Secara teori, rumah tangga yang memasang panel dapat memangkas tagihan listriknya hingga separuh, tetapi angka itu belum terbukti dalam praktik.'],
@@ -398,12 +510,21 @@
         { id: 'syarat', jenis: 'syarat', aksi: 'potongan', min: 1, maks: 10, langkah: 1, var: {
           perlu: ['Potongan tagihan dari perusahaan listrik hanya diberikan kepada pemilik panel berkapasitas sekurang-kurangnya {t} kilowatt.'],
           cukup: ['Setiap pemilik panel berkapasitas {t} kilowatt atau lebih otomatis memperoleh potongan tagihan dari perusahaan listrik.'] },
-          klaim: { pasti: ['Pemilik panel berkapasitas {v} kilowatt pasti memperoleh potongan tagihan dari perusahaan listrik.'], tidak: ['Pemilik panel berkapasitas {v} kilowatt tidak dapat memperoleh potongan tagihan dari perusahaan listrik.'] } }
+          klaim: { pasti: ['Pemilik panel berkapasitas {v} kilowatt pasti memperoleh potongan tagihan dari perusahaan listrik.'], tidak: ['Pemilik panel berkapasitas {v} kilowatt tidak dapat memperoleh potongan tagihan dari perusahaan listrik.'] } },
+        { id: 'batas', jenis: 'batas', aksi: 'laporPasang', satuan: 'hari', min: 5, maks: 30, langkah: 5, var: [
+          'Pemilik rumah yang memasang panel wajib melapor ke perusahaan listrik paling lambat {t} hari setelah pemasangan selesai.'],
+          klaim: {
+            memenuhi: ['Pemilik rumah yang melapor ke perusahaan listrik {v} hari setelah pemasangan selesai masih memenuhi batas waktu.'],
+            melewati: ['Pemilik rumah yang melapor ke perusahaan listrik {v} hari setelah pemasangan selesai sudah melewati batas waktu.'] },
+          lain: { aksi: 'gantiMeter', klaim: ['Perusahaan listrik harus menyelesaikan penggantian meter paling lambat {t} hari setelah laporan diterima.'] } },
+        { id: 'penutup', jenis: 'latar', var: [
+          'Karena itu, minat warga terhadap panel surya atap diperkirakan terus tumbuh dalam beberapa tahun ke depan.'] }
       ]
     },
     {
       id: 'angkutan', judul: 'Angkutan Perkotaan',
       istilah: {
+        duaKoridor: 'dua koridor percontohan', jamSibuk: 'jumlah penumpang pada jam sibuk', kartuHilang: 'kartu perjalanan yang hilang', kartuBaru: 'penerbitan kartu pengganti',
         kota: 'angkutan umum perkotaan', massal: 'angkutan massal berjalur khusus', reguler: 'angkutan umum reguler',
         brt: 'bus rapid transit', krl: 'kereta rel listrik', mrt: 'kereta bawah tanah', angkot: 'angkutan kota', ojek: 'ojek daring',
         jalur: 'jalur khusus', tepat: 'ketepatan waktu', minat: 'minat warga', halte: 'halte', rute: 'rute bus',
@@ -418,21 +539,32 @@
         { id: 'def', jenis: 'latar', wajib: true, var: [
           'Banyak kota besar kini berlomba memperbaiki layanan angkutan umum perkotaan.',
           'Pembenahan angkutan umum perkotaan menjadi agenda utama banyak kota besar.'] },
+        { id: 'konteks', jenis: 'latar', var: [
+          'Pembenahan itu menyentuh banyak hal, mulai dari armada dan jaringan rute hingga cara penumpang membayar.'] },
         { id: 'gol', jenis: 'golongan', induk: 'kota', anggota: ['massal', 'reguler'], kata: 'golongan', var: [
           'Angkutan umum perkotaan dapat dibedakan menjadi dua golongan, yaitu angkutan massal berjalur khusus dan angkutan umum reguler.',
           'Secara umum, ada dua golongan angkutan umum perkotaan, yaitu angkutan massal berjalur khusus dan angkutan umum reguler.'] },
         { id: 'cakupan', jenis: 'cakupan', ikut: 'gol', x: 'massal', masuk: ['brt', 'krl', 'mrt'], nMasuk: [2, 3], keluar: ['angkot', 'ojek'], var: [
           { t: 'Angkutan massal berjalur khusus mencakup {masuk}, tetapi tidak termasuk {keluar}.', pm: 'mencakup', pk: 'tidak termasuk' },
           { t: 'Yang tergolong angkutan massal berjalur khusus antara lain {masuk}, sedangkan {keluar} tidak termasuk di dalamnya.', pm: 'tergolong', pk: 'tidak termasuk' }] },
+        { id: 'tesis', jenis: 'latar', var: [
+          'Banyak pakar tata kota menilai angkutan umum yang nyaman sebagai kunci kota yang layak huni.'] },
         { id: 'sebab', jenis: 'sebab', ket: ['jalur khusus meningkatkan ketepatan waktu kedatangan bus', 'ketepatan waktu yang lebih baik menambah minat warga untuk beralih dari kendaraan pribadi'], akhir: 'jalur khusus pada akhirnya ikut menambah minat warga untuk beralih dari kendaraan pribadi', mata: [
           { dari: 'jalur', ke: 'tepat', arah: 'naik', var: [{ t: 'Jalur khusus meningkatkan ketepatan waktu kedatangan bus.', p: 'meningkatkan ketepatan waktu' }] },
           { dari: 'tepat', ke: 'minat', arah: 'naik', var: [{ t: 'Ketepatan waktu yang lebih baik pada gilirannya menambah minat warga untuk beralih dari kendaraan pribadi.', p: 'menambah minat warga' }] }],
           gabung: [{ t: 'Jalur khusus meningkatkan ketepatan waktu kedatangan bus, dan ketepatan waktu yang lebih baik pada gilirannya menambah minat warga untuk beralih dari kendaraan pribadi.', p: ['meningkatkan ketepatan waktu', 'menambah minat warga'] }],
           klaim: {
             m0: { sama: [{ t: 'Ketepatan waktu kedatangan bus meningkat berkat adanya jalur khusus.', p: 'ketepatan waktu kedatangan bus meningkat' }], balik: [{ t: 'Jalur khusus menurunkan ketepatan waktu kedatangan bus.', p: 'menurunkan ketepatan waktu' }] },
-            m1: { sama: [{ t: 'Ketepatan waktu yang lebih baik ikut menambah minat warga untuk beralih dari kendaraan pribadi.', p: 'menambah minat warga' }], balik: [{ t: 'Ketepatan waktu yang lebih baik justru mengurangi minat warga untuk beralih dari kendaraan pribadi.', p: 'mengurangi minat warga' }] },
-            rantai: { sama: [{ t: 'Jalur khusus bus turut menambah minat warga untuk beralih dari kendaraan pribadi.', p: 'menambah minat warga' }], balik: [{ t: 'Jalur khusus bus justru mengurangi minat warga untuk beralih dari kendaraan pribadi.', p: 'mengurangi minat warga' }] },
+            m1: { sama: [{ t: 'Ketepatan waktu yang lebih baik ikut menambah minat warga untuk beralih dari kendaraan pribadi.', p: 'menambah minat warga' }], balik: [{ t: 'Ketepatan waktu yang lebih baik mengurangi minat warga untuk beralih dari kendaraan pribadi.', p: 'mengurangi minat warga' }] },
+            rantai: { sama: [{ t: 'Jalur khusus bus turut menambah minat warga untuk beralih dari kendaraan pribadi.', p: 'menambah minat warga' }], balik: [{ t: 'Jalur khusus bus mengurangi minat warga untuk beralih dari kendaraan pribadi.', p: 'mengurangi minat warga' }] },
             terbalik: [{ t: 'Minat warga yang tinggi untuk beralih dari kendaraan pribadi mendorong pemerintah membangun jalur khusus.', p: 'mendorong pemerintah membangun jalur khusus', dari: 'minat', ke: 'jalur', arah: 'naik' }] } },
+        { id: 'temuan', jenis: 'temuan', hal: 'jamSibuk', lingkup: 'duaKoridor', arah: 'naik',
+          var: [{ t: 'Pencatatan di dua koridor percontohan menunjukkan bahwa tarif terusan antarmoda menaikkan jumlah penumpang pada jam sibuk.', p: 'menaikkan jumlah penumpang pada jam sibuk' }],
+          pancing: ['Pemerintah kota pun berencana memberlakukan tarif serupa di koridor lain.'],
+          klaim: {
+            sama: [{ t: 'Di dua koridor percontohan, tarif terusan antarmoda menambah jumlah penumpang pada jam sibuk.', p: 'menambah jumlah penumpang pada jam sibuk' }],
+            arah: [{ t: 'Di dua koridor percontohan, tarif terusan antarmoda mengurangi jumlah penumpang pada jam sibuk.', p: 'mengurangi jumlah penumpang pada jam sibuk' }],
+            umum: [{ t: 'Tarif terusan antarmoda menaikkan jumlah penumpang pada jam sibuk di seluruh koridor.', p: 'menaikkan jumlah penumpang pada jam sibuk' }] } },
         { id: 'status', jenis: 'status', hal: 'macet', var: {
           teori: ['Secara teori, peralihan pengguna mobil ke angkutan massal dapat mengurangi kemacetan di pusat kota secara drastis.'],
           belum: ['Secara teori, peralihan pengguna mobil ke angkutan massal dapat mengurangi kemacetan di pusat kota secara drastis, tetapi hal itu belum terbukti dalam praktik.'],
@@ -461,12 +593,21 @@
         { id: 'syarat', jenis: 'syarat', aksi: 'diskon', min: 10, maks: 60, langkah: 2, var: {
           perlu: ['Potongan tarif hanya diberikan kepada penumpang yang melakukan sekurang-kurangnya {t} perjalanan dalam sebulan.'],
           cukup: ['Setiap penumpang yang melakukan {t} perjalanan atau lebih dalam sebulan otomatis memperoleh potongan tarif.'] },
-          klaim: { pasti: ['Penumpang yang melakukan {v} perjalanan dalam sebulan pasti memperoleh potongan tarif.'], tidak: ['Penumpang yang melakukan {v} perjalanan dalam sebulan tidak dapat memperoleh potongan tarif.'] } }
+          klaim: { pasti: ['Penumpang yang melakukan {v} perjalanan dalam sebulan pasti memperoleh potongan tarif.'], tidak: ['Penumpang yang melakukan {v} perjalanan dalam sebulan tidak dapat memperoleh potongan tarif.'] } },
+        { id: 'batas', jenis: 'batas', aksi: 'kartuHilang', satuan: 'hari', min: 2, maks: 30, langkah: 2, var: [
+          'Kartu perjalanan yang hilang harus dilaporkan paling lambat {t} hari setelah kehilangan agar saldonya dapat dipindahkan.'],
+          klaim: {
+            memenuhi: ['Kartu perjalanan yang hilang dan dilaporkan {v} hari setelah kehilangan masih memenuhi batas waktu.'],
+            melewati: ['Kartu perjalanan yang hilang dan dilaporkan {v} hari setelah kehilangan sudah melewati batas waktu.'] },
+          lain: { aksi: 'kartuBaru', klaim: ['Pengelola harus menyelesaikan penerbitan kartu pengganti paling lambat {t} hari setelah laporan diterima.'] } },
+        { id: 'penutup', jenis: 'latar', var: [
+          'Pembenahan itu diperkirakan masih akan berlangsung selama bertahun-tahun.'] }
       ]
     },
     {
       id: 'irigasi', judul: 'Irigasi Pertanian',
       istilah: {
+        tigaDesa: 'tiga desa', jamur: 'serangan jamur pada tanaman sayur', pompa: 'pompa milik kelompok', servis: 'perawatan pompa',
         sistem: 'sistem irigasi', permukaan: 'irigasi permukaan', tekanan: 'irigasi bertekanan',
         tetes: 'irigasi tetes', curah: 'irigasi curah', genangan: 'irigasi genangan', alur: 'irigasi alur',
         pupuk: 'ketepatan pemberian pupuk', panen: 'hasil panen',
@@ -478,11 +619,15 @@
         { id: 'def', jenis: 'latar', wajib: true, var: [
           'Kekeringan yang makin sering terjadi mendorong petani mencari cara mengairi lahan dengan lebih hemat.',
           'Musim kemarau yang makin panjang memaksa petani mencari cara mengairi lahan dengan lebih hemat.'] },
+        { id: 'konteks', jenis: 'latar', var: [
+          'Pilihan cara mengairi bergantung pada luas lahan dan sumber air yang tersedia.'] },
         { id: 'gol', jenis: 'golongan', induk: 'sistem', anggota: ['permukaan', 'tekanan'], kata: 'golongan', var: [
           'Sistem irigasi di lahan pertanian dapat dibedakan menjadi dua golongan, yaitu irigasi permukaan dan irigasi bertekanan.'] },
         { id: 'cakupan', jenis: 'cakupan', ikut: 'gol', x: 'tekanan', masuk: ['tetes', 'curah'], keluar: ['genangan', 'alur'], var: [
           { t: 'Irigasi bertekanan mencakup {masuk}, tetapi tidak termasuk {keluar}.', pm: 'mencakup', pk: 'tidak termasuk' },
           { t: 'Irigasi bertekanan mencakup {masuk}, sedangkan {keluar} tergolong irigasi permukaan.', pm: 'mencakup', pk: 'tergolong', keluarKe: 'permukaan' }] },
+        { id: 'tesis', jenis: 'latar', var: [
+          'Banyak penyuluh menilai cara mengairi lahan ikut menentukan keberhasilan bercocok tanam di musim kemarau.'] },
         { id: 'banding', jenis: 'banding', urut: ['tetes', 'curah', 'genangan'], adj: 'hemat air', var: { rantai: [
           'Irigasi tetes lebih hemat air daripada irigasi curah, sedangkan irigasi curah lebih hemat air daripada irigasi genangan.',
           ['Irigasi tetes lebih hemat air daripada irigasi curah.', 'Irigasi curah sendiri lebih hemat air daripada irigasi genangan.']] },
@@ -493,9 +638,16 @@
           gabung: [{ t: 'Irigasi tetes meningkatkan ketepatan pemberian pupuk cair, dan ketepatan itu pada gilirannya menaikkan hasil panen.', p: ['meningkatkan ketepatan pemberian pupuk', 'menaikkan hasil panen'] }],
           klaim: {
             m0: { sama: [{ t: 'Irigasi tetes membuat ketepatan pemberian pupuk cair meningkat.', p: 'ketepatan pemberian pupuk cair meningkat' }], balik: [{ t: 'Irigasi tetes menurunkan ketepatan pemberian pupuk cair.', p: 'menurunkan ketepatan pemberian pupuk' }] },
-            m1: { sama: [{ t: 'Ketepatan pemberian pupuk yang lebih baik ikut menaikkan hasil panen.', p: 'menaikkan hasil panen' }], balik: [{ t: 'Ketepatan pemberian pupuk yang lebih baik justru menurunkan hasil panen.', p: 'menurunkan hasil panen' }] },
-            rantai: { sama: [{ t: 'Irigasi tetes turut menaikkan hasil panen.', p: 'menaikkan hasil panen' }], balik: [{ t: 'Irigasi tetes justru menurunkan hasil panen.', p: 'menurunkan hasil panen' }] },
+            m1: { sama: [{ t: 'Ketepatan pemberian pupuk yang lebih baik ikut menaikkan hasil panen.', p: 'menaikkan hasil panen' }], balik: [{ t: 'Ketepatan pemberian pupuk yang lebih baik menurunkan hasil panen.', p: 'menurunkan hasil panen' }] },
+            rantai: { sama: [{ t: 'Irigasi tetes turut menaikkan hasil panen.', p: 'menaikkan hasil panen' }], balik: [{ t: 'Irigasi tetes menurunkan hasil panen.', p: 'menurunkan hasil panen' }] },
             terbalik: [{ t: 'Hasil panen sayuran yang tinggi mendorong petani beralih ke irigasi tetes.', p: 'mendorong petani beralih ke irigasi tetes', dari: 'panen', ke: 'tetes', arah: 'naik' }] } },
+        { id: 'temuan', jenis: 'temuan', hal: 'jamur', lingkup: 'tigaDesa', arah: 'turun',
+          var: [{ t: 'Uji coba di tiga desa menunjukkan bahwa penyiraman pada pagi hari menurunkan serangan jamur pada tanaman sayur.', p: 'menurunkan serangan jamur pada tanaman sayur' }],
+          pancing: ['Penyuluh kemudian menganjurkan cara serupa kepada petani di desa lain.'],
+          klaim: {
+            sama: [{ t: 'Di tiga desa tempat uji coba, penyiraman pada pagi hari mengurangi serangan jamur pada tanaman sayur.', p: 'mengurangi serangan jamur pada tanaman sayur' }],
+            arah: [{ t: 'Di tiga desa tempat uji coba, penyiraman pada pagi hari menambah serangan jamur pada tanaman sayur.', p: 'menambah serangan jamur pada tanaman sayur' }],
+            umum: [{ t: 'Penyiraman pada pagi hari menurunkan serangan jamur pada tanaman sayur di semua desa.', p: 'menurunkan serangan jamur pada tanaman sayur' }] } },
         { id: 'status', jenis: 'status', hal: 'hemat', var: {
           teori: ['Secara teori, peralihan ke irigasi tetes dapat menghemat pemakaian air hingga 60 persen.'],
           belum: ['Secara teori, peralihan ke irigasi tetes dapat menghemat pemakaian air hingga 60 persen, tetapi angka itu belum terbukti di lapangan.'] },
@@ -520,12 +672,21 @@
         { id: 'syarat', jenis: 'syarat', aksi: 'bantuan', min: 1, maks: 10, langkah: 1, var: {
           perlu: ['Bantuan perangkat dari dinas pertanian hanya diberikan kepada kelompok tani dengan luas lahan sekurang-kurangnya {t} hektare.'],
           cukup: ['Setiap kelompok tani dengan luas lahan {t} hektare atau lebih otomatis memperoleh bantuan perangkat dari dinas pertanian.'] },
-          klaim: { pasti: ['Kelompok tani dengan luas lahan {v} hektare pasti memperoleh bantuan perangkat dari dinas pertanian.'], tidak: ['Kelompok tani dengan luas lahan {v} hektare tidak dapat memperoleh bantuan perangkat dari dinas pertanian.'] } }
+          klaim: { pasti: ['Kelompok tani dengan luas lahan {v} hektare pasti memperoleh bantuan perangkat dari dinas pertanian.'], tidak: ['Kelompok tani dengan luas lahan {v} hektare tidak dapat memperoleh bantuan perangkat dari dinas pertanian.'] } },
+        { id: 'batas', jenis: 'batas', aksi: 'pompa', satuan: 'jam', min: 6, maks: 48, langkah: 6, var: [
+          'Petani yang meminjam pompa milik kelompok harus mengembalikannya paling lambat {t} jam setelah dipinjam.'],
+          klaim: {
+            memenuhi: ['Petani yang mengembalikan pompa milik kelompok {v} jam setelah dipinjam masih memenuhi batas waktu.'],
+            melewati: ['Petani yang mengembalikan pompa milik kelompok {v} jam setelah dipinjam sudah melewati batas waktu.'] },
+          lain: { aksi: 'servis', klaim: ['Pengurus kelompok harus melakukan perawatan pompa paling lambat {t} jam setelah pompa dikembalikan.'] } },
+        { id: 'penutup', jenis: 'latar', var: [
+          'Karena itu, pilihan sistem irigasi kini menjadi pertimbangan penting bagi petani.'] }
       ]
     },
     {
       id: 'desawisata', judul: 'Desa Wisata',
       istilah: {
+        duaDesa: 'dua desa wisata', lamaTinggal: 'lama tinggal wisatawan', batal: 'pembatalan pemesanan kamar', refund: 'pengembalian uang muka',
         kegiatan: 'kegiatan di desa wisata', alam: 'wisata alam', budaya: 'wisata budaya',
         tari: 'pertunjukan tari tradisional', batik: 'kelas membatik', adat: 'upacara adat', hutan: 'penjelajahan hutan', sungai: 'susur sungai',
         datang: 'kedatangan wisatawan', peduli: 'kepedulian warga', lingkungan: 'kualitas lingkungan', desa: 'desa wisata', warga: 'warga',
@@ -539,6 +700,8 @@
         { id: 'def', jenis: 'latar', wajib: true, var: [
           'Desa wisata menawarkan pengalaman tinggal dan berkegiatan bersama warga di pedesaan.',
           'Banyak desa kini mengembangkan diri menjadi desa wisata yang menawarkan pengalaman hidup bersama warga.'] },
+        { id: 'konteks', jenis: 'latar', var: [
+          'Pengunjung diajak mengenal kehidupan desa dari dekat, mulai dari bertani hingga memasak.'] },
         { id: 'gol', jenis: 'golongan', induk: 'kegiatan', anggota: ['alam', 'budaya'], kata: 'jenis', var: [
           'Kegiatan di desa wisata dibedakan menjadi dua jenis, yaitu wisata alam dan wisata budaya.'] },
         { id: 'cakupan', jenis: 'cakupan', ikut: 'gol', x: 'budaya', masuk: ['tari', 'batik', 'adat'], nMasuk: [2, 3], keluar: ['hutan', 'sungai'], var: [
@@ -551,14 +714,21 @@
           gabung: [{ t: 'Kedatangan wisatawan meningkatkan kepedulian warga terhadap kebersihan desa, dan kepedulian itu pada gilirannya memperbaiki kualitas lingkungan.', p: ['meningkatkan kepedulian warga', 'memperbaiki kualitas lingkungan'] }],
           klaim: {
             m0: { sama: [{ t: 'Kepedulian warga terhadap kebersihan desa meningkat berkat kedatangan wisatawan.', p: 'kepedulian warga terhadap kebersihan desa meningkat' }], balik: [{ t: 'Kedatangan wisatawan menurunkan kepedulian warga terhadap kebersihan desa.', p: 'menurunkan kepedulian warga' }] },
-            m1: { sama: [{ t: 'Kepedulian warga yang tumbuh ikut memperbaiki kualitas lingkungan desa.', p: 'memperbaiki kualitas lingkungan' }], balik: [{ t: 'Kepedulian warga yang tumbuh justru memperburuk kualitas lingkungan desa.', p: 'memperburuk kualitas lingkungan' }] },
-            rantai: { sama: [{ t: 'Kedatangan wisatawan turut memperbaiki kualitas lingkungan desa.', p: 'memperbaiki kualitas lingkungan' }], balik: [{ t: 'Kedatangan wisatawan justru memperburuk kualitas lingkungan desa.', p: 'memperburuk kualitas lingkungan' }] },
+            m1: { sama: [{ t: 'Kepedulian warga yang tumbuh ikut memperbaiki kualitas lingkungan desa.', p: 'memperbaiki kualitas lingkungan' }], balik: [{ t: 'Kepedulian warga yang tumbuh memperburuk kualitas lingkungan desa.', p: 'memperburuk kualitas lingkungan' }] },
+            rantai: { sama: [{ t: 'Kedatangan wisatawan turut memperbaiki kualitas lingkungan desa.', p: 'memperbaiki kualitas lingkungan' }], balik: [{ t: 'Kedatangan wisatawan memperburuk kualitas lingkungan desa.', p: 'memperburuk kualitas lingkungan' }] },
             terbalik: [{ t: 'Kualitas lingkungan yang baik mendorong lebih banyak wisatawan datang ke desa.', p: 'mendorong lebih banyak wisatawan datang', dari: 'lingkungan', ke: 'datang', arah: 'naik', nk: 'wisatawan datang' }] } },
         { id: 'pendapatan', jenis: 'daftar', subjek: 'desa', himp: 'pendapatan', pool: ['tiket', 'kerajinan', 'kuliner', 'pemandu', 'parkir', 'sepeda'], tdBoleh: ['tiket', 'pemandu', 'parkir', 'sepeda'], n: [3, 4],
           var: { terbuka: ['Pendapatan desa wisata berasal dari berbagai sumber, seperti {daftar}.'], tertutup: ['Pada tahap awal, pendapatan desa wisata hanya berasal dari {daftar}.'] },
           klaim: {
             terbuka: { ya: ['Desa wisata memperoleh pendapatan dari {x}.'], tidak: ['Desa wisata tidak memperoleh pendapatan dari {x}.'] },
             tertutup: { ya: ['Pada tahap awal, desa wisata sudah memperoleh pendapatan dari {x}.'], tidak: ['Pada tahap awal, desa wisata belum memperoleh pendapatan dari {x}.'] } } },
+        { id: 'temuan', jenis: 'temuan', hal: 'lamaTinggal', lingkup: 'duaDesa', arah: 'naik',
+          var: [{ t: 'Pendataan di dua desa wisata menunjukkan bahwa pertunjukan seni pada malam hari menaikkan lama tinggal wisatawan.', p: 'menaikkan lama tinggal wisatawan' }],
+          pancing: ['Pertunjukan serupa kini mulai ditawarkan oleh desa-desa wisata lainnya.'],
+          klaim: {
+            sama: [{ t: 'Di dua desa wisata yang didata, pertunjukan seni pada malam hari menambah lama tinggal wisatawan.', p: 'menambah lama tinggal wisatawan' }],
+            arah: [{ t: 'Di dua desa wisata yang didata, pertunjukan seni pada malam hari mengurangi lama tinggal wisatawan.', p: 'mengurangi lama tinggal wisatawan' }],
+            umum: [{ t: 'Pertunjukan seni pada malam hari menaikkan lama tinggal wisatawan di semua desa wisata.', p: 'menaikkan lama tinggal wisatawan' }] } },
         { id: 'status', jenis: 'status', hal: 'urban', var: {
           teori: ['Secara teori, desa wisata dapat menahan laju perpindahan pemuda desa ke kota.'],
           belum: ['Secara teori, desa wisata dapat menahan laju perpindahan pemuda desa ke kota, tetapi dampak itu belum terbukti dalam praktik.'] },
@@ -576,14 +746,23 @@
           var: { terbuka: ['Pengembangannya juga masih menghadapi tantangan, seperti {daftar}.', 'Meski demikian, ada sejumlah kendala yang perlu diatasi, antara lain {daftar}.'] },
           klaim: { terbuka: { ya: ['{x} merupakan salah satu tantangan dalam pengembangan desa wisata.'], tunggal: ['Satu-satunya tantangan dalam pengembangan desa wisata adalah {x}.'] } } },
         { id: 'syarat', jenis: 'syarat', aksi: 'dana', min: 2, maks: 30, langkah: 2, var: {
-          perlu: ['Dana pengembangan dari pemerintah daerah hanya diberikan kepada desa wisata yang dikunjungi sekurang-kurangnya {t} ribu wisatawan per tahun.'],
-          cukup: ['Setiap desa wisata yang dikunjungi {t} ribu wisatawan atau lebih per tahun otomatis memperoleh dana pengembangan dari pemerintah daerah.'] },
-          klaim: { pasti: ['Desa wisata yang dikunjungi {v} ribu wisatawan per tahun pasti memperoleh dana pengembangan dari pemerintah daerah.'], tidak: ['Desa wisata yang dikunjungi {v} ribu wisatawan per tahun tidak dapat memperoleh dana pengembangan dari pemerintah daerah.'] } }
+          perlu: ['Dana pengembangan dari pemerintah daerah hanya diberikan kepada desa wisata yang menerima sekurang-kurangnya {t} rombongan wisatawan per bulan.'],
+          cukup: ['Setiap desa wisata yang menerima {t} rombongan wisatawan atau lebih per bulan otomatis memperoleh dana pengembangan dari pemerintah daerah.'] },
+          klaim: { pasti: ['Desa wisata yang menerima {v} rombongan wisatawan per bulan pasti memperoleh dana pengembangan dari pemerintah daerah.'], tidak: ['Desa wisata yang menerima {v} rombongan wisatawan per bulan tidak dapat memperoleh dana pengembangan dari pemerintah daerah.'] } },
+        { id: 'batas', jenis: 'batas', aksi: 'batal', satuan: 'jam', min: 12, maks: 72, langkah: 12, var: [
+          'Pembatalan pemesanan kamar harus diberitahukan paling lambat {t} jam setelah pemesanan agar uang muka dapat dikembalikan.'],
+          klaim: {
+            memenuhi: ['Pembatalan pemesanan kamar yang diberitahukan {v} jam setelah pemesanan masih memenuhi batas waktu.'],
+            melewati: ['Pembatalan pemesanan kamar yang diberitahukan {v} jam setelah pemesanan sudah melewati batas waktu.'] },
+          lain: { aksi: 'refund', klaim: ['Pengelola harus menyelesaikan pengembalian uang muka paling lambat {t} jam setelah pembatalan diterima.'] } },
+        { id: 'penutup', jenis: 'latar', var: [
+          'Pada akhirnya, keberhasilan desa wisata bergantung pada kesediaan warga menjaga kekhasan desanya.'] }
       ]
     },
     {
       id: 'mangrove', judul: 'Hutan Mangrove',
       istilah: {
+        duaDesaPesisir: 'dua desa pesisir', kepiting: 'hasil tangkapan kepiting nelayan', tanamBibit: 'bibit mangrove yang dibagikan', sulam: 'penyulaman bibit yang mati',
         manfaat: 'manfaat hutan mangrove', ekologis: 'manfaat ekologis', ekonomi: 'manfaat ekonomi',
         gelombang: 'peredaman gelombang', abrasi: 'pencegahan abrasi', ikan: 'penyediaan tempat berkembang biak ikan',
         olahan: 'penjualan hasil olahan buah mangrove', perahu: 'penyelenggaraan wisata perahu',
@@ -597,6 +776,8 @@
         { id: 'def', jenis: 'latar', wajib: true, var: [
           'Hutan mangrove tumbuh di wilayah pasang surut sepanjang pantai tropis.',
           'Hutan mangrove banyak dijumpai di pesisir yang airnya dipengaruhi pasang surut.'] },
+        { id: 'konteks', jenis: 'latar', var: [
+          'Akarnya yang mencuat dari lumpur menjadi ciri yang mudah dikenali.'] },
         { id: 'gol', jenis: 'golongan', induk: 'manfaat', anggota: ['ekologis', 'ekonomi'], kata: 'golongan', var: [
           'Manfaat hutan mangrove dapat dibedakan menjadi dua golongan, yaitu manfaat ekologis dan manfaat ekonomi.'] },
         { id: 'cakupan', jenis: 'cakupan', ikut: 'gol', x: 'ekologis', masuk: ['gelombang', 'abrasi', 'ikan'], nMasuk: [2, 3], keluar: ['olahan', 'perahu'], var: [
@@ -608,9 +789,16 @@
           gabung: [{ t: 'Akar mangrove yang rapat menambah endapan lumpur di pesisir, dan endapan yang bertambah pada gilirannya memperluas daratan pantai.', p: ['menambah endapan lumpur', 'memperluas daratan pantai'] }],
           klaim: {
             m0: { sama: [{ t: 'Akar mangrove yang rapat membuat endapan lumpur di pesisir bertambah.', p: 'endapan lumpur di pesisir bertambah' }], balik: [{ t: 'Akar mangrove yang rapat mengurangi endapan lumpur di pesisir.', p: 'mengurangi endapan lumpur' }] },
-            m1: { sama: [{ t: 'Endapan lumpur yang bertambah ikut memperluas daratan pantai.', p: 'memperluas daratan pantai' }], balik: [{ t: 'Endapan lumpur yang bertambah justru mempersempit daratan pantai.', p: 'mempersempit daratan pantai' }] },
-            rantai: { sama: [{ t: 'Akar mangrove yang rapat turut memperluas daratan pantai.', p: 'memperluas daratan pantai' }], balik: [{ t: 'Akar mangrove yang rapat justru mempersempit daratan pantai.', p: 'mempersempit daratan pantai' }] },
+            m1: { sama: [{ t: 'Endapan lumpur yang bertambah ikut memperluas daratan pantai.', p: 'memperluas daratan pantai' }], balik: [{ t: 'Endapan lumpur yang bertambah mempersempit daratan pantai.', p: 'mempersempit daratan pantai' }] },
+            rantai: { sama: [{ t: 'Akar mangrove yang rapat turut memperluas daratan pantai.', p: 'memperluas daratan pantai' }], balik: [{ t: 'Akar mangrove yang rapat mempersempit daratan pantai.', p: 'mempersempit daratan pantai' }] },
             terbalik: [{ t: 'Daratan pantai yang luas mendorong akar mangrove tumbuh lebih rapat.', p: 'mendorong akar mangrove tumbuh lebih rapat', dari: 'daratan', ke: 'akar', arah: 'naik' }] } },
+        { id: 'temuan', jenis: 'temuan', hal: 'kepiting', lingkup: 'duaDesaPesisir', arah: 'naik',
+          var: [{ t: 'Pengamatan di dua desa pesisir menunjukkan bahwa penanaman kembali mangrove menaikkan hasil tangkapan kepiting nelayan.', p: 'menaikkan hasil tangkapan kepiting nelayan' }],
+          pancing: ['Pemerintah daerah lalu mendorong penanaman serupa di desa pesisir lainnya.'],
+          klaim: {
+            sama: [{ t: 'Di dua desa pesisir tersebut, penanaman kembali mangrove menambah hasil tangkapan kepiting nelayan.', p: 'menambah hasil tangkapan kepiting nelayan' }],
+            arah: [{ t: 'Di dua desa pesisir tersebut, penanaman kembali mangrove mengurangi hasil tangkapan kepiting nelayan.', p: 'mengurangi hasil tangkapan kepiting nelayan' }],
+            umum: [{ t: 'Penanaman kembali mangrove menaikkan hasil tangkapan kepiting nelayan di seluruh pesisir.', p: 'menaikkan hasil tangkapan kepiting nelayan' }] } },
         { id: 'status', jenis: 'status', hal: 'karbon', var: {
           teori: ['Secara teori, hutan mangrove dapat menyimpan karbon berlipat-lipat lebih banyak daripada hutan daratan dengan luas yang sama.'],
           belum: ['Secara teori, hutan mangrove dapat menyimpan karbon berlipat-lipat lebih banyak daripada hutan daratan dengan luas yang sama, tetapi perkiraan itu belum terbukti melalui pengukuran langsung.'],
@@ -636,12 +824,21 @@
         { id: 'syarat', jenis: 'syarat', aksi: 'bantuanPerahu', min: 2, maks: 30, langkah: 2, var: {
           perlu: ['Bantuan perahu hanya diberikan kepada kelompok nelayan yang menjaga kawasan mangrove seluas sekurang-kurangnya {t} hektare.'],
           cukup: ['Setiap kelompok nelayan yang menjaga kawasan mangrove seluas {t} hektare atau lebih otomatis memperoleh bantuan perahu.'] },
-          klaim: { pasti: ['Kelompok nelayan yang menjaga kawasan mangrove seluas {v} hektare pasti memperoleh bantuan perahu.'], tidak: ['Kelompok nelayan yang menjaga kawasan mangrove seluas {v} hektare tidak dapat memperoleh bantuan perahu.'] } }
+          klaim: { pasti: ['Kelompok nelayan yang menjaga kawasan mangrove seluas {v} hektare pasti memperoleh bantuan perahu.'], tidak: ['Kelompok nelayan yang menjaga kawasan mangrove seluas {v} hektare tidak dapat memperoleh bantuan perahu.'] } },
+        { id: 'batas', jenis: 'batas', aksi: 'tanamBibit', satuan: 'hari', min: 2, maks: 14, langkah: 1, var: [
+          'Bibit mangrove yang dibagikan harus ditanam paling lambat {t} hari setelah diterima agar akarnya tidak kering.'],
+          klaim: {
+            memenuhi: ['Bibit mangrove yang dibagikan dan ditanam {v} hari setelah diterima masih memenuhi batas waktu.'],
+            melewati: ['Bibit mangrove yang dibagikan dan ditanam {v} hari setelah diterima sudah melewati batas waktu.'] },
+          lain: { aksi: 'sulam', klaim: ['Kelompok penanam harus melakukan penyulaman bibit yang mati paling lambat {t} hari setelah penanaman.'] } },
+        { id: 'penutup', jenis: 'latar', var: [
+          'Karena itu, pelestarian mangrove kini banyak melibatkan warga pesisir sendiri.'] }
       ]
     },
     {
       id: 'literasi', judul: 'Literasi Keuangan',
       istilah: {
+        duaKab: 'dua kabupaten', bandingBunga: 'jumlah warga yang membandingkan bunga sebelum meminjam', pengganti: 'sesi pengganti', kirimSertifikat: 'pengiriman sertifikat',
         program: 'program literasi keuangan', tatap: 'edukasi tatap muka', daring: 'edukasi daring',
         seminar: 'seminar di balai desa', kunjungan: 'kunjungan ke sekolah', pendampingan: 'pendampingan kelompok usaha',
         video: 'kelas video daring', modul: 'modul belajar di aplikasi ponsel',
@@ -656,6 +853,8 @@
         { id: 'def', jenis: 'latar', wajib: true, var: [
           'Literasi keuangan adalah kemampuan memahami dan mengelola uang secara bijak.',
           'Kemampuan mengelola uang secara bijak, atau literasi keuangan, kini menjadi perhatian banyak lembaga.'] },
+        { id: 'konteks', jenis: 'latar', var: [
+          'Programnya biasanya dijalankan bersama lembaga keuangan, sekolah, dan pemerintah daerah.'] },
         { id: 'gol', jenis: 'golongan', induk: 'program', anggota: ['tatap', 'daring'], kata: 'jenis', var: [
           'Program literasi keuangan dibedakan menjadi dua jenis, yaitu edukasi tatap muka dan edukasi daring.',
           'Ada dua jenis program literasi keuangan, yaitu edukasi tatap muka dan edukasi daring.'] },
@@ -673,9 +872,16 @@
           gabung: [{ t: 'Pemahaman tentang bunga pinjaman meningkatkan kehati-hatian warga sebelum berutang, dan kehati-hatian itu pada gilirannya menekan jumlah kredit macet.', p: ['meningkatkan kehati-hatian', 'menekan jumlah kredit macet'] }],
           klaim: {
             m0: { sama: [{ t: 'Kehati-hatian warga sebelum berutang meningkat berkat pemahaman tentang bunga pinjaman.', p: 'kehati-hatian warga sebelum berutang meningkat' }], balik: [{ t: 'Pemahaman tentang bunga pinjaman menurunkan kehati-hatian warga sebelum berutang.', p: 'menurunkan kehati-hatian' }] },
-            m1: { sama: [{ t: 'Kehati-hatian sebelum berutang ikut menekan jumlah kredit macet.', p: 'menekan jumlah kredit macet' }], balik: [{ t: 'Kehati-hatian sebelum berutang justru menambah jumlah kredit macet.', p: 'menambah jumlah kredit macet' }] },
-            rantai: { sama: [{ t: 'Pemahaman tentang bunga pinjaman turut menekan jumlah kredit macet.', p: 'menekan jumlah kredit macet' }], balik: [{ t: 'Pemahaman tentang bunga pinjaman justru menambah jumlah kredit macet.', p: 'menambah jumlah kredit macet' }] },
+            m1: { sama: [{ t: 'Kehati-hatian sebelum berutang ikut menekan jumlah kredit macet.', p: 'menekan jumlah kredit macet' }], balik: [{ t: 'Kehati-hatian sebelum berutang menambah jumlah kredit macet.', p: 'menambah jumlah kredit macet' }] },
+            rantai: { sama: [{ t: 'Pemahaman tentang bunga pinjaman turut menekan jumlah kredit macet.', p: 'menekan jumlah kredit macet' }], balik: [{ t: 'Pemahaman tentang bunga pinjaman menambah jumlah kredit macet.', p: 'menambah jumlah kredit macet' }] },
             terbalik: [{ t: 'Jumlah kredit macet yang tinggi mendorong warga mempelajari bunga pinjaman.', p: 'mendorong warga mempelajari bunga pinjaman', dari: 'macet', ke: 'paham', arah: 'naik', nk: 'bunga pinjaman' }] } },
+        { id: 'temuan', jenis: 'temuan', hal: 'bandingBunga', lingkup: 'duaKab', arah: 'naik',
+          var: [{ t: 'Evaluasi di dua kabupaten menunjukkan bahwa kelas tatap muka menaikkan jumlah warga yang membandingkan bunga sebelum meminjam.', p: 'menaikkan jumlah warga yang membandingkan bunga sebelum meminjam' }],
+          pancing: ['Hasil evaluasi itu mendorong penyelenggara memperbanyak kelas serupa di kabupaten lain.'],
+          klaim: {
+            sama: [{ t: 'Di dua kabupaten tersebut, kelas tatap muka menambah jumlah warga yang membandingkan bunga sebelum meminjam.', p: 'menambah jumlah warga yang membandingkan bunga sebelum meminjam' }],
+            arah: [{ t: 'Di dua kabupaten tersebut, kelas tatap muka mengurangi jumlah warga yang membandingkan bunga sebelum meminjam.', p: 'mengurangi jumlah warga yang membandingkan bunga sebelum meminjam' }],
+            umum: [{ t: 'Kelas tatap muka menaikkan jumlah warga yang membandingkan bunga sebelum meminjam di semua kabupaten.', p: 'menaikkan jumlah warga yang membandingkan bunga sebelum meminjam' }] } },
         { id: 'status', jenis: 'status', hal: 'resmi', var: {
           teori: ['Secara teori, peningkatan literasi keuangan dapat memperluas penggunaan layanan keuangan resmi di pedesaan.'],
           belum: ['Secara teori, peningkatan literasi keuangan dapat memperluas penggunaan layanan keuangan resmi di pedesaan, tetapi hubungan itu belum terbukti dalam penelitian.'],
@@ -697,12 +903,21 @@
         { id: 'syarat', jenis: 'syarat', aksi: 'sertifikat', min: 2, maks: 12, langkah: 1, var: {
           perlu: ['Sertifikat pelatihan hanya diberikan kepada peserta yang menghadiri sekurang-kurangnya {t} sesi.'],
           cukup: ['Setiap peserta yang menghadiri {t} sesi atau lebih otomatis memperoleh sertifikat pelatihan.'] },
-          klaim: { pasti: ['Peserta yang menghadiri {v} sesi pasti memperoleh sertifikat pelatihan.'], tidak: ['Peserta yang menghadiri {v} sesi tidak dapat memperoleh sertifikat pelatihan.'] } }
+          klaim: { pasti: ['Peserta yang menghadiri {v} sesi pasti memperoleh sertifikat pelatihan.'], tidak: ['Peserta yang menghadiri {v} sesi tidak dapat memperoleh sertifikat pelatihan.'] } },
+        { id: 'batas', jenis: 'batas', aksi: 'pengganti', satuan: 'hari', min: 2, maks: 14, langkah: 1, var: [
+          'Peserta yang berhalangan hadir dapat mengikuti sesi pengganti paling lambat {t} hari setelah sesi yang terlewat.'],
+          klaim: {
+            memenuhi: ['Peserta yang mengikuti sesi pengganti {v} hari setelah sesi yang terlewat masih memenuhi batas waktu.'],
+            melewati: ['Peserta yang mengikuti sesi pengganti {v} hari setelah sesi yang terlewat sudah melewati batas waktu.'] },
+          lain: { aksi: 'kirimSertifikat', klaim: ['Penyelenggara harus menyelesaikan pengiriman sertifikat paling lambat {t} hari setelah pelatihan berakhir.'] } },
+        { id: 'penutup', jenis: 'latar', var: [
+          'Karena itu, banyak lembaga terus mencari cara agar materi keuangan mudah dipahami berbagai kalangan.'] }
       ]
     },
     {
       id: 'asuransimikro', judul: 'Asuransi Mikro',
       istilah: {
+        tigaPasar: 'tiga pasar tradisional', pedagang: 'jumlah pedagang yang ikut asuransi', ajukanKlaim: 'pengajuan klaim', bayarKlaim: 'pembayaran klaim',
         produk: 'produk asuransi mikro', jiwa: 'asuransi jiwa mikro', umum: 'asuransi umum mikro',
         rumah: 'perlindungan rumah dari kebakaran', ternak: 'perlindungan ternak', panen: 'perlindungan gagal panen',
         santunan: 'santunan meninggal dunia', pemakaman: 'bantuan biaya pemakaman',
@@ -717,6 +932,8 @@
         { id: 'def', jenis: 'latar', wajib: true, var: [
           'Asuransi mikro adalah asuransi berpremi rendah yang dirancang bagi masyarakat berpenghasilan kecil.',
           'Asuransi mikro dirancang sebagai perlindungan berpremi rendah bagi masyarakat berpenghasilan kecil.'] },
+        { id: 'konteks', jenis: 'latar', var: [
+          'Produk ini umumnya dijual dengan proses pendaftaran yang sederhana dan tanpa pemeriksaan kesehatan.'] },
         { id: 'gol', jenis: 'golongan', induk: 'produk', anggota: ['jiwa', 'umum'], kata: 'jenis', var: [
           'Produk asuransi mikro terbagi menjadi dua jenis, yaitu asuransi jiwa mikro dan asuransi umum mikro.'] },
         { id: 'cakupan', jenis: 'cakupan', ikut: 'gol', x: 'umum', masuk: ['rumah', 'ternak', 'panen'], nMasuk: [2, 3], keluar: ['santunan', 'pemakaman'], var: [
@@ -734,9 +951,16 @@
           gabung: [{ t: 'Premi yang rendah memperluas jangkauan asuransi ke keluarga berpenghasilan kecil, dan jangkauan yang lebih luas pada gilirannya mengurangi risiko keluarga jatuh miskin akibat musibah.', p: ['memperluas jangkauan', 'mengurangi risiko keluarga jatuh miskin'] }],
           klaim: {
             m0: { sama: [{ t: 'Premi yang rendah membuat jangkauan asuransi menjadi lebih luas.', p: 'jangkauan asuransi menjadi lebih luas' }], balik: [{ t: 'Premi yang rendah mempersempit jangkauan asuransi.', p: 'mempersempit jangkauan' }] },
-            m1: { sama: [{ t: 'Jangkauan asuransi yang lebih luas ikut mengurangi risiko keluarga jatuh miskin akibat musibah.', p: 'mengurangi risiko keluarga jatuh miskin' }], balik: [{ t: 'Jangkauan asuransi yang lebih luas justru menambah risiko keluarga jatuh miskin akibat musibah.', p: 'menambah risiko keluarga jatuh miskin' }] },
-            rantai: { sama: [{ t: 'Premi yang rendah turut mengurangi risiko keluarga jatuh miskin akibat musibah.', p: 'mengurangi risiko keluarga jatuh miskin' }], balik: [{ t: 'Premi yang rendah justru menambah risiko keluarga jatuh miskin akibat musibah.', p: 'menambah risiko keluarga jatuh miskin' }] },
+            m1: { sama: [{ t: 'Jangkauan asuransi yang lebih luas ikut mengurangi risiko keluarga jatuh miskin akibat musibah.', p: 'mengurangi risiko keluarga jatuh miskin' }], balik: [{ t: 'Jangkauan asuransi yang lebih luas menambah risiko keluarga jatuh miskin akibat musibah.', p: 'menambah risiko keluarga jatuh miskin' }] },
+            rantai: { sama: [{ t: 'Premi yang rendah turut mengurangi risiko keluarga jatuh miskin akibat musibah.', p: 'mengurangi risiko keluarga jatuh miskin' }], balik: [{ t: 'Premi yang rendah menambah risiko keluarga jatuh miskin akibat musibah.', p: 'menambah risiko keluarga jatuh miskin' }] },
             terbalik: [{ t: 'Risiko keluarga jatuh miskin yang tinggi mendorong perusahaan asuransi menurunkan premi.', p: 'menurunkan premi', dari: 'risiko', ke: 'premi', arah: 'turun', nk: 'premi' }] } },
+        { id: 'temuan', jenis: 'temuan', hal: 'pedagang', lingkup: 'tigaPasar', arah: 'naik',
+          var: [{ t: 'Pendataan di tiga pasar tradisional menunjukkan bahwa pembayaran premi secara mingguan menaikkan jumlah pedagang yang ikut asuransi.', p: 'menaikkan jumlah pedagang yang ikut asuransi' }],
+          pancing: ['Perusahaan asuransi kemudian menawarkan skema serupa di pasar-pasar lain.'],
+          klaim: {
+            sama: [{ t: 'Di tiga pasar tradisional tersebut, pembayaran premi secara mingguan menambah jumlah pedagang yang ikut asuransi.', p: 'menambah jumlah pedagang yang ikut asuransi' }],
+            arah: [{ t: 'Di tiga pasar tradisional tersebut, pembayaran premi secara mingguan mengurangi jumlah pedagang yang ikut asuransi.', p: 'mengurangi jumlah pedagang yang ikut asuransi' }],
+            umum: [{ t: 'Pembayaran premi secara mingguan menaikkan jumlah pedagang yang ikut asuransi di semua pasar.', p: 'menaikkan jumlah pedagang yang ikut asuransi' }] } },
         { id: 'status', jenis: 'status', hal: 'lindungi', var: {
           teori: ['Secara teori, asuransi mikro dapat melindungi pekerja informal dari kerugian akibat bencana.'],
           belum: ['Secara teori, asuransi mikro dapat melindungi pekerja informal dari kerugian akibat bencana, tetapi manfaat itu belum terbukti dalam praktik.'],
@@ -757,12 +981,21 @@
           klaim: { pasti: ['Bila kerusakan tanaman mencapai {v} persen dari luas lahan, klaim gagal panen pasti dibayarkan.'], tidak: ['Bila kerusakan tanaman {v} persen dari luas lahan, klaim gagal panen tidak dapat dibayarkan.'] } },
         { id: 'hambatan', jenis: 'daftar', subjek: 'produk', himp: 'hambatan', pool: ['paham', 'rumit', 'hasil', 'percaya'], tdBoleh: ['paham', 'rumit', 'percaya'], n: [2, 3],
           var: { terbuka: ['Perluasannya masih menghadapi kendala, seperti {daftar}.', 'Meski demikian, ada sejumlah kendala yang menghambat, antara lain {daftar}.'] },
-          klaim: { terbuka: { ya: ['{x} merupakan salah satu kendala perluasan asuransi mikro.'], tunggal: ['Satu-satunya kendala perluasan asuransi mikro adalah {x}.'] } } }
+          klaim: { terbuka: { ya: ['{x} merupakan salah satu kendala perluasan asuransi mikro.'], tunggal: ['Satu-satunya kendala perluasan asuransi mikro adalah {x}.'] } } },
+        { id: 'batas', jenis: 'batas', aksi: 'ajukanKlaim', satuan: 'hari', min: 10, maks: 60, langkah: 5, var: [
+          'Pengajuan klaim harus dilakukan paling lambat {t} hari setelah musibah terjadi.'],
+          klaim: {
+            memenuhi: ['Pengajuan klaim yang dilakukan {v} hari setelah musibah terjadi masih memenuhi batas waktu.'],
+            melewati: ['Pengajuan klaim yang dilakukan {v} hari setelah musibah terjadi sudah melewati batas waktu.'] },
+          lain: { aksi: 'bayarKlaim', klaim: ['Perusahaan asuransi wajib menyelesaikan pembayaran klaim paling lambat {t} hari setelah klaim diajukan.'] } },
+        { id: 'penutup', jenis: 'latar', var: [
+          'Ke depan, asuransi mikro diharapkan menjangkau lebih banyak keluarga berpenghasilan kecil.'] }
       ]
     },
     {
       id: 'pinjol', judul: 'Pinjaman Daring',
       istilah: {
+        duaKota: 'dua kota', omzet: 'omzet warung', batalPinjam: 'pembatalan pinjaman', aduan: 'penanganan aduan',
         pinjol: 'pinjaman daring', produktif: 'pinjaman produktif', konsumtif: 'pinjaman konsumtif',
         modal: 'modal kerja warung', alat: 'pembelian alat usaha', stok: 'pembiayaan stok barang dagangan',
         ponsel: 'pembelian telepon genggam untuk pribadi', liburan: 'biaya liburan keluarga',
@@ -777,6 +1010,8 @@
         { id: 'def', jenis: 'latar', wajib: true, var: [
           'Pinjaman daring menawarkan proses pengajuan yang cepat melalui aplikasi di ponsel.',
           'Pinjaman daring kian diminati karena pengajuannya cukup dilakukan melalui aplikasi di ponsel.'] },
+        { id: 'konteks', jenis: 'latar', var: [
+          'Dana dapat cair dalam hitungan jam setelah pengajuan disetujui.'] },
         { id: 'tesis', jenis: 'latar', var: ['Kemudahan itu ibarat pisau bermata dua bagi masyarakat.'] },
         { id: 'gol', jenis: 'golongan', induk: 'pinjol', anggota: ['produktif', 'konsumtif'], kata: 'jenis', var: [
           'Pinjaman daring terbagi menjadi dua jenis, yaitu pinjaman produktif dan pinjaman konsumtif.'] },
@@ -795,9 +1030,16 @@
           gabung: [{ t: 'Bunga harian yang tinggi mempercepat pembengkakan utang, dan pembengkakan utang pada gilirannya menambah tekanan keuangan rumah tangga.', p: ['mempercepat pembengkakan utang', 'menambah tekanan keuangan'] }],
           klaim: {
             m0: { sama: [{ t: 'Bunga harian yang tinggi membuat pembengkakan utang terjadi lebih cepat.', p: 'pembengkakan utang terjadi lebih cepat' }], balik: [{ t: 'Bunga harian yang tinggi memperlambat pembengkakan utang.', p: 'memperlambat pembengkakan utang' }] },
-            m1: { sama: [{ t: 'Pembengkakan utang ikut menambah tekanan keuangan rumah tangga.', p: 'menambah tekanan keuangan' }], balik: [{ t: 'Pembengkakan utang justru mengurangi tekanan keuangan rumah tangga.', p: 'mengurangi tekanan keuangan' }] },
-            rantai: { sama: [{ t: 'Bunga harian yang tinggi turut menambah tekanan keuangan rumah tangga.', p: 'menambah tekanan keuangan' }], balik: [{ t: 'Bunga harian yang tinggi justru mengurangi tekanan keuangan rumah tangga.', p: 'mengurangi tekanan keuangan' }] },
+            m1: { sama: [{ t: 'Pembengkakan utang ikut menambah tekanan keuangan rumah tangga.', p: 'menambah tekanan keuangan' }], balik: [{ t: 'Pembengkakan utang mengurangi tekanan keuangan rumah tangga.', p: 'mengurangi tekanan keuangan' }] },
+            rantai: { sama: [{ t: 'Bunga harian yang tinggi turut menambah tekanan keuangan rumah tangga.', p: 'menambah tekanan keuangan' }], balik: [{ t: 'Bunga harian yang tinggi mengurangi tekanan keuangan rumah tangga.', p: 'mengurangi tekanan keuangan' }] },
             terbalik: [{ t: 'Tekanan keuangan rumah tangga yang berat mendorong penyelenggara menaikkan bunga harian.', p: 'menaikkan bunga harian', dari: 'tekanan', ke: 'bunga', arah: 'naik', nk: 'bunga harian' }] } },
+        { id: 'temuan', jenis: 'temuan', hal: 'omzet', lingkup: 'duaKota', arah: 'naik',
+          var: [{ t: 'Survei terhadap pedagang di dua kota menunjukkan bahwa pinjaman produktif menaikkan omzet warung.', p: 'menaikkan omzet warung' }],
+          pancing: ['Penyelenggara pun mulai menawarkan pinjaman serupa kepada pedagang di kota lain.'],
+          klaim: {
+            sama: [{ t: 'Di dua kota yang disurvei, pinjaman produktif menambah omzet warung.', p: 'menambah omzet warung' }],
+            arah: [{ t: 'Di dua kota yang disurvei, pinjaman produktif menurunkan omzet warung.', p: 'menurunkan omzet warung' }],
+            umum: [{ t: 'Pinjaman produktif menaikkan omzet warung di semua kota.', p: 'menaikkan omzet warung' }] } },
         { id: 'status', jenis: 'status', hal: 'jangkau', var: {
           teori: ['Secara teori, pinjaman daring dapat menjangkau pelaku usaha kecil yang tidak memiliki agunan.'],
           terbukti: ['Data penyaluran membuktikan bahwa pinjaman daring telah menjangkau banyak pelaku usaha kecil yang tidak memiliki agunan.'] },
@@ -817,12 +1059,21 @@
           klaim: { pasti: ['Peminjam yang telah melunasi {v} pinjaman tepat waktu pasti memperoleh kenaikan limit.'], tidak: ['Peminjam yang telah melunasi {v} pinjaman tepat waktu tidak dapat memperoleh kenaikan limit.'] } },
         { id: 'hambatan', jenis: 'daftar', subjek: 'pinjol', himp: 'hambatan', pool: ['tagih', 'bocor', 'iklan', 'sembunyi'], tdBoleh: ['tagih', 'iklan', 'sembunyi'], n: [2, 3],
           var: { terbuka: ['Di sisi lain, masih banyak keluhan, seperti {daftar}.', 'Masyarakat juga masih menghadapi sejumlah masalah, antara lain {daftar}.'] },
-          klaim: { terbuka: { ya: ['{x} merupakan salah satu masalah yang dikeluhkan dalam pinjaman daring.'], tunggal: ['Satu-satunya masalah yang dikeluhkan dalam pinjaman daring adalah {x}.'] } } }
+          klaim: { terbuka: { ya: ['{x} merupakan salah satu masalah yang dikeluhkan dalam pinjaman daring.'], tunggal: ['Satu-satunya masalah yang dikeluhkan dalam pinjaman daring adalah {x}.'] } } },
+        { id: 'batas', jenis: 'batas', aksi: 'batalPinjam', satuan: 'hari', min: 2, maks: 14, langkah: 1, var: [
+          'Pembatalan pinjaman tanpa biaya dapat dilakukan paling lambat {t} hari setelah dana cair.'],
+          klaim: {
+            memenuhi: ['Pembatalan pinjaman yang dilakukan {v} hari setelah dana cair masih memenuhi batas waktu.'],
+            melewati: ['Pembatalan pinjaman yang dilakukan {v} hari setelah dana cair sudah melewati batas waktu.'] },
+          lain: { aksi: 'aduan', klaim: ['Penyelenggara harus menyelesaikan penanganan aduan paling lambat {t} hari setelah aduan diterima.'] } },
+        { id: 'penutup', jenis: 'latar', var: [
+          'Karena itu, kemudahan pinjaman daring perlu diimbangi dengan kehati-hatian peminjam.'] }
       ]
     },
     {
       id: 'bankdigital', judul: 'Perbankan Digital',
       istilah: {
+        duaBank: 'dua bank daerah', panggilan: 'jumlah panggilan ke layanan pelanggan', aktifKartu: 'kartu debit yang dipesan lewat aplikasi', kirimKartu: 'pengiriman kartu',
         layanan: 'layanan perbankan digital', sms: 'layanan pesan singkat', internet: 'perbankan internet', aplikasi: 'aplikasi seluler',
         qr: 'pembayaran dengan kode QR', jam: 'jam tangan pintar',
         transfer: { n: 'transfer antarbank', p: 'pengiriman uang ke bank lain' }, tagihan: { n: 'pembayaran tagihan listrik', p: 'membayar tagihan listrik' },
@@ -836,6 +1087,8 @@
         { id: 'def', jenis: 'latar', wajib: true, var: [
           'Perbankan digital memungkinkan nasabah membuka rekening dan bertransaksi tanpa datang ke kantor bank.',
           'Berkat perbankan digital, nasabah dapat membuka rekening dan bertransaksi tanpa datang ke kantor bank.'] },
+        { id: 'konteks', jenis: 'latar', var: [
+          'Pembukaan rekening cukup dilakukan dengan memotret kartu identitas dan wajah calon nasabah.'] },
         { id: 'urutan', jenis: 'urutan', subjek: 'layanan', tetap: ['sms', 'internet', 'aplikasi'], luar: ['qr', 'jam'], var: [
           'Layanan perbankan digital pertama kali hadir dalam bentuk {a}, kemudian berkembang menjadi {b} dan {c}.',
           'Mula-mula layanan ini hadir dalam bentuk {a}, lalu berkembang menjadi {b} dan {c}.'],
@@ -843,6 +1096,8 @@
             pertama: ['{X} adalah bentuk layanan perbankan digital yang pertama kali hadir.'],
             sebelum: ['{X} hadir lebih dahulu daripada {Y}.'],
             diterapkan: ['Layanan perbankan digital telah berkembang menjadi {X}.'] } },
+        { id: 'tesis', jenis: 'latar', var: [
+          'Banyak pengamat menyebut perubahan ini sebagai pergeseran besar dalam cara orang mengelola uangnya.'] },
         { id: 'fitur', jenis: 'daftar', subjek: 'apl', himp: 'fitur', pool: ['transfer', 'tagihan', 'deposito', 'kredit', 'reksa', 'tarik'], tdBoleh: ['deposito', 'kredit', 'reksa', 'tarik'], n: [3, 4],
           var: { terbuka: ['Aplikasi bank digital kini menyediakan berbagai fitur, seperti {daftar}.'], tertutup: ['Pada versi awalnya, aplikasi bank digital hanya menyediakan {daftar}.'] },
           klaim: {
@@ -854,9 +1109,16 @@
           gabung: [{ t: 'Pembukaan rekening secara daring mempercepat pertumbuhan jumlah nasabah, dan jumlah nasabah yang bertambah pada gilirannya meningkatkan dana yang dihimpun bank.', p: ['mempercepat pertumbuhan jumlah nasabah', 'meningkatkan dana yang dihimpun'] }],
           klaim: {
             m0: { sama: [{ t: 'Pembukaan rekening secara daring membuat jumlah nasabah bertambah lebih cepat.', p: 'jumlah nasabah bertambah lebih cepat' }], balik: [{ t: 'Pembukaan rekening secara daring memperlambat pertumbuhan jumlah nasabah.', p: 'memperlambat pertumbuhan jumlah nasabah' }] },
-            m1: { sama: [{ t: 'Jumlah nasabah yang bertambah ikut meningkatkan dana yang dihimpun bank.', p: 'meningkatkan dana yang dihimpun' }], balik: [{ t: 'Jumlah nasabah yang bertambah justru menurunkan dana yang dihimpun bank.', p: 'menurunkan dana yang dihimpun' }] },
-            rantai: { sama: [{ t: 'Pembukaan rekening secara daring turut meningkatkan dana yang dihimpun bank.', p: 'meningkatkan dana yang dihimpun' }], balik: [{ t: 'Pembukaan rekening secara daring justru menurunkan dana yang dihimpun bank.', p: 'menurunkan dana yang dihimpun' }] },
+            m1: { sama: [{ t: 'Jumlah nasabah yang bertambah ikut meningkatkan dana yang dihimpun bank.', p: 'meningkatkan dana yang dihimpun' }], balik: [{ t: 'Jumlah nasabah yang bertambah menurunkan dana yang dihimpun bank.', p: 'menurunkan dana yang dihimpun' }] },
+            rantai: { sama: [{ t: 'Pembukaan rekening secara daring turut meningkatkan dana yang dihimpun bank.', p: 'meningkatkan dana yang dihimpun' }], balik: [{ t: 'Pembukaan rekening secara daring menurunkan dana yang dihimpun bank.', p: 'menurunkan dana yang dihimpun' }] },
             terbalik: [{ t: 'Dana yang dihimpun bank dalam jumlah besar mendorong bank mempermudah pembukaan rekening secara daring.', p: 'mendorong bank mempermudah pembukaan rekening secara daring', dari: 'dana', ke: 'buka', arah: 'naik' }] } },
+        { id: 'temuan', jenis: 'temuan', hal: 'panggilan', lingkup: 'duaBank', arah: 'turun',
+          var: [{ t: 'Data dari dua bank daerah menunjukkan bahwa video panduan di dalam aplikasi menurunkan jumlah panggilan ke layanan pelanggan.', p: 'menurunkan jumlah panggilan ke layanan pelanggan' }],
+          pancing: ['Sejumlah bank lain kemudian ikut menyiapkan video panduan serupa.'],
+          klaim: {
+            sama: [{ t: 'Di dua bank daerah tersebut, video panduan di dalam aplikasi mengurangi jumlah panggilan ke layanan pelanggan.', p: 'mengurangi jumlah panggilan ke layanan pelanggan' }],
+            arah: [{ t: 'Di dua bank daerah tersebut, video panduan di dalam aplikasi menambah jumlah panggilan ke layanan pelanggan.', p: 'menambah jumlah panggilan ke layanan pelanggan' }],
+            umum: [{ t: 'Video panduan di dalam aplikasi menurunkan jumlah panggilan ke layanan pelanggan di semua bank.', p: 'menurunkan jumlah panggilan ke layanan pelanggan' }] } },
         { id: 'status', jenis: 'status', hal: 'biaya', var: {
           teori: ['Secara teori, bank digital dapat beroperasi dengan biaya jauh lebih rendah karena tidak memerlukan kantor cabang.'],
           belum: ['Secara teori, bank digital dapat beroperasi dengan biaya jauh lebih rendah karena tidak memerlukan kantor cabang, tetapi penghematan itu belum terbukti dalam laporan keuangan.'] },
@@ -876,10 +1138,20 @@
           klaim: { pasti: ['Nasabah yang rekeningnya telah berumur {v} bulan pasti dapat mengaktifkan fitur transfer dengan batas besar.'], tidak: ['Nasabah yang rekeningnya telah berumur {v} bulan tidak dapat mengaktifkan fitur transfer dengan batas besar.'] } },
         { id: 'hambatan', jenis: 'daftar', subjek: 'layanan', himp: 'hambatan', pool: ['tipu', 'gangguan', 'percaya', 'sinyal'], n: [2, 3],
           var: { terbuka: ['Meski demikian, layanan ini masih menghadapi tantangan, seperti {daftar}.', 'Tantangan yang masih harus diatasi antara lain {daftar}.'] },
-          klaim: { terbuka: { ya: ['{x} merupakan salah satu tantangan perbankan digital.'], tunggal: ['Satu-satunya tantangan perbankan digital adalah {x}.'] } } }
+          klaim: { terbuka: { ya: ['{x} merupakan salah satu tantangan perbankan digital.'], tunggal: ['Satu-satunya tantangan perbankan digital adalah {x}.'] } } },
+        { id: 'batas', jenis: 'batas', aksi: 'aktifKartu', satuan: 'hari', min: 5, maks: 45, langkah: 5, var: [
+          'Kartu debit yang dipesan lewat aplikasi harus diaktifkan paling lambat {t} hari setelah kartu diterima.'],
+          klaim: {
+            memenuhi: ['Kartu debit yang dipesan lewat aplikasi dan diaktifkan {v} hari setelah diterima masih memenuhi batas waktu.'],
+            melewati: ['Kartu debit yang dipesan lewat aplikasi dan diaktifkan {v} hari setelah diterima sudah melewati batas waktu.'] },
+          lain: { aksi: 'kirimKartu', klaim: ['Bank harus menyelesaikan pengiriman kartu paling lambat {t} hari setelah pemesanan.'] } },
+        { id: 'penutup', jenis: 'latar', var: [
+          'Persaingan di antara bank digital pun diperkirakan akan makin ketat.'] }
       ]
     }
   ];
+
+  TOPIK = TOPIK.concat(TopikTambahan);
 
   // ------------------------------------------------------------- pembantu
 
@@ -930,7 +1202,10 @@
   };
 
   RAKIT.cakupan = function (a, tp, sl, mode) {
-    var pilihan = sl.var.filter(function (v) { return !mode.terbuka || /antara lain/.test(v.t); });
+    // terbuka: kalimat "antara lain"; langsung: anggota luar disangkal di kalimat itu; keluarKe: anggota luar masuk golongan lain
+    var pilihan = sl.var.filter(function (v) {
+      return (!mode.terbuka || /antara lain/.test(v.t)) && (!mode.langsung || !v.keluarKe) && (!mode.keluarKe || !!v.keluarKe);
+    });
     var v = a.pilih(pilihan);
     var masuk = a.ambil(sl.masuk, Math.min(sl.masuk.length, bilangan(a, sl.nMasuk, 2)));
     var keluar = a.ambil(sl.keluar, Math.min(sl.keluar.length, bilangan(a, sl.nKeluar, 1)));
@@ -983,14 +1258,12 @@
   RAKIT.kuantor = function (a, tp, sl, mode) {
     var q = mode.q || a.pilih(Object.keys(sl.var));
     var kel = typeof sl.kelompok === 'string' ? sl.kelompok : sl.kelompok[q];
-    var kal = [];
-    if (sl.pra) kal.push({ teks: a.pilih(sl.pra), fakta: [{ tipe: 'latar' }] });
-    kal.push({ teks: a.pilih(sl.var[q]), fakta: [{ tipe: 'kuantor', kelompok: kel, sifat: sl.id + ':' + q, q: q, nama: { kelompok: nama(tp, kel) } }] });
-    return { kal: kal, info: { q: q, kelompok: kel } };
+    return { kal: [{ teks: a.pilih(sl.var[q]), fakta: [{ tipe: 'kuantor', kelompok: kel, sifat: sl.id + ':' + q, q: q, nama: { kelompok: nama(tp, kel) } }] }], info: { q: q, kelompok: kel } };
   };
 
   RAKIT.status = function (a, tp, sl, mode) {
-    var st = mode.status || a.pilih(Object.keys(sl.var));
+    var boleh = mode.status ? [].concat(mode.status).filter(function (s) { return !!sl.var[s]; }) : Object.keys(sl.var);
+    var st = a.pilih(boleh);
     return { kal: [{ teks: a.pilih(sl.var[st]), fakta: [{ tipe: 'status', hal: sl.hal, status: st }] }], info: { status: st } };
   };
 
@@ -1001,6 +1274,22 @@
     return { kal: [{ teks: teks, fakta: [{ tipe: 'syarat', aksi: sl.aksi, jenis: jenis, ambang: t }] }], info: { jenis: jenis, t: t } };
   };
 
+  /** Batas waktu "paling lambat t <satuan> setelah ...": yang melewati t melanggar batas itu. */
+  RAKIT.batas = function (a, tp, sl) {
+    var t = a.kelipatan(sl.min + sl.langkah, sl.maks - sl.langkah, sl.langkah);
+    var teks = isi(a.pilih(sl.var), { t: Fmt.angka(t) });
+    return { kal: [{ teks: teks, fakta: [{ tipe: 'batas', aksi: sl.aksi, jenis: 'lambat', batas: t, satuan: sl.satuan, nama: { aksi: nama(tp, sl.aksi) } }] }], info: { t: t } };
+  };
+
+  /** Temuan yang hanya diamati di lingkup tertentu ("pemantauan di dua kota menunjukkan ..."). */
+  RAKIT.temuan = function (a, tp, sl, mode) {
+    var v = a.pilih(sl.var);
+    var kal = [{ teks: v.t, fakta: [{ tipe: 'temuan', hal: sl.hal, lingkup: sl.lingkup, arah: sl.arah, penanda: v.p, nama: { lingkup: nama(tp, sl.lingkup), hal: nama(tp, sl.hal) } }] }];
+    // pancingan: rencana memperluas program, bukan hasil di tempat lain (dipakai pernyataan generalisasi)
+    if (mode.pancing && sl.pancing) kal.push({ teks: a.pilih(sl.pancing), fakta: [{ tipe: 'latar' }] });
+    return { kal: kal, info: {} };
+  };
+
   RAKIT.urutan = function (a, tp, sl) {
     var urut = sl.tetap ? [sl.tetap[0]].concat(a.kocok(sl.tetap.slice(1))) : a.kocok(sl.pool).slice(0, 3);
     var teks = isi(a.pilih(sl.var), { a: nama(tp, urut[0]), b: nama(tp, urut[1]), c: nama(tp, urut[2]) });
@@ -1009,61 +1298,104 @@
     return { kal: [{ teks: teks, fakta: [{ tipe: 'urutan', subjek: sl.subjek, pertama: urut[0], lanjut: urut.slice(1), nama: nm }] }], info: { pertama: urut[0], lanjut: urut.slice(1), luar: sl.luar || [] } };
   };
 
-  RAKIT.banding = function (a, tp, sl) {
+  /** rantai: u0 > u1 > u2; cabang: u0 > u1 dan u0 > u2 (u1 dan u2 tidak pernah dibandingkan). */
+  RAKIT.banding = function (a, tp, sl, mode) {
     var u = sl.urut, kal = [];
-    function fk(x, y) { return { tipe: 'banding', a: x, b: y, sifat: sl.adj, nama: { a: nama(tp, x), b: nama(tp, y) } }; }
-    var v = a.pilih(sl.var.rantai);
-    if (Array.isArray(v)) { kal.push({ teks: v[0], fakta: [fk(u[0], u[1])] }); kal.push({ teks: v[1], fakta: [fk(u[1], u[2])] }); }
-    else kal.push({ teks: v, fakta: [fk(u[0], u[1]), fk(u[1], u[2])] });
-    return { kal: kal, info: { urut: u } };
+    var bentuk = mode.bentuk || (sl.var.cabang && sl.var.cabang.length && a.untung(0.4) ? 'cabang' : 'rantai');
+    var pasang = bentuk === 'cabang' ? [[u[0], u[1]], [u[0], u[2]]] : [[u[0], u[1]], [u[1], u[2]]];
+    function fk(p) { return { tipe: 'banding', a: p[0], b: p[1], sifat: sl.adj, nama: { a: nama(tp, p[0]), b: nama(tp, p[1]) } }; }
+    var v = a.pilih(sl.var[bentuk]);
+    if (Array.isArray(v)) { kal.push({ teks: v[0], fakta: [fk(pasang[0])] }); kal.push({ teks: v[1], fakta: [fk(pasang[1])] }); }
+    else kal.push({ teks: v, fakta: [fk(pasang[0]), fk(pasang[1])] });
+    return { kal: kal, info: { urut: u, bentuk: bentuk } };
   };
 
+  // Ketentuan (syarat, batas waktu) hanya masuk bacaan bila pernyataan bergantung padanya,
+  // supaya bacaan tetap berupa teks informatif, bukan kumpulan aturan.
+  var KETENTUAN = { syarat: true, batas: true };
+  var PENGECOH = [2, 3];
+  var SAMBUNG_KONTRAS = /^(Namun demikian|Namun|Meski demikian|Meski begitu|Akan tetapi|Sayangnya|Masalahnya|Kenyataannya|Di sisi lain), /;
+  var SAMBUNG_AKIBAT = /^(Karena itu|Oleh karena itu), /;
+
   /**
-   * Susun bacaan: semua slot dirakit, lalu dipilih yang wajib, yang dibutuhkan pernyataan,
-   * dan slot lain secara acak sampai panjangnya masuk rentang KATA_MIN-KATA_MAKS.
+   * Susun bacaan: slot wajib dan slot yang dibutuhkan pernyataan, lalu 2-3 fakta setema
+   * sebagai pengecoh (diutamakan yang letaknya dekat dengan slot pernyataan di alur topik),
+   * lalu kalimat latar sampai panjangnya masuk rentang KATA_MIN-KATA_MAKS. Urutan kalimat
+   * mengikuti alur topik sehingga bacaan tetap mengalir.
    * @returns {{kalimat, fakta, paragraf, info, masuk}|null}
    */
-  function susunBacaan(a, tp, wajib, modes) {
+  function susunBacaan(a, tp, wajib, modes, tanpa) {
     var hasil = {};
     tp.alur.forEach(function (sl) {
       var r = RAKIT[sl.jenis](a, tp, sl, modes[sl.id] || {});
+      if (sl.pra) r.kal.unshift({ teks: a.pilih(sl.pra), fakta: [{ tipe: 'latar' }] });
       r.kata = r.kal.reduce(function (s, k) { return s + jumlahKata(k.teks); }, 0);
       hasil[sl.id] = r;
     });
-    var masuk = {}, total = 0;
+    var masuk = {}, total = 0, nFakta = 0;
     function pakai(id) {
       if (masuk[id]) return;
-      masuk[id] = true; total += hasil[id].kata;
       var sl = slotDi(tp, id);
+      masuk[id] = true; total += hasil[id].kata;
+      if (sl.jenis !== 'latar') nFakta++;
       if (sl.ikut) pakai(sl.ikut);
     }
+    function kataSlot(sl) { return hasil[sl.id].kata + (sl.ikut && !masuk[sl.ikut] ? hasil[sl.ikut].kata : 0); }
     tp.alur.forEach(function (sl) { if (sl.wajib || wajib.indexOf(sl.id) >= 0) pakai(sl.id); });
-    var target = a.bulat(KATA_MIN + 8, KATA_MAKS - 6);
-    a.kocok(tp.alur).forEach(function (sl) {
-      if (masuk[sl.id] || total >= target) return;
-      var tambah = hasil[sl.id].kata + (sl.ikut && !masuk[sl.ikut] ? hasil[sl.ikut].kata : 0);
-      if (total + tambah <= KATA_MAKS) pakai(sl.id);
+    var target = a.bulat(KATA_MIN + 6, KATA_MAKS - 25);   // sepanjang contoh riset (sekitar 130-150 kata)
+    var pusat = tp.alur.indexOf(slotDi(tp, wajib[0]));
+    // tanpa: jenis slot yang tidak boleh menjadi pengecoh karena ikut menentukan jawaban pernyataan
+    var calon = tp.alur.filter(function (sl) { return sl.jenis !== 'latar' && !KETENTUAN[sl.jenis] && !masuk[sl.id] && (tanpa || []).indexOf(sl.jenis) < 0; });
+    function tambahPengecoh(batas, sampai) {
+      while (calon.length && nFakta < batas && total < sampai) {
+        var sl = a.bobot(calon, calon.map(function (s) { return 1 / (1 + Math.abs(tp.alur.indexOf(s) - pusat)); }));
+        calon.splice(calon.indexOf(sl), 1);
+        if (!masuk[sl.id] && total + kataSlot(sl) <= KATA_MAKS) pakai(sl.id);
+      }
+    }
+    tambahPengecoh(nFakta + a.bulat(PENGECOH[0], PENGECOH[1]), target);
+    a.kocok(tp.alur.filter(function (sl) { return sl.jenis === 'latar' && !masuk[sl.id]; })).forEach(function (sl) {
+      if (total < target && total + hasil[sl.id].kata <= KATA_MAKS) pakai(sl.id);
     });
+    tambahPengecoh(Infinity, KATA_MIN + 4);   // masih terlalu pendek: tambah fakta setema lain secukupnya
     if (total < KATA_MIN || total > KATA_MAKS) return null;
-    var kalimat = [], fakta = [];
+    var kalimat = [], fakta = [], akibat = false;
     tp.alur.forEach(function (sl) {
       if (!masuk[sl.id]) return;
       hasil[sl.id].kal.forEach(function (k) {
+        // kata sambung yang janggal karena slot di antaranya tidak terpakai: dua kalimat berturut-turut
+        // yang sama-sama dibuka kata pertentangan, atau "Karena itu" yang berulang
+        var m = SAMBUNG_KONTRAS.exec(k.teks);
+        if (m && kalimat.length && SAMBUNG_KONTRAS.test(kalimat[kalimat.length - 1])) k.teks = kap(k.teks.slice(m[0].length));
+        m = SAMBUNG_AKIBAT.exec(k.teks);
+        if (m && akibat) k.teks = kap(k.teks.slice(m[0].length));
+        else if (m) akibat = true;
         kalimat.push(k.teks);
         k.fakta.forEach(function (fk) { var o = salin(fk); o.teks = k.teks; fakta.push(o); });
       });
     });
-    return { kalimat: kalimat, fakta: fakta, paragraf: kalimat.join(' '), info: hasil, masuk: masuk };
+    var paragraf = kalimat.join(' ');
+    if (jumlahKata(paragraf) < KATA_MIN) return null;
+    return { kalimat: kalimat, fakta: fakta, paragraf: paragraf, info: hasil, masuk: masuk };
   }
 
   // ------------------------------------------------- jenis pernyataan
   //
-  // Tiap jenis: tingkat, kebenaran yang dituju, slot yang cocok, mode slot yang
-  // dibutuhkan (dan slot lain yang wajib ikut), lalu perakit pernyataan dan baris
+  // Tiap jenis: tingkat, kebenaran yang dituju, POLA penalarannya, slot yang cocok, mode
+  // slot yang dibutuhkan (dan slot lain yang wajib ikut), lalu perakit pernyataan dan baris
   // pembahasannya. Jenis hanya MEMBANGUN; kebenarannya diturunkan ulang oleh validator.
+  //
+  // Tingkat: mudah = fakta tersurat atau parafrasanya; sedang = satu langkah simpulan
+  // (golongan dua langkah, kuantor, teori lawan bukti, urutan, arah sebab, batas waktu,
+  // daftar "hanya", menerapkan syarat); sulit = jebakan atau beberapa langkah (syarat perlu
+  // dan cukup yang tidak menentukan, rantai sebab-akibat, perbandingan berantai atau
+  // bercabang, generalisasi dari temuan setempat dengan kalimat pancingan).
+  //
+  // Pola mengelompokkan jenis yang memakai jebakan yang sama; paket menghindari dua butir
+  // verbal berpola sama (opsi.polaDipakai).
 
   var JENIS = [];
-  function J(id, level, truth, cocok, mode, buat) { JENIS.push({ id: id, level: level, truth: truth, cocok: cocok, mode: mode, buat: buat }); }
+  function J(id, level, truth, pola, cocok, mode, buat) { JENIS.push({ id: id, level: level, truth: truth, pola: pola, cocok: cocok, mode: mode, buat: buat }); }
   function tanpaMode() { return {}; }
 
   function kalSlot(B, sl) {
@@ -1075,7 +1407,7 @@
     return 'Bacaan menyebut: ' + teks.join(' dan ') + '.';
   }
   function sebut(a, tp, id, boleh) { var p = boleh === false ? null : parafrasa(tp, id); return p && a.untung(0.6) ? p : nama(tp, id); }
-  function penandaSlot(B, sl) { return B.info[sl.id].kal[0].fakta[0].penanda; }
+  function penandaSlot(B, sl) { return B.info[sl.id].kal.filter(function (k) { return k.fakta[0].tipe !== 'latar'; })[0].fakta[0].penanda; }
   function infoSlot(B, sl) { return B.info[sl.id].info; }
   function angka(v) { return Fmt.angka(v); }
 
@@ -1094,23 +1426,23 @@
   }
   function diLuar(tp, x, s, besar) { var t = besar ? kap(s) : s; return s === nama(tp, x) ? '"' + t + '"' : '"' + t + '" (yaitu ' + nama(tp, x) + ')'; }
 
-  J('daftar-anggota', 'mudah', 'B', slotDaftar, tanpaMode, function (a, tp, sl, B) {
+  J('daftar-anggota', 'mudah', 'B', 'daftar', slotDaftar, tanpaMode, function (a, tp, sl, B) {
     var inf = infoSlot(B, sl), x = a.pilih(inf.anggota), k = klaimDaftar(a, tp, sl, inf, x, true);
     return { klaim: k, bahas: [menyebut(B, [sl]), diDaftar(tp, x, k.nama.x) + ' Pernyataan itu sesuai dengan bacaan.'] };
   });
-  J('daftar-anggota-tidak', 'mudah', 'S', slotDaftar, tanpaMode, function (a, tp, sl, B) {
+  J('daftar-anggota-tidak', 'mudah', 'S', 'daftar', slotDaftar, tanpaMode, function (a, tp, sl, B) {
     var inf = infoSlot(B, sl);
     if (!sl.klaim[inf.lengkap ? 'tertutup' : 'terbuka'].tidak) return null;
     var x = a.pilih(inf.anggota), k = klaimDaftar(a, tp, sl, inf, x, false);
     return { klaim: k, bahas: [menyebut(B, [sl]), diDaftar(tp, x, k.nama.x) + ' Pernyataan yang menyangkalnya bertentangan dengan bacaan.'] };
   });
-  J('daftar-tertutup-luar', 'mudah', 'S', function (sl) { return slotDaftar(sl) && adaMode(sl, 'tertutup'); }, function () { return { mode: { lengkap: true } }; }, function (a, tp, sl, B) {
+  J('daftar-tertutup-luar', 'sedang', 'S', 'daftar-tertutup', function (sl) { return slotDaftar(sl) && adaMode(sl, 'tertutup'); }, function () { return { mode: { lengkap: true } }; }, function (a, tp, sl, B) {
     var inf = infoSlot(B, sl);
     if (!inf.luar.length) return null;
     var x = a.pilih(inf.luar), k = klaimDaftar(a, tp, sl, inf, x, true);
     return { klaim: k, bahas: [menyebut(B, [sl]), 'Kata "' + penandaSlot(B, sl) + '" menandakan daftar itu lengkap, dan ' + diLuar(tp, x, k.nama.x) + ' tidak ada di dalamnya. Pernyataan itu bertentangan dengan bacaan.'] };
   });
-  J('daftar-tertutup-luar-tidak', 'mudah', 'B', function (sl) { return slotDaftar(sl) && adaMode(sl, 'tertutup') && !!sl.klaim.tertutup.tidak; }, function () { return { mode: { lengkap: true } }; }, function (a, tp, sl, B) {
+  J('daftar-tertutup-luar-tidak', 'sedang', 'B', 'daftar-tertutup', function (sl) { return slotDaftar(sl) && adaMode(sl, 'tertutup') && !!sl.klaim.tertutup.tidak; }, function () { return { mode: { lengkap: true } }; }, function (a, tp, sl, B) {
     var inf = infoSlot(B, sl);
     if (!inf.luar.length) return null;
     var x = a.pilih(inf.luar), k = klaimDaftar(a, tp, sl, inf, x, false);
@@ -1123,18 +1455,18 @@
     return { klaim: k, bahas: [menyebut(B, [sl]), 'Kata "' + penandaSlot(B, sl) + '" menandakan bahwa yang disebut hanya contoh, bukan daftar lengkap. ' +
       diLuar(tp, x, k.nama.x, true) + ' tidak disebut di bagian mana pun, sehingga bacaan tidak cukup untuk membenarkan atau menyalahkan pernyataan itu.'] };
   }
-  J('daftar-terbuka-luar', 'mudah', 'TD', function (sl) { return slotDaftar(sl) && adaMode(sl, 'terbuka'); }, function () { return { mode: { lengkap: false } }; }, function (a, tp, sl, B) { return tdDaftar(a, tp, sl, B, true); });
+  J('daftar-terbuka-luar', 'mudah', 'TD', 'daftar-terbuka', function (sl) { return slotDaftar(sl) && adaMode(sl, 'terbuka'); }, function () { return { mode: { lengkap: false } }; }, function (a, tp, sl, B) { return tdDaftar(a, tp, sl, B, true); });
 
-  J('hambatan-anggota', 'mudah', 'B', slotHambatan, tanpaMode, function (a, tp, sl, B) {
+  J('hambatan-anggota', 'mudah', 'B', 'daftar', slotHambatan, tanpaMode, function (a, tp, sl, B) {
     var inf = infoSlot(B, sl), x = a.pilih(inf.anggota), k = klaimDaftar(a, tp, sl, inf, x, true);
     return { klaim: k, bahas: [menyebut(B, [sl]), diDaftar(tp, x, k.nama.x) + ' Pernyataan itu sesuai dengan bacaan.'] };
   });
-  J('hambatan-tunggal', 'mudah', 'S', function (sl) { return slotHambatan(sl) && !!sl.klaim.terbuka.tunggal; }, tanpaMode, function (a, tp, sl, B) {
+  J('hambatan-tunggal', 'mudah', 'S', 'daftar', function (sl) { return slotHambatan(sl) && !!sl.klaim.terbuka.tunggal; }, tanpaMode, function (a, tp, sl, B) {
     var inf = infoSlot(B, sl), x = a.pilih(inf.anggota), s = sebut(a, tp, x);
     var k = { tipe: 'tunggal', subjek: sl.subjek, himp: sl.himp, x: x, nama: { x: s }, teks: isi(a.pilih(sl.klaim.terbuka.tunggal), { x: s }) };
     return { klaim: k, bahas: [menyebut(B, [sl]), 'Bacaan menyebut lebih dari satu hal, yaitu ' + daftarNama(tp, inf.anggota) + '. Jadi ' + diLuar(tp, x, s) + ' bukan satu-satunya, dan pernyataan itu bertentangan dengan bacaan.'] };
   });
-  J('hambatan-luar', 'mudah', 'TD', slotHambatan, tanpaMode, function (a, tp, sl, B) { return tdDaftar(a, tp, sl, B, false); });
+  J('hambatan-luar', 'mudah', 'TD', 'daftar-terbuka', slotHambatan, tanpaMode, function (a, tp, sl, B) { return tdDaftar(a, tp, sl, B, false); });
 
   // ---- cakupan, golongan dua langkah, dan pengecualian
 
@@ -1147,40 +1479,43 @@
     return { tipe: 'bagian', x: x, y: y, ya: ya, nama: { x: s }, teks: isi(a.pilih(templat), peta) };
   }
 
-  J('cakupan-masuk', 'mudah', 'B', slotCakupan, tanpaMode, function (a, tp, sl, B) {
+  J('cakupan-masuk', 'mudah', 'B', 'cakupan', slotCakupan, tanpaMode, function (a, tp, sl, B) {
     var x = a.pilih(infoSlot(B, sl).masuk), k = klaimBagian(a, tp, x, sl.x, true, KLAIM_TERMASUK, { X: nama(tp, sl.x) });
     return { klaim: k, bahas: [menyebut(B, [sl]), '"' + kap(nama(tp, x)) + '" disebut termasuk ' + nama(tp, sl.x) + '. Pernyataan itu sesuai dengan bacaan.'] };
   });
-  J('cakupan-keluar', 'mudah', 'S', slotCakupan, tanpaMode, function (a, tp, sl, B) {
-    var inf = infoSlot(B, sl), x = a.pilih(inf.keluar), k = klaimBagian(a, tp, x, sl.x, true, KLAIM_TERMASUK, { X: nama(tp, sl.x) });
-    if (!inf.keluarKe) return { klaim: k, bahas: [menyebut(B, [sl]), 'Bacaan menegaskan bahwa "' + nama(tp, x) + '" tidak termasuk ' + nama(tp, sl.x) + '. Pernyataan itu bertentangan dengan bacaan.'] };
-    var g = golonganUntuk(tp, sl);
-    return { klaim: k, bahas: [menyebut(B, [g, sl]), '"' + kap(nama(tp, x)) + '" termasuk ' + nama(tp, inf.keluarKe) + ', sedangkan ' + nama(tp, inf.keluarKe) + ' dan ' + nama(tp, sl.x) + ' adalah dua ' + g.kata + ' yang berbeda. Pernyataan itu bertentangan dengan bacaan.'] };
+  J('cakupan-keluar', 'mudah', 'S', 'cakupan', function (sl) { return slotCakupan(sl) && sl.var.some(function (v) { return !v.keluarKe; }); }, function () { return { mode: { langsung: true } }; }, function (a, tp, sl, B) {
+    var x = a.pilih(infoSlot(B, sl).keluar), k = klaimBagian(a, tp, x, sl.x, true, KLAIM_TERMASUK, { X: nama(tp, sl.x) });
+    return { klaim: k, bahas: [menyebut(B, [sl]), 'Bacaan menegaskan bahwa "' + nama(tp, x) + '" tidak termasuk ' + nama(tp, sl.x) + '. Pernyataan itu bertentangan dengan bacaan.'] };
   });
-  J('cakupan-luar', 'mudah', 'TD', function (sl) { return slotCakupan(sl) && (sl.luar || []).length > 0 && sl.var.some(function (v) { return /antara lain/.test(v.t); }); }, function () { return { mode: { terbuka: true } }; }, function (a, tp, sl, B) {
+  J('cakupan-luar', 'mudah', 'TD', 'daftar-terbuka', function (sl) { return slotCakupan(sl) && (sl.luar || []).length > 0 && sl.var.some(function (v) { return /antara lain/.test(v.t); }); }, function () { return { mode: { terbuka: true } }; }, function (a, tp, sl, B) {
     var x = a.pilih(infoSlot(B, sl).luar), k = klaimBagian(a, tp, x, sl.x, true, KLAIM_TERMASUK, { X: nama(tp, sl.x) });
     return { klaim: k, bahas: [menyebut(B, [sl]), 'Kata "antara lain" menandakan bahwa yang disebut hanya contoh. "' + kap(nama(tp, x)) + '" tidak disebut sama sekali, sehingga tidak dapat dipastikan apakah termasuk ' + nama(tp, sl.x) + '.'] };
   });
-  function modeGolongan(a, tp, sl) { return { wajib: [golonganUntuk(tp, sl).id] }; }
   function cocokGolongan(sl, tp) { return slotCakupan(sl) && !!golonganUntuk(tp, sl); }
-  J('golongan-induk', 'sulit', 'B', cocokGolongan, modeGolongan, function (a, tp, sl, B) {
+  function modeGolongan(a, tp, sl) { return { wajib: [golonganUntuk(tp, sl).id] }; }
+  J('golongan-induk', 'sedang', 'B', 'golongan', cocokGolongan, modeGolongan, function (a, tp, sl, B) {
     var g = golonganUntuk(tp, sl), x = a.pilih(infoSlot(B, sl).masuk);
     var k = klaimBagian(a, tp, x, g.induk, true, ['{x} merupakan bagian dari {I}.', '{x} termasuk dalam {I}.'], { I: nama(tp, g.induk) });
     return { klaim: k, bahas: [menyebut(B, [g, sl]), '"' + kap(nama(tp, x)) + '" termasuk ' + nama(tp, sl.x) + ', dan ' + nama(tp, sl.x) + ' adalah salah satu ' + g.kata + ' dalam ' + nama(tp, g.induk) + '. Jadi "' + nama(tp, x) + '" juga merupakan bagian dari ' + nama(tp, g.induk) + '.'] };
   });
-  J('golongan-silang', 'sulit', 'S', cocokGolongan, modeGolongan, function (a, tp, sl, B) {
+  J('golongan-silang', 'sedang', 'S', 'golongan', cocokGolongan, modeGolongan, function (a, tp, sl, B) {
     var g = golonganUntuk(tp, sl), x = a.pilih(infoSlot(B, sl).masuk);
     var lain = a.pilih(g.anggota.filter(function (id) { return id !== sl.x; }));
     var k = klaimBagian(a, tp, x, lain, true, ['{x} termasuk dalam {kata} {L}.', '{x} tergolong {L}.'], { kata: g.kata, L: nama(tp, lain) });
     return { klaim: k, bahas: [menyebut(B, [g, sl]), '"' + kap(nama(tp, x)) + '" termasuk ' + nama(tp, sl.x) + '. ' + kap(nama(tp, sl.x)) + ' dan ' + nama(tp, lain) + ' adalah dua ' + g.kata + ' yang berbeda dalam ' + nama(tp, g.induk) + ', jadi "' + nama(tp, x) + '" tidak mungkin termasuk ' + nama(tp, lain) + '.'] };
   });
+  J('golongan-keluar', 'sedang', 'S', 'golongan', function (sl, tp) { return cocokGolongan(sl, tp) && sl.var.some(function (v) { return !!v.keluarKe; }); }, function (a, tp, sl) { return { mode: { keluarKe: true }, wajib: [golonganUntuk(tp, sl).id] }; }, function (a, tp, sl, B) {
+    var inf = infoSlot(B, sl), x = a.pilih(inf.keluar), g = golonganUntuk(tp, sl);
+    var k = klaimBagian(a, tp, x, sl.x, true, KLAIM_TERMASUK, { X: nama(tp, sl.x) });
+    return { klaim: k, bahas: [menyebut(B, [g, sl]), '"' + kap(nama(tp, x)) + '" termasuk ' + nama(tp, inf.keluarKe) + ', sedangkan ' + nama(tp, inf.keluarKe) + ' dan ' + nama(tp, sl.x) + ' adalah dua ' + g.kata + ' yang berbeda. Pernyataan itu bertentangan dengan bacaan.'] };
+  });
   function slotKecuali(sl) { return sl.jenis === 'kecuali'; }
-  J('kecuali-ya', 'mudah', 'S', slotKecuali, tanpaMode, function (a, tp, sl, B) {
+  J('kecuali-ya', 'mudah', 'S', 'cakupan', slotKecuali, tanpaMode, function (a, tp, sl, B) {
     var x = infoSlot(B, sl).k, s = nama(tp, x);
     var k = { tipe: 'bagian', x: x, y: sl.y, ya: true, nama: { x: s }, teks: isi(a.pilih(sl.klaim.ya), { k: s }) };
     return { klaim: k, bahas: [menyebut(B, [sl]), 'Kata "kecuali" menandakan bahwa "' + s + '" dikecualikan dari ketentuan itu. Pernyataan itu bertentangan dengan bacaan.'] };
   });
-  J('kecuali-tidak', 'mudah', 'B', slotKecuali, tanpaMode, function (a, tp, sl, B) {
+  J('kecuali-tidak', 'mudah', 'B', 'cakupan', slotKecuali, tanpaMode, function (a, tp, sl, B) {
     var x = infoSlot(B, sl).k, s = nama(tp, x);
     var k = { tipe: 'bagian', x: x, y: sl.y, ya: false, nama: { x: s }, teks: isi(a.pilih(sl.klaim.tidak), { k: s }) };
     return { klaim: k, bahas: [menyebut(B, [sl]), 'Kata "kecuali" menandakan bahwa "' + s + '" dikecualikan dari ketentuan itu, sesuai dengan pernyataan.'] };
@@ -1200,12 +1535,12 @@
   function modeLangsung(a) { return { mode: { pakai: a.pilih(['satu0', 'dua']) } }; }
   function modeRantai() { return { mode: { pakai: 'dua' } }; }
 
-  J('sebab-langsung', 'sedang', 'B', slotSebab, modeLangsung, function (a, tp, sl, B) {
+  J('sebab-langsung', 'sedang', 'B', 'sebab-akibat', slotSebab, modeLangsung, function (a, tp, sl, B) {
     var i = infoSlot(B, sl).pakai === 'dua' ? a.bulat(0, 1) : 0, m = sl.mata[i];
     var k = klaimSebab(tp, a.pilih(sl.klaim['m' + i].sama), m.dari, m.ke, m.arah);
     return { klaim: k, bahas: [menyebut(B, [sl]), 'Menurut bacaan, ' + satuMata(tp, sl, i) + '. Pernyataan menyampaikan hubungan sebab-akibat yang sama dengan kata lain.'] };
   });
-  J('sebab-arah', 'sedang', 'S', slotSebab, modeLangsung, function (a, tp, sl, B) {
+  J('sebab-arah', 'sedang', 'S', 'sebab-akibat', slotSebab, modeLangsung, function (a, tp, sl, B) {
     var i = infoSlot(B, sl).pakai === 'dua' ? a.bulat(0, 1) : 0, m = sl.mata[i];
     var k = klaimSebab(tp, a.pilih(sl.klaim['m' + i].balik), m.dari, m.ke, balikArah(m.arah));
     return { klaim: k, bahas: [menyebut(B, [sl]), 'Menurut bacaan, ' + satuMata(tp, sl, i) + ', sedangkan pernyataan menyebut arah sebaliknya.'] };
@@ -1215,17 +1550,17 @@
     var akhir = sl.akhir || nama(tp, m0.dari) + ' pada akhirnya ikut ' + kataArah(gabungArah(m0.arah, m1.arah)) + ' ' + nama(tp, m1.ke);
     return 'Kedua hubungan itu bersambung: ' + satuMata(tp, sl, 0) + ', lalu ' + satuMata(tp, sl, 1) + '. Jadi ' + akhir + '.';
   }
-  J('sebab-rantai', 'sulit', 'B', slotSebab, modeRantai, function (a, tp, sl, B) {
+  J('sebab-rantai', 'sulit', 'B', 'sebab-akibat', slotSebab, modeRantai, function (a, tp, sl, B) {
     var m0 = sl.mata[0], m1 = sl.mata[1];
     var k = klaimSebab(tp, a.pilih(sl.klaim.rantai.sama), m0.dari, m1.ke, gabungArah(m0.arah, m1.arah));
     return { klaim: k, bahas: [menyebut(B, [sl]), bahasRantai(tp, sl) + ' Pernyataan itu sesuai dengan bacaan.'] };
   });
-  J('sebab-rantai-arah', 'sulit', 'S', slotSebab, modeRantai, function (a, tp, sl, B) {
+  J('sebab-rantai-arah', 'sulit', 'S', 'sebab-akibat', slotSebab, modeRantai, function (a, tp, sl, B) {
     var m0 = sl.mata[0], m1 = sl.mata[1];
     var k = klaimSebab(tp, a.pilih(sl.klaim.rantai.balik), m0.dari, m1.ke, balikArah(gabungArah(m0.arah, m1.arah)));
     return { klaim: k, bahas: [menyebut(B, [sl]), bahasRantai(tp, sl) + ' Pernyataan menyebut arah sebaliknya, jadi bertentangan dengan bacaan.'] };
   });
-  J('sebab-terbalik', 'sulit', 'TD', function (sl) { return slotSebab(sl) && !!(sl.klaim.terbalik && sl.klaim.terbalik.length); }, modeRantai, function (a, tp, sl, B) {
+  J('sebab-terbalik', 'sulit', 'TD', 'sebab-akibat', function (sl) { return slotSebab(sl) && !!(sl.klaim.terbalik && sl.klaim.terbalik.length); }, modeRantai, function (a, tp, sl, B) {
     var v = a.pilih(sl.klaim.terbalik), k = klaimSebab(tp, v, v.dari, v.ke, v.arah);
     return { klaim: k, bahas: [menyebut(B, [sl]), 'Bacaan hanya menyebut bahwa ' + satuMata(tp, sl, 0) + ', dan ' + satuMata(tp, sl, 1) + '. Pengaruh ' + nama(tp, v.dari) + ' terhadap ' + nama(tp, v.ke) + ' tidak dibahas, jadi pernyataan itu tidak dapat dipastikan.'] };
   });
@@ -1240,7 +1575,7 @@
   }
   function kutipKuantor(B, sl) { var kal = B.info[sl.id].kal; return 'Bacaan menyebut: ' + kutip(kal[kal.length - 1].teks) + '.'; }
   function JK(id, level, truth, q, kq, alasan) {
-    J(id, level, truth, slotKuantor(q, kq), modeKuantor(q), function (a, tp, sl, B) { return { klaim: klaimKuantor(a, tp, sl, B, kq), bahas: [kutipKuantor(B, sl), alasan] }; });
+    J(id, level, truth, 'kuantor', slotKuantor(q, kq), modeKuantor(q), function (a, tp, sl, B) { return { klaim: klaimKuantor(a, tp, sl, B, kq), bahas: [kutipKuantor(B, sl), alasan] }; });
   }
   JK('kuantor-semua', 'sedang', 'S', 'tidak-semua', 'semua', '"Tidak semua" berarti sekurang-kurangnya ada yang tidak demikian, sehingga pernyataan yang menyebut "semua" bertentangan dengan bacaan.');
   JK('kuantor-ada-tidak', 'sedang', 'B', 'tidak-semua', 'ada-tidak', '"Tidak semua" berarti sekurang-kurangnya ada yang tidak demikian. Pernyataan itu sesuai dengan bacaan.');
@@ -1250,23 +1585,21 @@
 
   // ---- status: "secara teori", "belum terbukti", "terbukti"
 
-  function slotStatus(st, jk) { return function (sl) { return sl.jenis === 'status' && !!sl.var[st] && !!sl.klaim[jk]; }; }
+  function slotStatus(st, jk) { return function (sl) { return sl.jenis === 'status' && [].concat(st).some(function (s) { return !!sl.var[s]; }) && !!sl.klaim[jk]; }; }
   function JS(id, level, truth, st, jk, alasan) {
-    J(id, level, truth, slotStatus(st, jk), function () { return { mode: { status: st } }; }, function (a, tp, sl, B) {
-      return { klaim: { tipe: 'status', hal: sl.hal, jenis: jk, teks: isi(a.pilih(sl.klaim[jk]), {}) }, bahas: [menyebut(B, [sl]), alasan] };
+    J(id, level, truth, 'teori-bukti', slotStatus(st, jk), function () { return { mode: { status: st } }; }, function (a, tp, sl, B) {
+      var teks = typeof alasan === 'function' ? alasan(infoSlot(B, sl).status) : alasan;
+      return { klaim: { tipe: 'status', hal: sl.hal, jenis: jk, teks: isi(a.pilih(sl.klaim[jk]), {}) }, bahas: [menyebut(B, [sl]), teks] };
     });
   }
   JS('status-terbukti', 'sedang', 'TD', 'teori', 'terbukti', 'Bacaan hanya menyebut hal itu mungkin terjadi "secara teori". Apakah sudah terbukti dalam kenyataan tidak disebut, jadi pernyataan itu tidak dapat dipastikan.');
   JS('status-belum-teori', 'sedang', 'TD', 'teori', 'belum', 'Bacaan hanya menyebut hal itu mungkin terjadi "secara teori", tanpa menyebut apakah sudah atau belum terbukti.');
-  JS('status-terbukti-belum', 'sedang', 'S', 'belum', 'terbukti', 'Bacaan menegaskan bahwa hal itu belum terbukti, sehingga pernyataan bahwa hal itu telah terbukti bertentangan dengan bacaan.');
-  JS('status-belum', 'sedang', 'B', 'belum', 'belum', 'Bacaan menegaskan bahwa hal itu belum terbukti. Pernyataan itu sesuai dengan bacaan.');
-  JS('status-terbukti-ya', 'sedang', 'B', 'terbukti', 'terbukti', 'Bacaan menyebut hal itu sudah terbukti. Pernyataan itu sesuai dengan bacaan.');
-  JS('status-belum-terbukti', 'sedang', 'S', 'terbukti', 'belum', 'Bacaan menyebut hal itu sudah terbukti, sehingga pernyataan bahwa hal itu belum terbukti bertentangan dengan bacaan.');
-  J('status-mungkin', 'mudah', 'B', function (sl) { return sl.jenis === 'status' && !!sl.klaim.mungkin; }, tanpaMode, function (a, tp, sl, B) {
-    var st = infoSlot(B, sl).status;
-    return { klaim: { tipe: 'status', hal: sl.hal, jenis: 'mungkin', teks: isi(a.pilih(sl.klaim.mungkin), {}) },
-      bahas: [menyebut(B, [sl]), st === 'terbukti' ? 'Bacaan menyebut hal itu sudah terbukti; yang sudah terbukti tentu juga mungkin terjadi.' : 'Bacaan menyebut hal itu mungkin terjadi ("secara teori"), dan pernyataan juga hanya menyebut kemungkinannya.'] };
-  });
+  JS('status-terbukti-mungkin', 'sedang', 'B', 'terbukti', 'mungkin', 'Bacaan menyebut hal itu sudah terbukti; yang sudah terbukti tentu juga mungkin terjadi. Pernyataan itu sesuai dengan bacaan.');
+  JS('status-terbukti-belum', 'mudah', 'S', 'belum', 'terbukti', 'Bacaan menegaskan bahwa hal itu belum terbukti, sehingga pernyataan bahwa hal itu telah terbukti bertentangan dengan bacaan.');
+  JS('status-belum', 'mudah', 'B', 'belum', 'belum', 'Bacaan menegaskan bahwa hal itu belum terbukti. Pernyataan itu sesuai dengan bacaan.');
+  JS('status-terbukti-ya', 'mudah', 'B', 'terbukti', 'terbukti', 'Bacaan menyebut hal itu sudah terbukti. Pernyataan itu sesuai dengan bacaan.');
+  JS('status-belum-terbukti', 'mudah', 'S', 'terbukti', 'belum', 'Bacaan menyebut hal itu sudah terbukti, sehingga pernyataan bahwa hal itu belum terbukti bertentangan dengan bacaan.');
+  JS('status-mungkin', 'mudah', 'B', ['teori', 'belum'], 'mungkin', 'Bacaan menyebut hal itu mungkin terjadi ("secara teori"), dan pernyataan juga hanya menyebut kemungkinannya.');
 
   // ---- syarat perlu dan syarat cukup; angka kasusnya ada di pernyataan
 
@@ -1279,20 +1612,72 @@
   }
   var ALASAN_PERLU = 'Kata "hanya ... sekurang-kurangnya {t}" menunjukkan syarat perlu: yang belum mencapai {t} tidak dapat memperolehnya, tetapi mencapai {t} belum menjamin apa pun.';
   var ALASAN_CUKUP = 'Kalimat "setiap ... {t} ... atau lebih otomatis ..." menunjukkan syarat cukup: yang mencapai {t} pasti memperolehnya, tetapi bacaan tidak menyebut apa yang berlaku bagi yang di bawahnya.';
-  function JY(id, truth, j, lulus, jk, akhir) {
-    J(id, 'sulit', truth, slotSyarat(j), function () { return { mode: { jenis: j } }; }, function (a, tp, sl, B) {
+  function JY(id, level, truth, j, lulus, jk, akhir) {
+    J(id, level, truth, 'syarat', slotSyarat(j), function () { return { mode: { jenis: j } }; }, function (a, tp, sl, B) {
       var t = infoSlot(B, sl).t, v = nilaiKasus(a, sl, t, lulus), jenis = jk || a.pilih(['pasti', 'tidak']);
       var k = { tipe: 'syarat', aksi: sl.aksi, jenis: jenis, v: v, teks: isi(a.pilih(sl.klaim[jenis]), { v: angka(v) }) };
       var dasar = (j === 'perlu' ? ALASAN_PERLU : ALASAN_CUKUP).replace(/\{t\}/g, angka(t));
       return { klaim: k, bahas: [menyebut(B, [sl]), dasar, akhir.replace(/\{v\}/g, angka(v)).replace(/\{t\}/g, angka(t))] };
     });
   }
-  JY('syarat-perlu-gagal', 'B', 'perlu', false, 'tidak', 'Nilai {v} kurang dari {t}, jadi syaratnya tidak terpenuhi. Pernyataan itu sesuai dengan bacaan.');
-  JY('syarat-perlu-pasti', 'S', 'perlu', false, 'pasti', 'Nilai {v} kurang dari {t}, jadi syaratnya tidak terpenuhi dan pernyataan itu bertentangan dengan bacaan.');
-  JY('syarat-perlu-lulus', 'TD', 'perlu', true, null, 'Nilai {v} memenuhi batas {t}, tetapi syarat perlu bukan jaminan. Bacaan tidak menyebut apakah ada syarat lain, jadi pernyataan itu tidak dapat dipastikan.');
-  JY('syarat-cukup-lulus', 'B', 'cukup', true, 'pasti', 'Nilai {v} tidak kurang dari {t}, jadi pernyataan itu sesuai dengan bacaan.');
-  JY('syarat-cukup-tidak', 'S', 'cukup', true, 'tidak', 'Nilai {v} mencapai batas {t}, jadi pernyataan itu bertentangan dengan bacaan.');
-  JY('syarat-cukup-gagal', 'TD', 'cukup', false, null, 'Nilai {v} di bawah {t}. Syarat cukup hanya menjamin yang mencapai {t}, jadi pernyataan itu tidak dapat dipastikan.');
+  JY('syarat-perlu-gagal', 'sedang', 'B', 'perlu', false, 'tidak', 'Nilai {v} kurang dari {t}, jadi syaratnya tidak terpenuhi. Pernyataan itu sesuai dengan bacaan.');
+  JY('syarat-perlu-pasti', 'sedang', 'S', 'perlu', false, 'pasti', 'Nilai {v} kurang dari {t}, jadi syaratnya tidak terpenuhi dan pernyataan itu bertentangan dengan bacaan.');
+  JY('syarat-perlu-lulus', 'sulit', 'TD', 'perlu', true, null, 'Nilai {v} memenuhi batas {t}, tetapi syarat perlu bukan jaminan. Bacaan tidak menyebut apakah ada syarat lain, jadi pernyataan itu tidak dapat dipastikan.');
+  JY('syarat-cukup-lulus', 'sedang', 'B', 'cukup', true, 'pasti', 'Nilai {v} tidak kurang dari {t}, jadi pernyataan itu sesuai dengan bacaan.');
+  JY('syarat-cukup-tidak', 'sedang', 'S', 'cukup', true, 'tidak', 'Nilai {v} mencapai batas {t}, jadi pernyataan itu bertentangan dengan bacaan.');
+  JY('syarat-cukup-gagal', 'sulit', 'TD', 'cukup', false, null, 'Nilai {v} di bawah {t}. Syarat cukup hanya menjamin yang mencapai {t}, jadi pernyataan itu tidak dapat dipastikan.');
+
+  // ---- batas waktu "paling lambat t ... setelah ..."; angka kasusnya ada di pernyataan
+
+  function slotBatas(sl) { return sl.jenis === 'batas'; }
+  function kasusBatas(a, sl, t, dalam) {
+    var v = dalam ? t - a.bulat(1, 3) * sl.langkah : t + a.bulat(1, 3) * sl.langkah;
+    if (dalam && v < sl.min) v = t - sl.langkah;
+    if (!dalam && v > sl.maks) v = t + sl.langkah;
+    return v;
+  }
+  function JB(id, truth, dalam, jenis, akhir) {
+    J(id, 'sedang', truth, 'batas-waktu', function (sl) { return slotBatas(sl) && !!sl.klaim[jenis]; }, tanpaMode, function (a, tp, sl, B) {
+      var t = infoSlot(B, sl).t, v = kasusBatas(a, sl, t, dalam), su = sl.satuan;
+      var k = { tipe: 'batas', aksi: sl.aksi, jenis: jenis, v: v, satuan: su, nama: { aksi: nama(tp, sl.aksi) }, teks: isi(a.pilih(sl.klaim[jenis]), { v: angka(v) }) };
+      return { klaim: k, bahas: [menyebut(B, [sl]), 'Batasnya ' + angka(t) + ' ' + su + ' ("paling lambat"): yang dilakukan sampai ' + angka(t) + ' ' + su + ' masih dalam batas, yang lebih lama melewatinya.',
+        akhir.replace(/\{v\}/g, angka(v) + ' ' + su).replace(/\{t\}/g, angka(t) + ' ' + su)] };
+    });
+  }
+  JB('batas-dalam', 'B', true, 'memenuhi', '{v} tidak lebih dari {t}, jadi batas waktunya terpenuhi. Pernyataan itu sesuai dengan bacaan.');
+  JB('batas-dalam-lewat', 'S', true, 'melewati', '{v} tidak lebih dari {t}, jadi batas waktunya belum terlewati. Pernyataan itu bertentangan dengan bacaan.');
+  JB('batas-lewat', 'B', false, 'melewati', '{v} lebih lama daripada {t}, jadi batas waktunya sudah terlewati. Pernyataan itu sesuai dengan bacaan.');
+  JB('batas-lewat-masih', 'S', false, 'memenuhi', '{v} lebih lama daripada {t}, jadi batas waktunya sudah terlewati. Pernyataan itu bertentangan dengan bacaan.');
+  J('batas-lain', 'sedang', 'TD', 'batas-waktu', function (sl) { return slotBatas(sl) && !!sl.lain; }, tanpaMode, function (a, tp, sl, B) {
+    var t = infoSlot(B, sl).t, x = sl.lain.aksi;
+    var k = { tipe: 'batas', aksi: x, jenis: 'batas', v: t, satuan: sl.satuan, x: x, nama: { x: nama(tp, x) }, teks: isi(a.pilih(sl.lain.klaim), { t: angka(t) }) };
+    // QC paket-002: sebut juga titik awal hitungan tiap tenggat ("sejak dipinjam" vs "setelah dikembalikan")
+    var kutipan = menyebut(B, [sl]), sejak = function (s) {
+      var m = /paling lambat \S+ \S+(?: \S+)? (setelah [^.,"]+?)(?= agar| supaya| untuk| sehingga|[.,"]|$)/.exec(s);
+      return m ? m[1].replace(/^setelah /, 'sejak ') : null;
+    };
+    var awalBacaan = sejak(kutipan), awalKlaim = sejak(k.teks);
+    return { klaim: k, bahas: [kutipan, 'Batas ' + angka(t) + ' ' + sl.satuan + ' pada kalimat itu hanya mengatur hal yang disebut di sana' + (awalBacaan ? ' dan dihitung ' + awalBacaan : '') + '. ' +
+      'Bacaan tidak mengatur tenggat untuk ' + nama(tp, x) + (awalKlaim ? ' yang dihitung ' + awalKlaim : '') + ', jadi pernyataan itu tidak dapat dipastikan walaupun angkanya sama.'] };
+  });
+
+  // ---- temuan setempat dan generalisasi yang tidak didukung
+
+  function slotTemuan(sl) { return sl.jenis === 'temuan'; }
+  function klaimTemuan(a, tp, sl, jenis) {
+    var v = a.pilih(sl.klaim[jenis]), umum = jenis === 'umum', nm = { hal: nama(tp, sl.hal) };
+    if (!umum) nm.lingkup = nama(tp, sl.lingkup);
+    return { tipe: 'temuan', hal: sl.hal, lingkup: umum ? 'umum' : sl.lingkup, arah: jenis === 'arah' ? balikArah(sl.arah) : sl.arah, penanda: v.p, nama: nm, teks: isi(v.t, {}) };
+  }
+  J('temuan-sama', 'mudah', 'B', 'temuan', slotTemuan, tanpaMode, function (a, tp, sl, B) {
+    return { klaim: klaimTemuan(a, tp, sl, 'sama'), bahas: [menyebut(B, [sl]), 'Pernyataan menyampaikan hasil yang sama untuk ' + nama(tp, sl.lingkup) + ' dengan kata lain. Pernyataan itu sesuai dengan bacaan.'] };
+  });
+  J('temuan-arah', 'mudah', 'S', 'temuan', slotTemuan, tanpaMode, function (a, tp, sl, B) {
+    return { klaim: klaimTemuan(a, tp, sl, 'arah'), bahas: [menyebut(B, [sl]), 'Hasil di ' + nama(tp, sl.lingkup) + ' justru berarah sebaliknya dari yang disebut pernyataan. Pernyataan itu bertentangan dengan bacaan.'] };
+  });
+  J('temuan-umum', 'sulit', 'TD', 'generalisasi', function (sl) { return slotTemuan(sl) && !!sl.klaim.umum; }, function () { return { mode: { pancing: true } }; }, function (a, tp, sl, B) {
+    return { klaim: klaimTemuan(a, tp, sl, 'umum'), bahas: [menyebut(B, [sl]), 'Hasil itu hanya diamati di ' + nama(tp, sl.lingkup) + '. Pernyataan memberlakukannya untuk semua tempat, padahal bacaan tidak menyebut hasil di tempat lain; rencana memperluas program juga belum menunjukkan hasilnya. Jadi pernyataan itu tidak dapat dipastikan.'] };
+  });
 
   // ---- urutan "pertama kali ..., kemudian ..."
 
@@ -1302,28 +1687,29 @@
     if (y) { peta.Y = nama(tp, y); nm.y = nama(tp, y); }
     return { tipe: 'urutan', subjek: sl.subjek, jenis: jenis, x: x, y: y || null, nama: nm, teks: isi(a.pilih(sl.klaim[jenis]), peta) };
   }
-  J('urutan-sebelum', 'sedang', 'B', slotUrutan, tanpaMode, function (a, tp, sl, B) {
+  J('urutan-sebelum', 'sedang', 'B', 'urutan', slotUrutan, tanpaMode, function (a, tp, sl, B) {
     var inf = infoSlot(B, sl), y = a.pilih(inf.lanjut);
     return { klaim: klaimUrutan(a, tp, sl, 'sebelum', inf.pertama, y), bahas: [menyebut(B, [sl]), 'Urutannya dimulai dari ' + nama(tp, inf.pertama) + ', baru kemudian ' + nama(tp, y) + '. Pernyataan itu sesuai dengan bacaan.'] };
   });
-  J('urutan-sebelum-balik', 'sedang', 'S', slotUrutan, tanpaMode, function (a, tp, sl, B) {
+  J('urutan-sebelum-balik', 'sedang', 'S', 'urutan', slotUrutan, tanpaMode, function (a, tp, sl, B) {
     var inf = infoSlot(B, sl), x = a.pilih(inf.lanjut);
     return { klaim: klaimUrutan(a, tp, sl, 'sebelum', x, inf.pertama), bahas: [menyebut(B, [sl]), 'Yang pertama justru ' + nama(tp, inf.pertama) + ', baru kemudian ' + nama(tp, x) + '. Pernyataan itu bertentangan dengan bacaan.'] };
   });
-  J('urutan-pertama', 'sedang', 'S', slotUrutan, tanpaMode, function (a, tp, sl, B) {
+  J('urutan-pertama', 'mudah', 'S', 'urutan', slotUrutan, tanpaMode, function (a, tp, sl, B) {
     var inf = infoSlot(B, sl), x = a.pilih(inf.lanjut);
     return { klaim: klaimUrutan(a, tp, sl, 'pertama', x), bahas: [menyebut(B, [sl]), 'Menurut bacaan, yang pertama adalah ' + nama(tp, inf.pertama) + ', bukan ' + nama(tp, x) + '.'] };
   });
-  J('urutan-pertama-ya', 'mudah', 'B', slotUrutan, tanpaMode, function (a, tp, sl, B) {
+  J('urutan-pertama-ya', 'mudah', 'B', 'urutan', slotUrutan, tanpaMode, function (a, tp, sl, B) {
     var inf = infoSlot(B, sl);
     return { klaim: klaimUrutan(a, tp, sl, 'pertama', inf.pertama), bahas: [menyebut(B, [sl]), 'Menurut bacaan, yang pertama memang ' + nama(tp, inf.pertama) + '. Pernyataan itu sesuai dengan bacaan.'] };
   });
-  J('urutan-luar', 'sedang', 'TD', function (sl) { return slotUrutan(sl) && (sl.luar || []).length > 0; }, tanpaMode, function (a, tp, sl, B) {
+  // ketentuan "berlaku bagi seluruh pekerja, kecuali ..." akan menjawab pernyataan ini, jadi tidak ikut sebagai pengecoh
+  J('urutan-luar', 'mudah', 'TD', 'urutan', function (sl) { return slotUrutan(sl) && (sl.luar || []).length > 0; }, function () { return { tanpa: ['kecuali'] }; }, function (a, tp, sl, B) {
     var x = a.pilih(infoSlot(B, sl).luar);
     return { klaim: klaimUrutan(a, tp, sl, 'diterapkan', x), bahas: [menyebut(B, [sl]), kap(nama(tp, x)) + ' tidak disebut sama sekali, dan bacaan tidak menyatakan bahwa urutan itu lengkap. Jadi pernyataan itu tidak dapat dipastikan.'] };
   });
 
-  // ---- perbandingan berantai
+  // ---- perbandingan berantai dan bercabang
 
   function slotBanding(sl) { return sl.jenis === 'banding'; }
   function klaimBanding(a, tp, sl, x, y) {
@@ -1333,15 +1719,21 @@
     var u = sl.urut, adj = ' lebih ' + sl.adj + ' daripada ';
     return 'Dari kedua perbandingan itu: ' + nama(tp, u[0]) + adj + nama(tp, u[1]) + ', dan ' + nama(tp, u[1]) + adj + nama(tp, u[2]) + '. Jadi ' + nama(tp, u[0]) + adj + nama(tp, u[2]) + '.';
   }
-  J('banding-rantai', 'sulit', 'B', slotBanding, tanpaMode, function (a, tp, sl, B) {
+  function modeRantaiBanding() { return { mode: { bentuk: 'rantai' } }; }
+  J('banding-rantai', 'sedang', 'B', 'banding', slotBanding, modeRantaiBanding, function (a, tp, sl, B) {
     return { klaim: klaimBanding(a, tp, sl, sl.urut[0], sl.urut[2]), bahas: [menyebut(B, [sl]), bahasBanding(tp, sl) + ' Pernyataan itu sesuai dengan bacaan.'] };
   });
-  J('banding-rantai-balik', 'sulit', 'S', slotBanding, tanpaMode, function (a, tp, sl, B) {
+  J('banding-rantai-balik', 'sedang', 'S', 'banding', slotBanding, modeRantaiBanding, function (a, tp, sl, B) {
     return { klaim: klaimBanding(a, tp, sl, sl.urut[2], sl.urut[0]), bahas: [menyebut(B, [sl]), bahasBanding(tp, sl) + ' Pernyataan menyebut kebalikannya, jadi bertentangan dengan bacaan.'] };
   });
-  J('banding-langsung-balik', 'sedang', 'S', slotBanding, tanpaMode, function (a, tp, sl, B) {
+  J('banding-langsung-balik', 'mudah', 'S', 'banding', slotBanding, modeRantaiBanding, function (a, tp, sl, B) {
     var i = a.bulat(0, 1), u = sl.urut;
     return { klaim: klaimBanding(a, tp, sl, u[i + 1], u[i]), bahas: [menyebut(B, [sl]), 'Bacaan menyebut ' + nama(tp, u[i]) + ' lebih ' + sl.adj + ' daripada ' + nama(tp, u[i + 1]) + ', bukan sebaliknya. Pernyataan itu bertentangan dengan bacaan.'] };
+  });
+  J('banding-cabang', 'sulit', 'TD', 'banding', function (sl) { return slotBanding(sl) && !!(sl.var.cabang && sl.var.cabang.length); }, function () { return { mode: { bentuk: 'cabang' } }; }, function (a, tp, sl, B) {
+    var u = sl.urut, i = a.bulat(1, 2);
+    return { klaim: klaimBanding(a, tp, sl, u[i], u[3 - i]), bahas: [menyebut(B, [sl]), 'Bacaan hanya menyebut bahwa ' + nama(tp, u[0]) + ' lebih ' + sl.adj + ' daripada ' + nama(tp, u[1]) + ' dan daripada ' + nama(tp, u[2]) + '. ' +
+      kap(nama(tp, u[1])) + ' dan ' + nama(tp, u[2]) + ' tidak pernah dibandingkan satu sama lain, jadi pernyataan itu tidak dapat dipastikan.'] };
   });
 
   // ------------------------------------------------------------------ buat
@@ -1354,19 +1746,37 @@
     });
   }
 
+  /**
+   * Susun satu butir verbal. opsi.target: 0/1/2 (Benar/Salah/Tidak Diketahui);
+   * opsi.polaDipakai: pola yang sudah dipakai butir verbal lain dalam paket (dihindari bila
+   * masih ada pilihan); opsi.tema: batasi ke satu topik (pemeriksaan langsung bank);
+   * opsi.jenis: hanya jenis pernyataan itu (uji).
+   */
   function buat(id, level, benih, opsi) {
     opsi = opsi || {};
+    var topik = opsi.tema ? TOPIK.filter(function (t) { return t.id === opsi.tema; }) : TOPIK;
+    if (!topik.length) throw new Error('tema verbal tidak dikenal: ' + opsi.tema);
     var a = Rng.alat(benih);
     var target = opsi.target == null ? a.bulat(0, 2) : (opsi.target > 2 ? opsi.target % 3 : opsi.target);
-    var truth = HURUF_TRUTH[target];
-    var jenisIni = JENIS.filter(function (j) { return j.level === level && j.truth === truth; });
+    var truth = HURUF_TRUTH[target], hindari = Array.isArray(opsi.polaDipakai) ? opsi.polaDipakai : [];
+    // opsi.jenis: paksa satu jenis pernyataan (uji negatif memakainya agar setiap jenis pasti diuji)
+    var jenisIni = JENIS.filter(function (j) { return j.level === level && j.truth === truth && (!opsi.jenis || j.id === opsi.jenis); });
+    // pola -> [{ tp, calon: [{ j, sl }] }]; pola dipilih dulu (berbobot akar banyak topiknya), lalu topik, lalu slot
+    var perPola = {};
+    topik.forEach(function (tp) {
+      var per = {};
+      jenisIni.forEach(function (j) { tp.alur.forEach(function (sl) { if (j.cocok(sl, tp)) (per[j.pola] = per[j.pola] || []).push({ j: j, sl: sl }); }); });
+      Object.keys(per).forEach(function (p) { (perPola[p] = perPola[p] || []).push({ tp: tp, calon: per[p] }); });
+    });
+    var semua = Object.keys(perPola), segar = semua.filter(function (p) { return hindari.indexOf(p) < 0; });
+    var polaBoleh = segar.length ? segar : semua;
+    if (!polaBoleh.length) return null;
+    var bobot = polaBoleh.map(function (p) { return Math.sqrt(perPola[p].length); });
     for (var coba = 0; coba < 60; coba++) {
-      var tp = a.pilih(TOPIK), calon = [];
-      jenisIni.forEach(function (j) { tp.alur.forEach(function (sl) { if (j.cocok(sl, tp)) calon.push({ j: j, sl: sl }); }); });
-      if (!calon.length) continue;
-      var c = a.pilih(calon), m = c.j.mode(a, tp, c.sl) || {}, modes = {};
+      var pola = a.bobot(polaBoleh, bobot), pt = a.pilih(perPola[pola]), tp = pt.tp, c = a.pilih(pt.calon);
+      var m = c.j.mode(a, tp, c.sl) || {}, modes = {};
       modes[c.sl.id] = m.mode || {};
-      var B = susunBacaan(a, tp, [c.sl.id].concat(m.wajib || []), modes);
+      var B = susunBacaan(a, tp, [c.sl.id].concat(m.wajib || []), modes, m.tanpa);
       if (!B) continue;
       var h = c.j.buat(a, tp, c.sl, B);
       if (!h) continue;
@@ -1380,16 +1790,21 @@
       var fk = B.fakta.map(function (x, i) { var o = { id: 'f' + (i + 1) }; for (var k in x) o[k] = x[k]; return o; });
       var ctx = { subtes: 'ku', submateri: 'verbal', keluarga: id, level: level, benih: benih, a: a };
       var pilih = { opsi: OPSI.map(function (t, i) { return { teks: t, nilai: i, alasan: null, kunci: i === target }; }), kunciIndex: target };
+      // pernyataan dicetak polos di bawah bacaan, tanpa label dan tanpa kalimat perintah (seperti contoh riset)
       var butir = Butir.rakitPg(ctx, {
         jenisSoal: 'Verbal (Verbal Reasoning)',
-        judul: tp.judul, teks: [B.paragraf], pertanyaan: klaim.teks,
-        perintah: 'Berdasarkan bacaan di atas, apakah pernyataan berikut Benar, Salah, atau Tidak Diketahui?',
+        judul: tp.judul, teks: [B.paragraf], pertanyaan: klaim.teks, perintah: null,
         pilihanJadi: pilih, tanpaAlasan: true, tulisKunci: true,
         langkah: [], pembahasan: pem,
-        model: { topik: 'Verbal', tema: tp.id, fakta: fk, klaim: klaim, tipeKlaim: c.j.id, paragraf: B.paragraf },
+        model: { topik: 'Verbal', tema: tp.id, fakta: fk, klaim: klaim, tipeKlaim: c.j.id, pola: c.j.pola, paragraf: B.paragraf },
         sidik: { inti: 'verbal|' + tp.id + '|' + c.j.id + '|' + B.paragraf + '|' + klaim.teks, param: [], entitas: tp.id }
       });
-      if (butir) return butir;
+      if (butir) {
+        butir.pola = c.j.pola;
+        // semua pola untuk tingkat dan kunci ini sudah dipakai paket: pengulangan tak terhindarkan
+        if (!segar.length && hindari.length) butir.polaTerpaksa = true;
+        return butir;
+      }
     }
     return null;
   }
@@ -1398,7 +1813,7 @@
 
   return {
     KELUARGA: KELUARGA, TOPIK: TOPIK, OPSI: OPSI, KATA_MIN: KATA_MIN, KATA_MAKS: KATA_MAKS,
-    JENIS: JENIS.map(function (j) { return { id: j.id, level: j.level, truth: j.truth }; }),
+    JENIS: JENIS.map(function (j) { return { id: j.id, level: j.level, truth: j.truth, pola: j.pola }; }),
     buat: buat
   };
 });

@@ -145,9 +145,26 @@ async function buka(url, opsi) {
       },
       tunggu: tunggu,
       muatSelesai: function () { return sekali('Page.loadEventFired'); },
-      tutup: async function () { try { ws.close(); } catch (e) { /* abaikan */ } bersihkan(); }
+      tutup: async function () {
+        try { ws.close(); } catch (e) { /* abaikan */ }
+        bersihkan();
+        // Chrome baru melepas berkas profilnya beberapa ratus milidetik setelah dimatikan (Windows: EPERM/EBUSY),
+        // jadi hapusan pertama di bersihkan() sering gagal dan folder sementara tertinggal: ulangi sampai hilang
+        for (var i = 0; i < 25 && fs.existsSync(dir); i++) {
+          await tunggu(200);
+          try { fs.rmSync(dir, { recursive: true, force: true }); } catch (e) { /* masih terkunci */ }
+        }
+      }
     };
-    // beri waktu halaman memuat skrip (url diberikan pada baris perintah)
+    // beri waktu halaman memuat skrip (url diberikan pada baris perintah). Tab awal bisa masih about:blank
+    // (yang sudah "complete") selagi alamat http:// dimuat, jadi tunggu sampai alamat sebenarnya terbuka.
+    // Selama pindah halaman, evaluasi boleh gagal sebentar ("Execution context was destroyed"): ulangi.
+    for (i = 0; i < 150 && !/^about:/.test(url); i++) {
+      var terbuka = false;
+      try { terbuka = await obj.evaluasi('location.href !== "about:blank" && document.readyState === "complete"'); } catch (e) { terbuka = false; }
+      if (terbuka) break;
+      await tunggu(100);
+    }
     await obj.evaluasi('new Promise(function (r) { if (document.readyState === "complete") r(true); else window.addEventListener("load", function () { r(true); }); })');
     return obj;
   } catch (e) {

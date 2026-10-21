@@ -23,13 +23,13 @@
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
-    api = factory(require('./rng.js'), require('./svg.js'), require('./bentuk.js'), require('./butir.js'), require('./format.js'));
+    api = factory(require('./rng.js'), require('./svg.js'), require('./bentuk.js'), require('./butir.js'), require('./format.js'), require('./metrik.js'));
     module.exports = api;
   } else {
-    api = factory(root.Rng, root.Svg, root.Bentuk, root.Butir, root.Fmt);
+    api = factory(root.Rng, root.Svg, root.Bentuk, root.Butir, root.Fmt, root.Metrik);
     root.MatriksIsi = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Rng, S, Bentuk, Butir, Fmt) {
+})(typeof self !== 'undefined' ? self : this, function (Rng, S, Bentuk, Butir, Fmt, Metrik) {
   'use strict';
 
   var PERINTAH = 'Gunakan gambar di bagian atas untuk menentukan jawaban yang benar dari pilihan di bawah. Pilih jawaban yang menggantikan tanda tanya. Jika tidak ada tanda tanya, pilih jawaban yang merupakan kelanjutan dari urutan tersebut.';
@@ -62,13 +62,97 @@
     return { svg: S.doc(bag.join(''), W, H, { latar: '#ffffff' }), lebar: W, tinggi: H };
   }
 
-  /** Pilihan jawaban: deretan bentuk mendatar. */
+  /**
+   * Pilihan jawaban: deretan bentuk mendatar. Jarak antarbentuk dirapatkan (42 alih-alih 50) dan
+   * bentuknya diperbesar (jari 18 alih-alih 17) supaya bentuk tetap besar dan mudah dibedakan
+   * ketika gambar opsi diperkecil ke lebar kolom pilihan (Word: 84 pt; peramban: 110 px).
+   */
   function svgDeret(isi, ukuran) {
-    var s = ukuran || 50, pad = 5, bag = [];
-    isi.forEach(function (sel, j) { bag.push(isiSel(sel, pad + j * s, pad, s)); });
+    var s = ukuran || 42, pad = 4, bag = [];
+    isi.forEach(function (sel, j) {
+      bag.push(Bentuk.svg(BENTUK[sel.b], pad + j * s + s / 2, pad + s / 2, s * 0.43, { isi: sel.i ? TINTA : '#ffffff', garis: TINTA, tebal: 2.2 }));
+    });
     var W = pad * 2 + isi.length * s, H = pad * 2 + s;
     bag.push(S.rect(1, 1, W - 2, H - 2, { isi: 'none', garis: '#c4cad6', tebal: 1.2 }));
     return { svg: S.doc(bag.join(''), W, H, { latar: '#ffffff' }), lebar: W, tinggi: H };
+  }
+
+  // --------------------------------------------------------- gambar pembahasan
+
+  /*
+   * isi-hitung: matriks bernomor baris/kolom; kolom yang belum lengkap diarsir biru dan satu kolom
+   * lengkap diarsir abu-abu sebagai pembanding. Di bawahnya hitungan tiap bentuk pada kolom-kolom itu
+   * (bentuk yang kurang ditulis "+1" jingga), lalu kotak yang hilang diisi jawaban berbingkai jingga
+   * dan bernomor urut dari kiri. Aturan warna ditulis singkat di kanan.
+   */
+  var BH = S.BAHAS;
+
+  function teksB(s, x, y, o) {
+    o = o || {};
+    return S.teks(s, x, y, { ukuran: o.ukuran || 10, tebal: o.tebal, isi: o.isi || BH.teks, rata: o.rata });
+  }
+
+  function ringkasWarna(at, r) {
+    var p = daftarNama(at.P), q = daftarNama(at.Q);
+    if (at.jenis === 'bentuk') return p + ' selalu hitam; ' + q + ' selalu putih.';
+    if (at.jenis === 'catur') return 'berselang-seling seperti papan catur; baris ' + (r + 1) + ' dimulai ' + WARNA[(r + at.awal) % 2] + '.';
+    if (at.jenis === 'baris') return 'berganti per baris; pada baris ' + (r + 1) + ' ' + (((r + at.awal) % 2) === 0 ? p : q) + ' hitam.';
+    return 'berganti per kolom: pada kolom ' + (at.awal % 2 ? 'genap' : 'ganjil') + ' ' + p + ' hitam, pada kolom lainnya ' + q + ' hitam.';
+  }
+
+  function svgHitung(m, judul) {
+    var s = 44, pad = 8, x0 = pad + 18, y0 = pad + 26 + 16, l = m.lubang, kosong = [], o = [];
+    for (var c = l.c; c < l.c + l.k; c++) kosong.push(c);
+    var kolomHitung = kosong.concat([m.pembanding]).sort(function (a, b) { return a - b; });
+    var yTabel = y0 + BARIS * s + 26, tx = x0 + KOLOM * s + 20, W = Math.max(tx + 170, Math.ceil(Metrik.lebar(judul, 13, true)) + 18);
+    var H = yTabel + 4 * 18 + pad + 4;
+    o.push(S.teks(judul, pad, pad + 13, { ukuran: 13, tebal: true, isi: BH.teks }));
+    kosong.forEach(function (c) { o.push(S.rect(x0 + c * s + 1, y0 - 2, s - 2, yTabel - y0 + 4 * 18 - 2, { rx: 4, isi: BH.latarPanah })); });
+    o.push(S.rect(x0 + m.pembanding * s + 1, y0 - 2, s - 2, yTabel - y0 + 4 * 18 - 2, { rx: 4, isi: '#eceef3' }));
+    for (c = 0; c < KOLOM; c++) {
+      var kos = kosong.indexOf(c) >= 0, band = c === m.pembanding;
+      o.push(teksB(String(c + 1), x0 + c * s + s / 2, y0 - 6, { rata: 'middle', tebal: kos || band, isi: kos ? BH.panah : (band ? BH.teks : BH.teksRedup) }));
+    }
+    for (var r = 0; r < BARIS; r++) {
+      o.push(teksB(String(r + 1), pad + 6, y0 + r * s + s / 2 + 4, { rata: 'middle', tebal: r === l.r, isi: r === l.r ? BH.sorot : BH.teksRedup }));
+      for (c = 0; c < KOLOM; c++) {
+        var j = c - l.c, isiLubang = r === l.r && j >= 0 && j < l.k;
+        var x = x0 + c * s, y = y0 + r * s;
+        if (isiLubang) {
+          o.push(S.rect(x + 3, y + 3, s - 6, s - 6, { rx: 5, isi: BH.latarSorot, garis: BH.sorot, tebal: 2.2 }));
+          o.push(isiSel(m.jawaban[j], x + 2, y + 2, s - 4));
+          o.push(S.lingkaran(x + 8, y + 8, 6.5, { isi: BH.sorot }));
+          o.push(teksB(String(j + 1), x + 8, y + 11.5, { ukuran: 9, tebal: true, rata: 'middle', isi: '#ffffff' }));
+        } else o.push(isiSel(m.grid[r][c], x + 4, y + 4, s - 8));
+      }
+    }
+    o.push(teksB('Hitungan bentuk per kolom (tanpa kotak yang hilang):', x0, yTabel - 8, { tebal: true }));
+    [0, 1, 2, 3].forEach(function (b, i) {
+      var y = yTabel + i * 18;
+      o.push(Bentuk.svg(BENTUK[b], pad + 6, y + 6, 6, { isi: '#ffffff', garis: TINTA, tebal: 1.2 }));
+      kolomHitung.forEach(function (c) {
+        var n = 0, kurang = false;
+        for (var rr = 0; rr < BARIS; rr++) if (m.grid[rr][c] && m.grid[rr][c].b === b) n++;
+        if (kosong.indexOf(c) >= 0 && m.jawaban[c - l.c].b === b) kurang = true;
+        o.push(teksB(String(n), x0 + c * s + s / 2 - (kurang ? 7 : 0), y + 10, { ukuran: 11, tebal: true, rata: 'middle' }));
+        if (kurang) o.push(teksB('+1', x0 + c * s + s / 2 + 9, y + 10, { ukuran: 11, tebal: true, rata: 'middle', isi: BH.sorot }));
+      });
+    });
+    // keterangan di kanan
+    var ty = y0 + 4, kal = [
+      { t: 'Kolom biru: belum lengkap.', w: BH.panah },
+      { t: 'Kolom abu-abu (kolom ' + (m.pembanding + 1) + '): lengkap, berisi ' + daftarNama([0, 1, 2, 3]) + ' masing-masing satu ditambah satu ' + NAMA[m.tambahan] + '.', w: BH.teks },
+      { t: '+1: bentuk yang masih kurang di kolom itu.', w: BH.sorot },
+      { t: 'Warna: ' + ringkasWarna(m.aturan, l.r), w: BH.teks },
+      { t: 'Isian berbingkai jingga, urut dari kiri.', w: BH.sorot }
+    ];
+    kal.forEach(function (k) {
+      var baris = Metrik.penggal(k.t, W - pad - tx, 10.5, false);
+      baris.forEach(function (b, i) { o.push(teksB(b, tx, ty + i * 14, { ukuran: 10.5, isi: k.w })); });
+      ty += baris.length * 14 + 7;
+    });
+    H = Math.max(H, ty + pad);
+    return { svg: S.doc(o.join(''), W, H, { latar: '#ffffff' }), lebar: W, tinggi: H };
   }
 
   // --------------------------------------------------------------- aturan
@@ -78,8 +162,10 @@
     return n.length <= 1 ? n.join('') : n.slice(0, -1).join(', ') + ' dan ' + n[n.length - 1];
   }
 
-  function pilihAturan(a, level) {
-    var jenis = level === 'mudah' ? 'bentuk' : (level === 'sedang' ? a.pilih(['baris', 'kolom', 'catur', 'baris']) : a.pilih(['baris', 'baris', 'kolom']));
+  function pilihAturan(a, level, dipakai) {
+    var semua = level === 'mudah' ? ['bentuk'] : (level === 'sedang' ? ['baris', 'kolom', 'catur', 'baris'] : ['baris', 'baris', 'kolom']);
+    var baru = semua.filter(function (j) { return (dipakai || []).indexOf('matriks-isi:' + j) < 0; });
+    var jenis = a.pilih(baru.length ? baru : semua);
     var P = a.ambil([0, 1, 2, 3], 2).sort();
     return { jenis: jenis, P: P, Q: [0, 1, 2, 3].filter(function (v) { return P.indexOf(v) < 0; }), awal: a.bulat(0, 1) };
   }
@@ -160,7 +246,7 @@
     for (var coba = 0; coba < 30; coba++) {
       var tambahan = a.bulat(0, 3), M = [0, 1, 2, 3, tambahan], kolom = [], r, c;
       for (c = 0; c < KOLOM; c++) kolom.push(a.kocok(M));
-      var at = pilihAturan(a, level), grid = [];
+      var at = pilihAturan(a, level, opsi.polaDipakai), grid = [];
       for (r = 0; r < BARIS; r++) {
         var baris = [];
         for (c = 0; c < KOLOM; c++) baris.push({ b: kolom[c][r], i: warnaMenurut(at, kolom[c][r], r, c) });
@@ -188,6 +274,7 @@
       });
       var uw = uraianWarna(at, l.r);
       pem.push('Aturan warna: ' + uw.charAt(0).toLowerCase() + uw.slice(1));
+      pem.push('Gambar 1 menghitung bentuk pada kolom yang belum lengkap (biru) dan kolom ' + lengkap[0] + ' yang lengkap (abu-abu) sebagai pembanding; bentuk yang masih kurang ditandai "+1". Kotak yang hilang lalu diisi berurutan dari kiri (bingkai jingga) dengan bentuk itu dan warnanya.');
       pem.push('Jadi potongan yang hilang (dari kiri ke kanan): ' + kunci.map(function (x) { return NAMA[x.b] + ' ' + WARNA[x.i]; }).join(', ') + '.');
 
       var daftar = a.kocok(peng.map(function (p) { return { isi: p.isi, alasan: p.alasan, kunci: false }; }));
@@ -197,7 +284,7 @@
           gambar: { id: 'opsi-' + Fmt.huruf(i).toLowerCase(), jenis: 'isi-opsi', model: { isi: d.isi }, judul: 'Opsi ' + Fmt.huruf(i) } };
       });
       var ctx = { subtes: 'ku', submateri: 'figural', keluarga: id, level: level, benih: benih, a: a };
-      return Butir.rakitPg(ctx, {
+      var butir = Butir.rakitPg(ctx, {
         jenisSoal: 'Figural Matriks - Kotak 5x6',
         judul: 'Figural Matriks - Kotak 5x6', teks: [], pertanyaan: '', perintah: PERINTAH,
         gambar: [{ id: 'soal', jenis: 'isi', model: { grid: tampak, lubang: l }, judul: 'Matriks 5x6' }],
@@ -209,11 +296,17 @@
         },
         sidik: { inti: 'matriks-isi|' + grid.map(function (row) { return sidikDeret(row); }).join('/') + '|' + l.r + l.c + l.k, param: [], entitas: at.jenis }
       });
+      if (!butir) continue;
+      butir.gambarPembahasan = [{ id: 'bahas-1', jenis: 'isi-hitung', judul: 'Gambar 1. Hitungan bentuk per kolom dan isian kotak yang hilang',
+        model: { grid: tampak, lubang: l, jawaban: kunci, pembanding: lengkap[0] - 1, tambahan: tambahan, aturan: { jenis: at.jenis, P: at.P, Q: at.Q, awal: at.awal } } }];
+      butir.pola = 'matriks-isi:' + at.jenis;
+      butir.kategoriRiset = 'acuan';
+      return butir;
     }
     return null;
   }
 
   var KELUARGA = [{ id: 'matriks-isi', nama: 'Matriks 5x6 (bentuk hitam dan putih)', submateri: 'figural' }];
 
-  return { KELUARGA: KELUARGA, BENTUK: BENTUK, PERINTAH: PERINTAH, buat: buat, svgMatriks: svgMatriks, svgDeret: svgDeret };
+  return { KELUARGA: KELUARGA, BENTUK: BENTUK, PERINTAH: PERINTAH, buat: buat, svgMatriks: svgMatriks, svgDeret: svgDeret, svgHitung: svgHitung };
 });

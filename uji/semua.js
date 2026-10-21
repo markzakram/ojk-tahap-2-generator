@@ -10,20 +10,28 @@
  *      meluluskan setiap butir, tidak ada butir kembar, komposisi sesuai, kunci A-E merata.
  *   2. Hasil dapat diulang dari benih; paket N tidak bergantung pada jumlah paket yang diminta;
  *      komposisi, tingkat, dan proporsi kustom dipatuhi.
+ *   2c. Regresi revisi QC paket P001 (uji/qc.js): tanpa label/petunjuk verbal, pertanyaan tidak tebal,
+ *      tanpa "juta"/"ribu", line graph dapat digeser tepat, kotak pie, tanpa matriks 2x2 biasa, pengecoh nyata.
  *   3. Validator NEGATIF: butir yang sengaja dirusak harus ditolak (uji/negatif.js).
  *   4. Logika mode coba interaktif: kunci lolos, tampilan awal tidak.
- *   5. Ekspor: Word, PDF, PNG, Excel, JSON, ZIP diperiksa isinya (uji/berkas.js).
+ *   5. Ekspor: Word, PDF, PNG, Excel, JSON, ZIP diperiksa isinya (uji/berkas.js); Word format input SiAdu
+ *      dibaca balik seperti importir (uji/siadu.js).
  *   6. CLI: --help, hasil dan baris HASIL/GAGAL, kode keluar, benih, ZIP, kegagalan.
  *   7. agent-office.json: setiap opsi ada di --help dan di script, parameter terpakai,
- *      regex hasil/gagal cocok dengan keluaran CLI yang sebenarnya.
- *   8. Antarmuka index.html di Chrome/Edge tanpa kepala (uji/browser.js), bila tersedia.
+ *      regex hasil/gagal cocok dengan keluaran CLI yang sebenarnya. Pekerjaan jenis "aplikasi"
+ *      (cli/buka.js) tidak diwajibkan punya batas_menit (server menyala sampai dimatikan),
+ *      tetapi regex alamat dan port bakunya diperiksa.
+ *   8. contoh-keluaran/: Word, PDF, Excel, dan JSON contoh utuh.
+ *   9. Antarmuka index.html di Chrome/Edge tanpa kepala (uji/browser.js), bila tersedia.
+ *  10. Server lokal cli/buka.js (uji/server.js): MIME, penjaga path, port, berhenti rapi, dan
+ *      perintahnya; lalu seluruh antarmuka dibuka lewat http://localhost (ikut --tanpa-peramban).
  *
  * Opsi:
- *   --cepat             jumlah paket lebih sedikit dan ZIP peramban dilewati (sekitar 30 detik)
+ *   --cepat             jumlah paket lebih sedikit dan ZIP peramban dilewati (sekitar 1 menit)
  *   --besar             tambah uji kapasitas: 500 paket ku+pn, 500 paket ku, 500 paket pn, dan
- *                       250 paket tingkat mudah (menambah sekitar 3 menit)
- *   --tanpa-peramban    lewati uji antarmuka di Chrome/Edge
- *   --layar <folder>    simpan tangkapan layar antarmuka ke folder itu
+ *                       500 paket tingkat mudah (menambah sekitar 3 menit)
+ *   --tanpa-peramban    lewati uji antarmuka di Chrome/Edge (lewat file:// maupun http://)
+ *   --layar <folder>    simpan tangkapan layar antarmuka ke folder itu (lewat http:// ke <folder>/http)
  *   --bantuan           tampilkan bantuan ini
  *
  * Baris terakhir: "HASIL: ..." bila semua lulus (keluar 0) atau "GAGAL: ..." (keluar 1).
@@ -46,7 +54,9 @@ var Ekspor = require(path.join(JS, 'ekspor.js'));
 var Zip = require(path.join(JS, 'zip.js'));
 var Dokumen = require(path.join(JS, 'dokumen.js'));
 var Coba = require(path.join(JS, 'coba.js'));
+var Buka = require(path.join(AKAR, 'cli', 'buka.js'));
 var Berkas = require('./berkas.js');
+var Siadu = require('./siadu.js');
 var Negatif = require('./negatif.js');
 
 var argv = process.argv.slice(2);
@@ -86,10 +96,10 @@ function ujiPaket() {
     { subtes: 'pn', benih: [404, 505, 606], jumlah: n },
     { subtes: 'semua', benih: [707, 808], jumlah: cepat ? 3 : 10 }
   ];
-  // --besar: kapasitas yang diklaim README (500 paket per subtes, 250 paket tingkat mudah saja)
+  // --besar: kapasitas bank, termasuk 500 paket tingkat mudah yang dulu lebih cepat habis.
   if (besar) {
     rencana.push({ subtes: 'semua', benih: [1], jumlah: 500, label: 'ku+pn 500 paket' }, { subtes: 'ku', benih: [7], jumlah: 500, label: 'ku 500 paket' },
-      { subtes: 'pn', benih: [8], jumlah: 500, label: 'pn 500 paket' }, { subtes: 'semua', benih: [3], jumlah: 250, tingkat: 'mudah', label: 'ku+pn 250 paket tingkat mudah' });
+      { subtes: 'pn', benih: [8], jumlah: 500, label: 'pn 500 paket' }, { subtes: 'semua', benih: [2026], jumlah: 500, tingkat: 'mudah', label: 'ku+pn 500 paket tingkat mudah' });
   }
   rencana.forEach(function (r) {
     var total = { paket: 0, butir: 0, lulus: 0, kembar: 0, gagal: 0, submateri: {}, level: {}, kunci: {}, ms: 0, ganda: 0 };
@@ -105,7 +115,7 @@ function ujiPaket() {
       // pemeriksaan ulang yang tidak memakai validator: isi soal tidak boleh persis sama
       var lihat = {};
       semuaButir(hasil.hasil).forEach(function (b) {
-        var kunci = hash([b.keluarga, b.stimulus.teks, b.pertanyaan, (b.stimulus.gambar || []).map(function (g) { return g.model; }), b.opsi.map(function (o) { return [o.teks, o.gambar && o.gambar.model]; })]);
+        var kunci = hash([b.keluarga, b.stimulus.teks, b.stimulus.kartu || null, b.pertanyaan, (b.stimulus.gambar || []).map(function (g) { return g.model; }), b.opsi.map(function (o) { return [o.teks, o.gambar && o.gambar.model]; })]);
         if (lihat[kunci]) total.ganda++; lihat[kunci] = 1;
       });
       // komposisi tiap paket sesuai baku
@@ -208,14 +218,21 @@ async function ujiEkspor() {
   var butir = semuaButir(hasil.hasil);
   var t0 = Date.now();
   var berkas = await Ekspor.berkasPaket(hasil.hasil.paket[0], { docx: true, pdf: true, gambar: true, skala: 2, benih: 2026 });
-  var docx = berkas.filter(function (b) { return b.jenis === 'docx'; })[0], pdf = berkas.filter(function (b) { return b.jenis === 'pdf'; })[0], png = berkas.filter(function (b) { return b.jenis === 'png'; });
+  var semuaDocx = berkas.filter(function (b) { return b.jenis === 'docx'; }), pdf = berkas.filter(function (b) { return b.jenis === 'pdf'; })[0], png = berkas.filter(function (b) { return b.jenis === 'png'; });
+  var docx = semuaDocx.filter(function (b) { return b.subtes === 'ku'; })[0];
   cetak('        satu paket Word + PDF + gambar: ' + detik(Date.now() - t0));
-  try { var d = Berkas.periksaDocx(docx.data); cek(d.gambarUnik >= 40 && d.paragraf > 300, 'Word: ZIP utuh, ' + d.xml + ' bagian XML benar, ' + d.gambarUnik + ' gambar PNG tertanam, ' + d.paragraf + ' paragraf, compatibilityMode ' + d.modus + ' (bukan Mode Kompatibilitas)'); } catch (e) { cek(false, 'Word utuh', e.message); }
+  cek(semuaDocx.map(function (b) { return b.nama; }).join(',') === 'paket-001/paket-001-kemampuan-umum.docx,paket-001/paket-001-penalaran-numerik.docx', 'Word format input SiAdu: satu berkas per subtes', semuaDocx.map(function (b) { return b.nama; }).join(','));
+  try { var d = Berkas.periksaDocx(docx.data); cek(d.gambarUnik >= 20 && d.paragraf > 150, 'Word: ZIP utuh, ' + d.xml + ' bagian XML benar, ' + d.gambarUnik + ' gambar PNG tertanam, ' + d.paragraf + ' paragraf, compatibilityMode ' + d.modus + ' (bukan Mode Kompatibilitas)'); } catch (e) { cek(false, 'Word utuh', e.message); }
+  // dibaca balik seperti importir SiAdu: Soal N, tingkat, bentuk, pilihan/tabel kunci, jawaban, pembahasan
+  semuaDocx.forEach(function (f) {
+    var st = hasil.hasil.paket[0].subtes.filter(function (s) { return s.kode === f.subtes; })[0];
+    try { Berkas.periksaDocx(f.data); var ms = Siadu.periksa(Buffer.from(f.data), st.butir); cek(ms.length === 0, 'Word ' + f.nama.split('/').pop() + ' terbaca sesuai template SiAdu (' + st.butir.length + ' soal)', ms.slice(0, 3).join('; ')); } catch (e) { cek(false, 'Word ' + f.nama + ' sesuai template SiAdu', e.message); }
+  });
   // naskah Word dan PDF berasal dari model blok yang sama: subtes berikutnya harus didahului lompatan halaman
-  var blk = Dokumen.dariPaket(hasil.hasil.paket[0], function () { return { lebar: 200, tinggi: 100, skala: 2, png: new Uint8Array(0) }; }, {}).blok;
+  var blk = Dokumen.dariPaket(hasil.hasil.paket[0], function () { return { lebar: 200, tinggi: 100, skala: 2, png: new Uint8Array(0) }; }, {}).blok; // naskah PDF
   var judulLanjut = [];
   blk.forEach(function (x, i) { if ((x.t === 'h2' || x.t === 'h3') && /^Subtes [2-9] /.test(x.teks)) judulLanjut.push(blk[i - 1].t === 'jeda'); });
-  cek(judulLanjut.length === 2 && judulLanjut.every(Boolean), 'Word dan PDF: Subtes 2 mulai di halaman baru, di naskah soal dan di pembahasan', judulLanjut.join(','));
+  cek(judulLanjut.length === 1 && judulLanjut.every(Boolean), 'PDF: Subtes 2 mulai di halaman baru; jawaban dan pembahasan melekat pada tiap soal', judulLanjut.join(','));
   var bar = butir.filter(function (b) { return b.submateri === 'bar'; }), barSalah = bar.filter(function (b) {
     var kal = b.pembahasan.filter(function (t) { return /^Tampilan awal: /.test(t); });
     var harus = b.isian.awal.total.filter(function (v, i) { return v === b.isian.kunci.total[i]; }).length;
@@ -274,6 +291,18 @@ function cli(args, opsi) {
   return { kode: r.status, keluar: r.stdout || '', galat: r.stderr || '', baris: baris, akhir: baris[baris.length - 1] || '' };
 }
 
+/** Nama berkas gambar (soal, opsi, pembahasan) yang tercatat di JSON hasil, per paket atau semua paket. */
+function berkasGambarJson(js, noPaket) {
+  var nama = {};
+  js.paket.forEach(function (p) {
+    if (noPaket != null && p.no !== noPaket) return;
+    p.subtes.forEach(function (st) { st.butir.forEach(function (b) {
+      (b.stimulus.gambar || []).concat(b.gambarPembahasan || [], b.opsi.map(function (o) { return o.gambar; }).filter(Boolean)).forEach(function (g) { nama[g.berkas] = true; });
+    }); });
+  });
+  return Object.keys(nama);
+}
+
 function cariFile(dir, pola, out) {
   out = out || [];
   fs.readdirSync(dir, { withFileTypes: true }).forEach(function (e) {
@@ -301,14 +330,17 @@ function ujiCli(tmp) {
   var daftarBerkas = fs.existsSync(dasar) ? fs.readdirSync(dasar) : [];
   cek(['soal-ojk-tahap1.xlsx', 'soal-ojk-tahap1.json', 'soal-ojk-tahap1.zip', 'ringkasan.txt', 'paket-001', 'paket-002'].every(function (f) { return daftarBerkas.indexOf(f) >= 0; }), 'isi folder: xlsx, json, zip, ringkasan, paket-001, paket-002', daftarBerkas.join(','));
   var png1 = fs.existsSync(path.join(dasar, 'paket-001', 'gambar')) ? fs.readdirSync(path.join(dasar, 'paket-001', 'gambar')).length : 0;
-  cek(png1 === 66, 'gambar PNG paket-001/gambar/ berjumlah 66 (sama dengan kolom berkas_gambar)', String(png1));
+  var jsonHasil = fs.existsSync(path.join(dasar, 'soal-ojk-tahap1.json')) ? JSON.parse(fs.readFileSync(path.join(dasar, 'soal-ojk-tahap1.json'), 'utf8')) : { paket: [] };
+  var harap1 = berkasGambarJson(jsonHasil, 1).length;
+  cek(harap1 > 0 && png1 === harap1, 'gambar PNG paket-001/gambar/ berjumlah ' + harap1 + ' (sama dengan gambar soal, opsi, dan pembahasan di JSON)', String(png1));
   var berkasBaris = r1.baris.filter(function (l) { return /^BERKAS -> /.test(l); }).map(function (l) { return l.slice(10); });
   cek(berkasBaris.length >= 3 && berkasBaris.every(function (f) { return fs.existsSync(f) && fs.statSync(f).isFile(); }), 'baris "BERKAS -> <path>" menunjuk berkas yang ada (xlsx, json, zip)', berkasBaris.length + ' baris');
   try {
     var lembar = Berkas.periksaXlsx(fs.readFileSync(path.join(dasar, 'soal-ojk-tahap1.xlsx')));
     cek(lembar.Soal.length === 45, 'xlsx hasil CLI: 44 soal + judul');
     var z = Berkas.bacaZip(fs.readFileSync(path.join(dasar, 'soal-ojk-tahap1.zip')));
-    cek(z.some(function (a) { return a.nama === 'paket-002/gambar/P002-PN-10-awal.png'; }) && z.length === 2 + 1 + 132 + 0 + 0, 'zip hasil CLI utuh: berisi xlsx, json, ringkasan, 132 gambar', z.length + ' anggota');
+    var harapZip = berkasGambarJson(jsonHasil).length;
+    cek(z.some(function (a) { return a.nama === 'paket-002/gambar/P002-PN-10-awal.png'; }) && z.length === 2 + 1 + harapZip, 'zip hasil CLI utuh: berisi xlsx, json, ringkasan, ' + harapZip + ' gambar', z.length + ' anggota');
   } catch (e) { cek(false, 'berkas hasil CLI utuh', e.message); }
 
   // dapat diulang
@@ -317,15 +349,15 @@ function ujiCli(tmp) {
   var rb = cli(['--paket', '3', '--format', 'xlsx,json', '--benih', '5', '--keluaran', b, '--tanpa-waktu']);
   cek(ra.kode === 0 && rb.kode === 0 && hash(fs.readFileSync(path.join(a, 'soal-ojk-tahap1.xlsx'))) === hash(fs.readFileSync(path.join(b, 'soal-ojk-tahap1.xlsx'))) &&
     hash(fs.readFileSync(path.join(a, 'soal-ojk-tahap1.json'))) === hash(fs.readFileSync(path.join(b, 'soal-ojk-tahap1.json'))), 'benih sama menghasilkan Excel dan JSON yang sama byte demi byte');
-  cek(!fs.existsSync(path.join(a, 'paket-001', 'paket-001.docx')), '--format xlsx,json tidak menulis Word atau PDF');
+  cek(!cariFile(a, /\.(docx|pdf)$/).length, '--format xlsx,json tidak menulis Word atau PDF');
 
   // Word dan PDF lewat pintasan
   var kw = path.join(tmp, 'wp');
   var rw = cli(['--paket', '1', '--subtes', 'pn', '--docx', '--pdf', '--benih', '3', '--keluaran', kw, '--tanpa-waktu']);
-  var pn = rw.kode === 0 && fs.existsSync(path.join(kw, 'paket-001', 'paket-001.docx'));
+  var pn = rw.kode === 0 && fs.existsSync(path.join(kw, 'paket-001', 'paket-001-penalaran-numerik.docx')) && !fs.existsSync(path.join(kw, 'paket-001', 'paket-001-kemampuan-umum.docx'));
   var adaPn = false;
-  try { Berkas.periksaDocx(fs.readFileSync(path.join(kw, 'paket-001', 'paket-001.docx'))); Berkas.periksaPdf(fs.readFileSync(path.join(kw, 'paket-001', 'paket-001.pdf'))); adaPn = true; } catch (e) { adaPn = false; }
-  cek(pn && adaPn && !fs.existsSync(path.join(kw, 'soal-ojk-tahap1.xlsx')), 'pintasan --docx --pdf menulis Word dan PDF yang utuh saja (subtes pn)');
+  try { Berkas.periksaDocx(fs.readFileSync(path.join(kw, 'paket-001', 'paket-001-penalaran-numerik.docx'))); Berkas.periksaPdf(fs.readFileSync(path.join(kw, 'paket-001', 'paket-001.pdf'))); adaPn = true; } catch (e) { adaPn = false; }
+  cek(pn && adaPn && !fs.existsSync(path.join(kw, 'soal-ojk-tahap1.xlsx')), 'pintasan --docx --pdf menulis Word (hanya subtes pn) dan PDF yang utuh saja');
 
   // gagal
   [[['--paket', '0'], /--paket harus bilangan bulat 1 sampai 500/], [['--paket', '501'], /1 sampai 500/], [['--subtes', 'xx'], /--subtes harus/], [['--foo'], /opsi tidak dikenal/],
@@ -366,7 +398,9 @@ function ujiAgentOffice(tmp) {
     var skrip = j.perintah[0], jalurSkrip = path.join(AKAR, skrip);
     cek(/\.js$/.test(skrip) && fs.existsSync(jalurSkrip), tag + 'script ' + skrip + ' ada');
     var sumber = fs.readFileSync(jalurSkrip, 'utf8');
-    var bantuanSkrip = cp.spawnSync(process.execPath, [jalurSkrip, '--help'], { encoding: 'utf8', cwd: AKAR }).stdout || '';
+    // timeout: skrip yang tidak menangani --help (mis. langsung menyalakan server) tidak boleh menggantung uji
+    var bantuanSkrip = cp.spawnSync(process.execPath, [jalurSkrip, '--help'], { encoding: 'utf8', cwd: AKAR, timeout: 30000 }).stdout || '';
+    var aplikasi = j.jenis === 'aplikasi';
     var token = [];
     j.perintah.slice(1).forEach(function (t) { (Array.isArray(t) ? t : [t]).forEach(function (x) { token.push(x); }); });
     var opsiPakai = [], namaPakai = {};
@@ -389,7 +423,19 @@ function ujiAgentOffice(tmp) {
     });
     cek(salahParam.length === 0, tag + 'parameter sah (jenis, regex, bawaan dan contoh cocok dengan pola)', salahParam.join('; '));
     ['hasil', 'gagal'].forEach(function (k) { if (j[k]) { try { new RegExp(j[k], 'm'); cek(true, tag + k + ' adalah regex yang sah'); } catch (e) { cek(false, tag + k + ' regex sah', e.message); } } });
-    cek(Number(j.batas_menit) >= 1 && Number(j.batas_menit) <= 60, tag + 'batas_menit 1 sampai 60');
+    if (aplikasi) {
+      // Agent Office hanya memakai batas_menit untuk pekerjaan biasa (jobs.js runSteps). Pekerjaan jenis "aplikasi"
+      // dibiarkan menyala sampai dimatikan; satu-satunya batasnya 60 detik untuk mencetak alamat (startApp).
+      // Jadi batas_menit tidak diwajibkan, supaya tidak ada angka kecil yang menyesatkan.
+      cek(j.batas_menit === undefined && !j.lanjutan, tag + 'aplikasi: tanpa batas_menit (server menyala sampai dimatikan) dan tanpa lanjutan');
+      var contohBaris = Buka.JUDUL + ' berjalan di http://localhost:' + Buka.PORT_BAKU, cocokAlamat = null;
+      try { cocokAlamat = new RegExp(j.alamat).exec(contohBaris); } catch (e) { /* dinilai di bawah */ }
+      cek(typeof j.alamat === 'string' && !!cocokAlamat && cocokAlamat[1] === 'http://localhost:' + Buka.PORT_BAKU, tag + 'alamat: regex yang kelompok pertamanya menangkap alamat yang dicetak cli/buka.js ("' + contohBaris + '")', String(j.alamat));
+      // opsi di perintah harus dipahami cli/buka.js, dan port yang tertulis (di perintah dan catatan) harus port bakunya
+      var portPerintah;
+      try { portPerintah = Buka.urai(token).port; } catch (e) { portPerintah = e.message; }
+      cek(portPerintah === Buka.PORT_BAKU && (j.catatan || []).join(' ').indexOf('localhost:' + Buka.PORT_BAKU) >= 0, tag + 'perintah dibaca cli/buka.js tanpa galat, memakai port baku ' + Buka.PORT_BAKU + ', dan catatan menyebut alamat itu', String(portPerintah));
+    } else cek(Number(j.batas_menit) >= 1 && Number(j.batas_menit) <= 60, tag + 'batas_menit 1 sampai 60');
   });
 
   // Simulasi: perluas perintah seperti Agent Office, jalankan, cocokkan regex hasil dan gagal.
@@ -443,7 +489,7 @@ function ujiContoh() {
   try {
     docx.forEach(function (x) { Berkas.periksaDocx(fs.readFileSync(x)); }); pdf.forEach(function (x) { Berkas.periksaPdf(fs.readFileSync(x)); });
     var l = Berkas.periksaXlsx(fs.readFileSync(xlsx[0])); var js = JSON.parse(fs.readFileSync(json[0], 'utf8'));
-    cek(docx.length === 2 && pdf.length === 2 && xlsx.length === 1 && json.length === 1, 'contoh 2 paket: 2 Word, 2 PDF, 1 Excel, 1 JSON utuh', docx.length + '/' + pdf.length + '/' + xlsx.length + '/' + json.length);
+    cek(docx.length === 4 && pdf.length === 2 && xlsx.length === 1 && json.length === 1, 'contoh 2 paket: 4 Word input SiAdu (per subtes), 2 PDF, 1 Excel, 1 JSON utuh', docx.length + '/' + pdf.length + '/' + xlsx.length + '/' + json.length);
     cek(l.Soal.length === 45 && js.validator.lulus === true, 'contoh: Excel 44 soal dan JSON memuat hasil validator lulus');
   } catch (e) { cek(false, 'contoh-keluaran utuh', e.message); }
 }
@@ -459,6 +505,10 @@ async function utama() {
     cetak('Uji generator OJK PCAM Tahap 1' + (cepat ? ' (mode cepat)' : '') + ' - Node.js ' + process.versions.node);
     ujiPaket();
     await ujiBenih();
+    judul('2b. Bank tambahan: hitungan independen, mutasi kunci, dan variasi keluarga');
+    require('./variasi.js').jalankan(cek);
+    judul('2c. Revisi QC paket P001: format naskah, nominal, line graph, pie, figural, pengecoh');
+    require('./qc.js').jalankan(cek);
     ujiNegatif();
     ujiCoba();
     await ujiEkspor();
@@ -473,6 +523,11 @@ async function utama() {
         if (h && h.dilewati) cetak('  (uji antarmuka dilewati)');
       } catch (e) { cek(false, 'uji antarmuka berjalan', e.message); }
     }
+    judul('10. Server lokal cli/buka.js dan antarmuka lewat http://');
+    try {
+      var sv = require('./server.js');
+      await sv.jalankan({ cek: cek, cetak: cetak, cepat: cepat, layar: layar ? path.join(layar, 'http') : null, tanpaPeramban: tanpaPeramban });
+    } catch (e) { cek(false, 'uji server lokal berjalan', e.stack ? e.stack.split('\n').slice(0, 3).join(' / ') : e.message); }
   } finally {
     try { fs.rmSync(tmp, { recursive: true, force: true }); } catch (e) { /* abaikan */ }
   }

@@ -138,8 +138,17 @@ progress { width: 100%; height: 5px; margin-top: 7px; }
 .soal-kepala { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 7px 10px; border-bottom: 1px solid var(--line); background: #fafbfe; border-radius: var(--radius) var(--radius) 0 0; }
 .soal-badan { padding: 10px 12px; }
 .soal-badan p { margin: 5px 0; }
-.soal-badan .pertanyaan { font-weight: 600; }
-.soal-badan .pernyataan { background: #f1f5fd; border-left: 3px solid var(--brand); padding: 6px 9px; border-radius: 0 7px 7px 0; }
+.soal-badan .pertanyaan { margin-top: 8px; }
+.soal-badan .pernyataan { margin-top: 10px; }
+.pembahasan .judul-bagian { font-weight: 700; margin: 8px 0 2px; }
+.pembahasan .baris-rumus { margin: 2px 0 4px 18px; font-family: "Cambria Math", "Cambria", Georgia, serif; }
+.rumus .rm-op { padding: 0 .25em; }
+.rumus .rm-frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 .15em; }
+.rumus .rm-frac > span:first-child { border-bottom: 1px solid currentColor; padding: 0 .2em; }
+.rumus .rm-frac > span:last-child { padding: 0 .2em; }
+.soal-badan .kartu-daftar { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin: 8px 0; max-width: 620px; }
+.soal-badan .kartu { color: #fff; padding: 8px 10px; min-height: 72px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.45; }
+@media (max-width: 560px) { .soal-badan .kartu-daftar { grid-template-columns: 1fr; } }
 .soal-badan .petunjuk { font-size: 12px; color: var(--muted); font-style: italic; }
 .poin { margin: 4px 0 4px 18px; padding: 0; }
 .poin li { margin: 2px 0; }
@@ -166,6 +175,8 @@ progress { width: 100%; height: 5px; margin-top: 7px; }
 .opsi .huruf { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: #eef1f7; font-weight: 700; font-size: 12px; }
 .opsi-daftar.bergambar .opsi { flex-direction: column; padding: 6px 4px; }
 .opsi-gambar svg { display: block; width: 100%; max-width: 110px; height: auto; margin: 0 auto; }
+.opsi-daftar.bergambar.melebar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.opsi-daftar.melebar .opsi-gambar svg { max-width: 100%; }
 .opsi.benar { background: var(--ok-bg); border-color: #9ad9c2; }
 .opsi.benar .huruf { background: var(--ok); color: #fff; }
 .opsi.salah { background: var(--bad-bg); border-color: #f0b4ae; }

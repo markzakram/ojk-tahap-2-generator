@@ -25,13 +25,13 @@
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
-    api = factory(require('./rng.js'), require('./svg.js'), require('./bentuk.js'), require('./butir.js'), require('./format.js'));
+    api = factory(require('./rng.js'), require('./svg.js'), require('./bentuk.js'), require('./butir.js'), require('./format.js'), require('./metrik.js'));
     module.exports = api;
   } else {
-    api = factory(root.Rng, root.Svg, root.Bentuk, root.Butir, root.Fmt);
+    api = factory(root.Rng, root.Svg, root.Bentuk, root.Butir, root.Fmt, root.Metrik);
     root.MatriksSekat = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Rng, S, Bentuk, Butir, Fmt) {
+})(typeof self !== 'undefined' ? self : this, function (Rng, S, Bentuk, Butir, Fmt, Metrik) {
   'use strict';
 
   var PERINTAH = 'Gunakan gambar di bagian atas untuk menentukan jawaban yang benar dari pilihan di bawah. Pilih jawaban yang menggantikan tanda tanya. Jika tidak ada tanda tanya, pilih jawaban yang merupakan kelanjutan dari urutan tersebut.';
@@ -183,6 +183,85 @@
     return { svg: S.doc(o.join(''), W, W, { latar: '#ffffff' }), lebar: W, tinggi: W };
   }
 
+  // --------------------------------------------------------- gambar pembahasan
+
+  /*
+   *   sekat-asal    gambar soal; kedua belahan asal (di gambar dalam kuadran tetangga) digaris tepi
+   *                 jingga dan biru, dan panah berwarna sama menuju sisi pojok "?" tempat belahan itu
+   *                 masuk (sisi itu diarsir warna yang sama di dalam garis bentuk pojoknya)
+   *   sekat-gabung  kedua belahan sebelum digabung (masing-masing di sisinya, bentuk pojok putus-putus),
+   *                 lalu gabungannya sebagai gambar jawaban
+   */
+  var BH = S.BAHAS, WARNA_ASAL = [BH.sorot, BH.panah];
+
+  function teksB(s, x, y, o) {
+    o = o || {};
+    return S.teks(s, x, y, { ukuran: o.ukuran || 11, tebal: o.tebal, isi: o.isi || BH.teks, rata: o.rata });
+  }
+
+  /** Poligon satu belahan gambar (bentuk dipotong garis belahnya). */
+  function poliBelahan(bentuk, nama, cx, cy) {
+    var b = bidangBelahan(nama, cx, cy);
+    return Bentuk.potongBidang(poligon(bentuk, cx, cy, SKALA), b[0], b[1], b[2]);
+  }
+
+  /** Satu belahan bercorak; garis bentuk utuhnya putus-putus abu-abu. */
+  function belahanSvg(bentuk, nama, corak, cx, cy) {
+    var hp = poliBelahan(bentuk, nama, cx, cy);
+    return S.poli(poligon(bentuk, cx, cy, SKALA), { tutup: true, isi: 'none', garis: '#aab2c2', tebal: 1.2, putus: '4 3' }) + corakSvg(hp, corak, cx, cy) +
+      S.poli(hp, { tutup: true, isi: 'none', garis: TINTA, tebal: 1.8, sambung: 'round' });
+  }
+
+  /** Asal kedua belahan pojok kuadran q: [{ dari, nama asal, nama tujuan }] (mendatar lalu tegak). */
+  function asalBelahan(q) {
+    return [{ dari: H[q], asal: SISI_H[H[q]], tujuan: SISI_H[q] }, { dari: V[q], asal: SISI_V[V[q]], tujuan: SISI_V[q] }];
+  }
+
+  function svgAsal(m, judul) {
+    var q = m.tanya, o = ['<g transform="translate(' + PAD + ',' + (PAD + 26) + ')">'];
+    var t = segitigaPojok(q), pt = pusatPojok(q), asal = asalBelahan(q);
+    o.push(S.poli(t, { tutup: true, isi: BH.latarJawab }));
+    for (var k = 0; k < 4; k++) {
+      var cd = pusatDalam(k);
+      o.push(figurSvg(m.dalam[k], cd[0], cd[1], SKALA));
+      if (k !== q) { var cp = pusatPojok(k); o.push(figurSvg(m.pojok[k], cp[0], cp[1], SKALA)); }
+    }
+    // tempat kedatangan di pojok "?": sisi tiap belahan diarsir warnanya, bentuk pojok putus-putus
+    asal.forEach(function (a, i) { o.push(S.poli(poliBelahan(m.jawaban.bentuk, a.tujuan, pt[0], pt[1]), { tutup: true, isi: i ? BH.latarPanah : BH.latarSorot })); });
+    o.push(S.poli(poligon(m.jawaban.bentuk, pt[0], pt[1], SKALA), { tutup: true, isi: 'none', garis: '#7b8499', tebal: 1.4, putus: '4 3' }));
+    o.push(S.garis(Q, 0, Q, L, { garis: TEPI, tebal: 1.6 }));
+    o.push(S.garis(0, Q, L, Q, { garis: TEPI, tebal: 1.6 }));
+    o.push(S.poli([[Q, 0], [L, Q], [Q, L], [0, Q]], { tutup: true, isi: 'none', garis: TEPI, tebal: 1.6 }));
+    o.push(S.rect(0, 0, L, L, { isi: 'none', garis: TEPI, tebal: 2.4 }));
+    asal.forEach(function (a, i) {
+      var cd = pusatDalam(a.dari), hp = poliBelahan(m.dalam[a.dari].bentuk, a.asal, cd[0], cd[1]);
+      o.push(S.poli(hp, { tutup: true, isi: 'none', garis: WARNA_ASAL[i], tebal: 3.2, sambung: 'round' }));
+      var p0 = Bentuk.beratTitik(hp), p1 = Bentuk.beratTitik(poliBelahan(m.jawaban.bentuk, a.tujuan, pt[0], pt[1]));
+      o.push(S.panah(p0[0], p0[1], p1[0], p1[1], { warna: WARNA_ASAL[i], tebal: 2.6, kepala: 11, halo: true }));
+    });
+    o.push('</g>');
+    var W = Math.max(L + PAD * 2, Math.ceil(Metrik.lebar(judul, 13, true)) + 18), H = L + PAD * 2 + 26;
+    return { svg: S.doc(teksB(judul, PAD, PAD + 13, { ukuran: 13, tebal: true }) + o.join(''), W, H, { latar: '#ffffff' }), lebar: W, tinggi: H };
+  }
+
+  function svgGabung(m, judul) {
+    var q = m.tanya, asal = asalBelahan(q), pad = 8, u = 96, sela = 34, y0 = pad + 26 + 30, o = [teksB(judul, pad, pad + 13, { ukuran: 13, tebal: true })];
+    var W = Math.max(pad * 2 + 3 * u + 2 * sela, Math.ceil(Metrik.lebar(judul, 13, true)) + 18), H = y0 + u + 36 + pad;
+    var panel = asal.map(function (a, i) { return { judul: 'dari kuadran', sub: KUADRAN[a.dari], warna: WARNA_ASAL[i], isi: belahanSvg(m.jawaban.bentuk, a.tujuan, m.jawaban.belahan[a.tujuan], u / 2, u / 2) }; });
+    panel.push({ judul: 'gabungannya', sub: m.jawaban.bentuk + ' (jawaban)', warna: BH.jawab, isi: figurSvg(m.jawaban, u / 2, u / 2, SKALA), jawab: true });
+    panel.forEach(function (p, i) {
+      var x = pad + i * (u + sela);
+      o.push(teksB(p.judul, x + u / 2, y0 - 20, { ukuran: 10, rata: 'middle', isi: p.warna }));
+      o.push(teksB(p.sub, x + u / 2, y0 - 7, { ukuran: 11, tebal: true, rata: 'middle', isi: p.warna }));
+      o.push(S.rect(x, y0, u, u, { rx: 5, isi: p.jawab ? BH.latarJawab : '#ffffff', garis: p.warna, tebal: p.jawab ? 2.6 : 1.8 }));
+      o.push('<g transform="translate(' + x + ',' + y0 + ')">' + p.isi + '</g>');
+      o.push(teksB(i < 2 ? 'di ' + bagian(asal[i].tujuan) : '', x + u / 2, y0 + u + 15, { ukuran: 10, rata: 'middle', isi: BH.teksRedup }));
+      if (i < 2) o.push(teksB(i === 0 ? '+' : '=', x + u + sela / 2, y0 + u / 2 + 8, { ukuran: 22, tebal: true, rata: 'middle', isi: BH.teks }));
+    });
+    o.push(teksB('Bentuk pojok: ' + m.jawaban.bentuk + ' (pola bentuk gambar pojok).', pad, y0 + u + 32, { ukuran: 10, isi: BH.teksRedup }));
+    return { svg: S.doc(o.join(''), W, H, { latar: '#ffffff' }), lebar: W, tinggi: H };
+  }
+
   // --------------------------------------------------------------- penyusunan
 
   function fig(bentuk, q, h, v) { var b = {}; b[SISI_H[q]] = h; b[SISI_V[q]] = v; return { bentuk: bentuk, belahan: b }; }
@@ -191,8 +270,10 @@
   function sidikFig(f) { return f.bentuk + ':' + Object.keys(f.belahan).sort().map(function (k) { return k + '=' + f.belahan[k]; }).join(','); }
   function bagian(nama) { return 'bagian ' + nama.replace('-', ' '); }
 
-  function bentukPojok(a, level) {
-    var pola = level === 'mudah' ? 'sama' : a.pilih(['sama', 'baris', 'kolom', 'silang', 'baris', 'kolom', 'silang']);
+  function bentukPojok(a, level, dipakai) {
+    var semua = level === 'mudah' ? ['sama'] : ['sama', 'baris', 'kolom', 'silang', 'baris', 'kolom', 'silang'];
+    var baru = semua.filter(function (p) { return (dipakai || []).indexOf('matriks-sekat:' + p) < 0; });
+    var pola = a.pilih(baru.length ? baru : semua);
     var xy = a.kocok(POJOK), X = xy[0], Y = xy[1];
     var b = { sama: [X, X, X, X], baris: [X, X, Y, Y], kolom: [X, Y, Y, X], silang: [X, Y, X, Y] }[pola];
     return { pola: pola, bentuk: b, X: X, Y: Y };
@@ -249,7 +330,7 @@
     for (var coba = 0; coba < 20; coba++) {
       var corak = a.ambil([0, 1, 2, 3, 4, 5, 6, 7, 8], 8);
       var dalam = [0, 1, 2, 3].map(function (q) { return fig(a.pilih(DALAM), q, corak[2 * q], corak[2 * q + 1]); });
-      var bp = bentukPojok(a, level);
+      var bp = bentukPojok(a, level, opsi.polaDipakai);
       var pojok = [0, 1, 2, 3].map(function (q) { return fig(bp.bentuk[q], q, hOf(dalam[H[q]], H[q]), vOf(dalam[V[q]], V[q])); });
       var tanya = a.bulat(0, 3), kunci = pojok[tanya];
       var peng = buatPengecoh(a, level, pojok, dalam, tanya, kunci, bp);
@@ -263,6 +344,7 @@
           ', dan belahan ' + NAMA_CORAK[vOf(pojok[contoh], contoh)] + ' (di ' + bagian(SISI_V[contoh]) + ') kiriman gambar dalam kuadran ' + KUADRAN[V[contoh]] + '.',
         'Untuk pojok kuadran ' + KUADRAN[tanya] + ': gambar dalam kuadran ' + KUADRAN[hq] + ' mengirim belahannya yang menghadap ke sini, yaitu ' + NAMA_CORAK[hOf(kunci, tanya)] + ', dan gambar dalam kuadran ' + KUADRAN[vq] + ' mengirim ' + NAMA_CORAK[vOf(kunci, tanya)] +
           '. Jadi gambar pojoknya ' + NAMA_CORAK[hOf(kunci, tanya)] + ' di ' + bagian(SISI_H[tanya]) + ' dan ' + NAMA_CORAK[vOf(kunci, tanya)] + ' di ' + bagian(SISI_V[tanya]) + '.',
+        'Gambar 1 menandai kedua belahan asal itu (garis jingga pada gambar dalam kuadran ' + KUADRAN[hq] + ', garis biru pada gambar dalam kuadran ' + KUADRAN[vq] + ') dan panah menuju sisi pojok ' + KUADRAN[tanya] + ' yang ditempatinya. Gambar 2 memperlihatkan kedua belahan sebelum digabung, lalu gabungannya.',
         'Bentuk: ' + uraianBentuk(bp, tanya)];
 
       var daftar = a.kocok(peng.map(function (p) { return { fig: p.fig, alasan: p.alasan, kunci: false }; }));
@@ -273,7 +355,7 @@
       });
       var tampakPojok = pojok.map(function (f, q) { return q === tanya ? null : f; });
       var ctx = { subtes: 'ku', submateri: 'figural', keluarga: id, level: level, benih: benih, a: a };
-      return Butir.rakitPg(ctx, {
+      var butir = Butir.rakitPg(ctx, {
         jenisSoal: 'Figural Matriks - Kotak 2x2 Bersekat',
         judul: 'Figural Matriks - Kotak 2x2 Bersekat', teks: [], pertanyaan: '', perintah: PERINTAH,
         gambar: [{ id: 'soal', jenis: 'sekat', model: { pojok: tampakPojok, dalam: dalam, tanya: tanya }, judul: 'Matriks 2x2 bersekat' }],
@@ -285,11 +367,19 @@
         },
         sidik: { inti: 'matriks-sekat|' + dalam.map(sidikFig).join('/') + '|' + pojok.map(sidikFig).join('/') + '|' + tanya, param: [], entitas: bp.pola }
       });
+      if (!butir) continue;
+      butir.gambarPembahasan = [
+        { id: 'bahas-1', jenis: 'sekat-asal', judul: 'Gambar 1. Asal kedua belahan pojok ' + KUADRAN[tanya], model: { dalam: dalam, pojok: tampakPojok, tanya: tanya, jawaban: kunci } },
+        { id: 'bahas-2', jenis: 'sekat-gabung', judul: 'Gambar 2. Kedua belahan sebelum dan sesudah digabung', model: { tanya: tanya, jawaban: kunci } }
+      ];
+      butir.pola = 'matriks-sekat:' + bp.pola;
+      butir.kategoriRiset = 'acuan';
+      return butir;
     }
     return null;
   }
 
   var KELUARGA = [{ id: 'matriks-sekat', nama: 'Matriks 2x2 bersekat (belahan bercorak pindah ke pojok tetangga)', submateri: 'figural' }];
 
-  return { KELUARGA: KELUARGA, CORAK: CORAK, PERINTAH: PERINTAH, buat: buat, svgSekat: svgSekat, svgPojok: svgPojok };
+  return { KELUARGA: KELUARGA, CORAK: CORAK, PERINTAH: PERINTAH, buat: buat, svgSekat: svgSekat, svgPojok: svgPojok, svgAsal: svgAsal, svgGabung: svgGabung };
 });

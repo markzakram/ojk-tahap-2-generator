@@ -11,6 +11,10 @@
  * uji dilewati dengan keterangan, bukan gagal. Dapat dijalankan sendiri:
  *
  *   node uji/browser.js [--cepat] [--layar <folder>]
+ *
+ * Sebagai modul, jalankan({ cek, cetak, cepat, layar, alamat, awalan }): bila `alamat` diberikan
+ * (mis. http://localhost:3300/ dari cli/buka.js) halaman dibuka dari alamat itu, bukan file://;
+ * `awalan` ditambahkan di depan nama tiap pemeriksaan. Dipakai uji/server.js.
  */
 'use strict';
 
@@ -22,7 +26,7 @@ var Berkas = require('./berkas.js');
 
 var AKAR = path.resolve(__dirname, '..');
 var GLOBAL_WAJIB = ['Rng', 'Metrik', 'Fmt', 'Hitung', 'Svg', 'SvgRaster', 'Kempis', 'Png', 'Raster', 'Chart', 'Kamus', 'Pilihan', 'Butir', 'Cerita', 'TabelKu',
-  'GrafikKu', 'Verbal', 'Inferensi', 'Figural', 'SerialPutar', 'Bentuk', 'SerialGanda', 'MatriksLatin', 'MatriksIsi', 'MatriksSekat', 'PnBar', 'PnTabel', 'PnGaris', 'PnPie', 'Gambar', 'Bank', 'Validator', 'Paket', 'Dokumen',
+  'GrafikKu', 'Verbal', 'TopikVerbalTambahan', 'Variasi', 'Inferensi', 'Figural', 'SerialPutar', 'Bentuk', 'SerialGanda', 'MatriksLatin', 'MatriksIsi', 'MatriksSekat', 'PnBar', 'PnTabel', 'PnGaris', 'PnPie', 'Gambar', 'Bank', 'Validator', 'Paket', 'Dokumen',
   'Zip', 'Docx', 'Pdf', 'Xlsx', 'Ekspor', 'Coba', 'AppOjk'];
 
 /** Fungsi yang dijalankan DI DALAM halaman: cari butir menurut id. */
@@ -33,13 +37,14 @@ function cariButir(id) {
 }
 
 async function jalankan(ctx) {
-  var cek = ctx.cek, cetak = ctx.cetak || function () {};
+  var awalan = ctx.awalan || '';
+  var cek = awalan ? function (ok, nama, info) { ctx.cek(ok, awalan + nama, info); } : ctx.cek, cetak = ctx.cetak || function () {};
   var cepat = !!ctx.cepat;
   var exe = Peramban.cariPeramban();
   if (!exe) { cetak('  (dilewati) Chrome/Edge tidak ditemukan; set CHROME_PATH untuk mengujinya'); return { dilewati: true }; }
   if (typeof WebSocket === 'undefined') { cetak('  (dilewati) Node.js ' + process.versions.node + ' tidak punya WebSocket bawaan (perlu 22+)'); return { dilewati: true }; }
 
-  var alamat = url.pathToFileURL(path.join(AKAR, 'index.html')).href;
+  var alamat = ctx.alamat || url.pathToFileURL(path.join(AKAR, 'index.html')).href;
   var p = await Peramban.buka(alamat, { lebar: 1500, tinggi: 1800 });
   await p.ukuran(1500, 1800);
   var ringkas = {};
@@ -57,8 +62,27 @@ async function jalankan(ctx) {
   try {
     // ------------------------------------------------------------ muat
     var hilang = await p.evaluasi('(' + JSON.stringify(GLOBAL_WAJIB) + ').filter(function (n) { return typeof window[n] === "undefined"; })');
-    cek(hilang.length === 0, 'peramban: semua modul termuat via file://', hilang.length ? 'hilang: ' + hilang.join(', ') : '');
+    cek(hilang.length === 0, 'peramban: semua modul termuat via ' + (ctx.alamat ? 'http://' : 'file://'), hilang.length ? 'hilang: ' + hilang.join(', ') : '');
     cek(p.konsol.length === 0, 'peramban: tidak ada galat konsol saat dimuat', p.konsol.join(' | '));
+
+    var garisBaru = await dalam(function () {
+      var gagal = [], wadah = document.createElement('div'); document.body.appendChild(wadah);
+      try {
+        ['garis-bergantian', 'garis-majemuk'].forEach(function (id) {
+          ['mudah', 'sedang', 'sulit'].forEach(function (level) {
+            var b = Variasi.buat(id, level, 2026), k = Coba.pasang(wadah, b);
+            var inputs = wadah.querySelectorAll('input[type="number"]');
+            inputs.forEach(function (input, i) { input.value = b.isian.kunci.nilai[i]; input.dispatchEvent(new Event('change', { bubbles: true })); });
+            if (!k.periksa().benar) gagal.push(id + '/' + level + ': jawaban benar ditolak');
+            inputs[0].value = b.isian.kunci.nilai[0] + b.model.snap; inputs[0].dispatchEvent(new Event('change', { bubbles: true }));
+            if (k.periksa().benar) gagal.push(id + '/' + level + ': jawaban salah diterima');
+            k.ulang(); if (k.ambil().nilai.some(function (v) { return v !== null; })) gagal.push(id + '/' + level + ': reset gagal');
+          });
+        });
+      } finally { wadah.remove(); }
+      return gagal;
+    });
+    cek(garisBaru.length === 0, 'peramban: dua keluarga grafik garis baru, tiga tingkat, isian angka, jawaban salah, dan reset', garisBaru.join('; '));
 
     // masukan tidak sah ditolak
     await p.evaluasi('(async function () { document.getElementById("jumlah").value = 0; await AppOjk.generate(); return 1; })()');
@@ -210,6 +234,9 @@ async function jalankan(ctx) {
     await p.evaluasi('(function () { window.__unduhan = []; Raster.unduhBlob = function (blob, nama) { window.__unduhan.push({ nama: nama, blob: blob }); }; return 1; })()');
     async function tekan(idTombol) {
       await p.evaluasi('document.getElementById("' + idTombol + '").click()');
+      return ambilUnduhan();
+    }
+    async function ambilUnduhan() {
       for (var i = 0; i < 1200 && !(await p.evaluasi('window.__unduhan.length')); i++) await p.tunggu(200);
       var r = await p.evaluasi('(async function () { var u = window.__unduhan.shift(); if (!u) return null; var buf = new Uint8Array(await u.blob.arrayBuffer()); var s = ""; for (var i = 0; i < buf.length; i += 32768) s += String.fromCharCode.apply(null, buf.subarray(i, i + 32768)); return { nama: u.nama, b64: btoa(s) }; })()');
       if (!r) return null;
@@ -224,8 +251,13 @@ async function jalankan(ctx) {
     try { js = f && JSON.parse(f.data.toString('utf8')); } catch (e) { /* diperiksa di bawah */ }
     cek(!!js && js.validator && js.validator.lulus === true && js.paket.length === 2, 'unduh JSON di peramban: terbaca, memuat hasil validator dan 2 paket');
     await p.evaluasi('document.getElementById("pilih-paket").value = "1"; document.getElementById("pilih-paket").dispatchEvent(new Event("change"))');
+    // Word format input SiAdu: satu berkas per subtes, jadi tombol Word memberi dua unduhan
     f = await tekan('btn-docx');
-    try { var d = Berkas.periksaDocx(f.data); cek(d.gambarUnik > 40, 'unduh Word di peramban utuh (jalur kanvas)', JSON.stringify(d)); } catch (e) { cek(false, 'unduh Word di peramban utuh', e.message); }
+    var f2 = await ambilUnduhan();
+    try {
+      var d = Berkas.periksaDocx(f.data), d2 = Berkas.periksaDocx(f2.data);
+      cek(/kemampuan-umum\.docx$/.test(f.nama) && /penalaran-numerik\.docx$/.test(f2.nama) && d.gambarUnik > 20, 'unduh Word di peramban utuh (jalur kanvas): dua berkas input SiAdu per subtes', f.nama + ', ' + f2.nama + ' ' + JSON.stringify(d));
+    } catch (e) { cek(false, 'unduh Word di peramban utuh', e.message); }
     f = await tekan('btn-pdf');
     try { var pd = Berkas.periksaPdf(f.data); cek(pd.halaman > 20, 'unduh PDF di peramban utuh (jalur kanvas)', JSON.stringify(pd)); } catch (e) { cek(false, 'unduh PDF di peramban utuh', e.message); }
     if (!cepat) {
@@ -234,8 +266,14 @@ async function jalankan(ctx) {
         var z = Berkas.bacaZip(f.data), nama = z.map(function (x) { return x.nama; });
         var png = z.filter(function (x) { return /\.png$/.test(x.nama); });
         png.slice(0, 20).forEach(function (x) { Berkas.periksaPng(x.data); });
-        cek(nama.indexOf('soal-ojk-tahap1.xlsx') >= 0 && nama.indexOf('soal-ojk-tahap1.json') >= 0 && nama.indexOf('paket-002/paket-002.pdf') >= 0 && png.length === 132 && nama.indexOf('ringkasan.txt') >= 0,
-          'unduh ZIP di peramban utuh: Excel, JSON, Word, PDF, 132 gambar PNG, ringkasan', nama.length + ' anggota, png=' + png.length);
+        // jumlah gambar = gambar soal, opsi, dan pembahasan yang tercatat di JSON dalam ZIP itu
+        var jsZip = JSON.parse(z.filter(function (x) { return x.nama === 'soal-ojk-tahap1.json'; })[0].data.toString('utf8')), harapPng = {};
+        jsZip.paket.forEach(function (pk) { pk.subtes.forEach(function (st) { st.butir.forEach(function (b) {
+          (b.stimulus.gambar || []).concat(b.gambarPembahasan || [], b.opsi.map(function (o) { return o.gambar; }).filter(Boolean)).forEach(function (g) { harapPng[g.berkas] = true; });
+        }); }); });
+        var jmlPng = Object.keys(harapPng).length;
+        cek(nama.indexOf('soal-ojk-tahap1.xlsx') >= 0 && nama.indexOf('soal-ojk-tahap1.json') >= 0 && nama.indexOf('paket-002/paket-002.pdf') >= 0 && png.length === jmlPng && nama.indexOf('ringkasan.txt') >= 0,
+          'unduh ZIP di peramban utuh: Excel, JSON, Word, PDF, ' + jmlPng + ' gambar PNG, ringkasan', nama.length + ' anggota, png=' + png.length);
       } catch (e) { cek(false, 'unduh ZIP di peramban utuh', e.message); }
     }
     // PNG satu gambar
