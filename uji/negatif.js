@@ -110,6 +110,8 @@ var MUTASI = [
     berlaku: function (b) { return b.jenis === 'pg' && b.submateri === 'figural'; },
     terapkan: function (b) {
       var j = (b.kunci + 1) % b.opsi.length;
+      // opsi teks (mis. nama transformasi): teks dan nilai kunci disalin ke opsi lain
+      if (!b.opsi[b.kunci].gambar) { b.opsi[j].teks = b.opsi[b.kunci].teks; b.opsi[j].nilai = salin(b.opsi[b.kunci].nilai); return; }
       b.opsi[j].gambar = Object.assign({}, b.opsi[j].gambar, { model: salin(b.opsi[b.kunci].gambar.model) });
     }
   },
@@ -556,7 +558,8 @@ var MUTASI = [
     nama: 'figural: gambar pembahasan menampilkan jawaban opsi lain', pasti: true,
     berlaku: function (b) { return b.submateri === 'figural' && (b.gambarPembahasan || []).some(function (d) { return d.model && d.model.jawaban !== undefined; }); },
     terapkan: function (b) {
-      var m = b.opsi[(b.kunci + 1) % b.opsi.length].gambar.model, lain = m.fig || m.cell || m.isi || m.atas;
+      var o = b.opsi[(b.kunci + 1) % b.opsi.length], m = o.gambar ? o.gambar.model : null;
+      var lain = m ? m.fig || m.cell || m.isi || m.atas : o.nilai;
       b.gambarPembahasan.filter(function (d) { return d.model && d.model.jawaban !== undefined; })[0].model.jawaban = salin(lain);
     }
   },

@@ -11,19 +11,34 @@
  *          serial | matriks | sel | serial-putar | figur |
  *          latin | latin-opsi (matriks 5x5), isi | isi-opsi (matriks 5x6),
  *          sekat | sekat-opsi (matriks 2x2 bersekat), ganda | ganda-opsi (deret kotak ganda)
+ *
+ * Keluarga figural tambahan (transformasi, lipat kertas, petak, matriks tumpuk/bentuk) membawa
+ * penggambarnya sendiri di peta `GAMBAR` modulnya: { jenis: function (model, judul) }.
  */
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
     api = factory(require('./chart.js'), require('./figural.js'), require('./serial-putar.js'), require('./matriks-latin.js'), require('./matriks-isi.js'),
-      require('./matriks-sekat.js'), require('./serial-ganda.js'));
+      require('./matriks-sekat.js'), require('./serial-ganda.js'),
+      [require('./transformasi.js'), require('./transformasi-analogi.js'), require('./lipat-kertas.js'), require('./serial-petak.js'),
+        require('./matriks-tumpuk.js'), require('./matriks-bentuk.js')]);
     module.exports = api;
   } else {
-    api = factory(root.Chart, root.Figural, root.SerialPutar, root.MatriksLatin, root.MatriksIsi, root.MatriksSekat, root.SerialGanda);
+    api = factory(root.Chart, root.Figural, root.SerialPutar, root.MatriksLatin, root.MatriksIsi, root.MatriksSekat, root.SerialGanda,
+      [root.Transformasi, root.TransformasiAnalogi, root.LipatKertas, root.SerialPetak, root.MatriksTumpuk, root.MatriksBentuk]);
     root.Gambar = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Chart, Figural, SerialPutar, MatriksLatin, MatriksIsi, MatriksSekat, SerialGanda) {
+})(typeof self !== 'undefined' ? self : this, function (Chart, Figural, SerialPutar, MatriksLatin, MatriksIsi, MatriksSekat, SerialGanda, Tambahan) {
   'use strict';
+
+  /** Penggambar dari modul figural tambahan, menurut jenis gambar. */
+  var GAMBAR_TAMBAHAN = {};
+  Tambahan.forEach(function (mod) {
+    Object.keys((mod && mod.GAMBAR) || {}).forEach(function (jenis) {
+      if (GAMBAR_TAMBAHAN[jenis]) throw new Error('jenis gambar ganda: ' + jenis);
+      GAMBAR_TAMBAHAN[jenis] = mod.GAMBAR[jenis];
+    });
+  });
 
   /** @returns {{svg:string, lebar:number, tinggi:number}} */
   function svg(d) {
@@ -61,7 +76,9 @@
       case 'sekat-gabung': return MatriksSekat.svgGabung(m, d.judul);
       case 'ganda-arti': return SerialGanda.svgArti(m, d.judul);
       case 'ganda-akhir': return SerialGanda.svgAkhir(m, d.judul);
-      default: throw new Error('jenis gambar tidak dikenal: ' + d.jenis);
+      default:
+        if (GAMBAR_TAMBAHAN[d.jenis]) return GAMBAR_TAMBAHAN[d.jenis](m, d.judul);
+        throw new Error('jenis gambar tidak dikenal: ' + d.jenis);
     }
   }
 

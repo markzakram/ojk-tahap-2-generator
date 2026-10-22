@@ -1,5 +1,5 @@
 Generator Soal OJK PCAM Tahap 1 - ringkasan (versi 1.1.0)
-Dibuat       : 2026-10-21 12:06:48 UTC
+Dibuat       : 2026-10-21 14:05:07 UTC
 Benih        : 2026
 Paket        : 2
 Subtes       : ku, pn
@@ -7,7 +7,7 @@ Tingkat      : campur (mudah:sedang:sulit = 3:5:2)
 Komposisi KU : verbal=2, cerita=2, tabel=3, grafik=1, serial=2, matriks=2
 Komposisi PN : bar=3, tabel=3, garis=2, pie=2
 Format       : docx, pdf, xlsx, json
-Gambar PNG   : 145 berkas (skala 2)
+Gambar PNG   : 143 berkas (skala 2)
 Validator    : 44 butir, lulus 44, gagal 0, kembar 0
 
 2 paket, 44 butir, validator lulus 44/44, 0 kembar

@@ -27,14 +27,30 @@
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
-    api = factory(require('./hitung.js'), require('./svgraster.js'), require('./inferensi.js'), require('./figure.js'), require('./gambar.js'));
+    api = factory(require('./hitung.js'), require('./svgraster.js'), require('./inferensi.js'), require('./figure.js'), require('./gambar.js'),
+      [require('./cek-transformasi.js'), require('./cek-transformasi-analogi.js'), require('./cek-lipat-kertas.js'), require('./cek-serial-petak.js'),
+        require('./cek-matriks-tumpuk.js'), require('./cek-matriks-bentuk.js')]);
     module.exports = api;
   } else {
-    api = factory(root.Hitung, root.SvgRaster, root.Inferensi, root.Figure, root.Gambar);
+    api = factory(root.Hitung, root.SvgRaster, root.Inferensi, root.Figure, root.Gambar,
+      [root.CekTransformasi, root.CekTransformasiAnalogi, root.CekLipatKertas, root.CekSerialPetak, root.CekMatriksTumpuk, root.CekMatriksBentuk]);
     root.Validator = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (H, SvgRaster, Inf, Fig, Gambar) {
+})(typeof self !== 'undefined' ? self : this, function (H, SvgRaster, Inf, Fig, Gambar, Pemeriksa) {
   'use strict';
+
+  /**
+   * Pemeriksa figural tambahan (berkas cek-*.js), menurut model.tipe:
+   *   { periksa(b, masalah, alat), sidik(b) -> [teks], batas: banyak bagian berbeda yang masih "nyaris sama" }
+   * Pemeriksa membaca data gambar yang tampil dan menghitung jawabannya sendiri, tanpa memakai kode penyusun.
+   */
+  var CEK = {};
+  Pemeriksa.forEach(function (c) {
+    Object.keys((c && c.TIPE) || {}).forEach(function (t) {
+      if (CEK[t]) throw new Error('pemeriksa figural ganda: ' + t);
+      CEK[t] = c.TIPE[t];
+    });
+  });
 
   var BULAN = ['januari', 'februari', 'maret', 'april', 'mei', 'juni', 'juli', 'agustus', 'september', 'oktober', 'november', 'desember'];
   var HURUF = ['A', 'B', 'C', 'D', 'E'];
@@ -1413,14 +1429,15 @@
   function periksaPembahasanFigural(b, m) {
     var g = b.gambarPembahasan || [];
     if (!g.length) { m.push('pembahasan figural belum memuat gambar tahapan pola'); return; }
-    var teks = (b.pembahasan || []).join('\n'), ko = b.opsi && b.opsi[b.kunci] && b.opsi[b.kunci].gambar ? b.opsi[b.kunci].gambar.model : null;
-    var isiKunci = ko ? (ko.fig || ko.cell || ko.isi || ko.atas || null) : null, jawaban = 0;
+    // opsi kunci bergambar: isi gambarnya; opsi kunci berupa teks (mis. nama transformasi): nilainya
+    var teks = (b.pembahasan || []).join('\n'), ok = b.opsi && b.opsi[b.kunci], ko = ok && ok.gambar ? ok.gambar.model : null;
+    var isiKunci = ko ? (ko.fig || ko.cell || ko.isi || ko.atas || null) : (ok ? ok.nilai : null), jawaban = 0;
     g.forEach(function (d, i) {
       if (d.id !== 'bahas-' + (i + 1)) m.push('gambar pembahasan ke-' + (i + 1) + ' seharusnya ber-id bahas-' + (i + 1));
       if (teks.indexOf('Gambar ' + (i + 1)) < 0) m.push('gambar pembahasan ke-' + (i + 1) + ' tidak disebut di teks pembahasan');
       if (d.model && d.model.jawaban !== undefined) {
         jawaban++;
-        if (!isiKunci || sj(d.model.jawaban) !== sj(isiKunci)) m.push('gambar pembahasan ' + d.id + ' menampilkan jawaban yang berbeda dari gambar opsi kunci');
+        if (isiKunci == null || sj(d.model.jawaban) !== sj(isiKunci)) m.push('gambar pembahasan ' + d.id + ' menampilkan jawaban yang berbeda dari gambar opsi kunci');
       }
     });
     if (!jawaban) m.push('gambar pembahasan figural tidak memperlihatkan penerapan pola pada gambar jawaban');
@@ -1762,7 +1779,8 @@
       else if (b.submateri === 'verbal') periksaVerbal(b, m);
       else if (b.submateri === 'figural') {
         var tipe = b.model.tipe;
-        if (tipe === 'serial-putar') periksaSerialPutar(b, m);
+        if (CEK[tipe]) CEK[tipe].periksa(b, m, ALAT);
+        else if (tipe === 'serial-putar') periksaSerialPutar(b, m);
         else if (tipe === 'matriks-latin') periksaLatin(b, m);
         else if (tipe === 'matriks-isi') periksaIsi(b, m);
         else if (tipe === 'matriks-sekat') periksaSekat(b, m);
@@ -1809,6 +1827,7 @@
 
   function sidikFigural(b) {
     var m = b.model, kunci = m.pilihan ? m.pilihan[m.kunciIndex] : null;
+    if (CEK[m.tipe]) return CEK[m.tipe].sidik(b);
     if (m.tipe === 'serial') return m.sels.map(sidikSel);
     if (m.tipe === 'serial-putar') {
       // bentuk dasar (benihnya) dan seluruh pola perubahan (putar, pindah, jumlah, isi)
@@ -1845,6 +1864,12 @@
 
   var AMBANG_KEMBAR = 0.85;
 
+  /** Alat bersama untuk pemeriksa figural tambahan (CEK). */
+  var ALAT = {
+    HURUF: HURUF, sj: sj, Gambar: Gambar, Fig: Fig,
+    periksaPilihan: periksaPilihan, bacaTampilan: bacaTampilan, tepatSatu: tepatSatu
+  };
+
   /**
    * Sidik sebuah butir untuk pembanding kembar: kunci kelompok, sidik inti, entitas,
    * parameter angka, dan (menurut jenisnya) kumpulan 3-gram teks atau kotak-kotak figural.
@@ -1878,7 +1903,7 @@
       if (!b.figural || a.figural.length !== b.figural.length || a.tipe !== b.tipe) return null;
       var beda = 0;
       for (var c = 0; c < a.figural.length; c++) if (a.figural[c] !== b.figural[c]) beda++;
-      var batas = BATAS_FIGURAL[a.tipe] || 0;
+      var batas = CEK[a.tipe] ? CEK[a.tipe].batas || 0 : BATAS_FIGURAL[a.tipe] || 0;
       return beda <= batas ? { jenis: 'figural', beda: beda } : null;
     }
     var jc = jaccard(a.shingle, b.shingle, ambang);
