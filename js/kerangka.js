@@ -97,7 +97,19 @@
     'matriks-3': 'Figural Matriks - Kotak 3x3',
     'matriks-latin': 'Figural Matriks - Kotak 5x5',
     'matriks-isi': 'Figural Matriks - Kotak 5x6',
-    'matriks-sekat': 'Figural Matriks - Kotak 2x2 Bersekat'
+    'matriks-sekat': 'Figural Matriks - Kotak 2x2 Bersekat',
+    // figural tambahan (pengayaan)
+    'transformasi-cermin': 'Macam-macam Transformasi Figural',
+    'transformasi-putar': 'Macam-macam Transformasi Figural',
+    'transformasi-tebak': 'Macam-macam Transformasi Figural',
+    'transformasi-analogi': 'Macam-macam Transformasi Figural',
+    'transformasi-beda': 'Macam-macam Transformasi Figural',
+    'lipat-lubang': 'Macam-macam Transformasi Figural',
+    'serial-petak': 'Figural Serial - The Next Box',
+    'serial-jarum': 'Figural Serial - The Next Box',
+    'matriks-tumpuk': 'Figural Matriks - Kotak 3x3',
+    'matriks-luar-dalam': 'Figural Matriks - Kotak 3x3',
+    'matriks-jumlah': 'Figural Matriks - Kotak 3x3'
   };
 
   /**

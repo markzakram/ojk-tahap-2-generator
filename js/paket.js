@@ -32,7 +32,7 @@
 })(typeof self !== 'undefined' ? self : this, function (Rng, Bank, Validator, Fmt) {
   'use strict';
 
-  var VERSI = 5;
+  var VERSI = 6;
   var MAKS_PAKET = 500;
   var LEVEL = ['mudah', 'sedang', 'sulit'];
   var PROPORSI_BAKU = { mudah: 3, sedang: 5, sulit: 2 };

@@ -16,15 +16,18 @@
     api = factory(require('./verbal.js'), require('./cerita.js'), require('./tabelku.js'), require('./grafikku.js'),
       require('./figural.js'), require('./serial-putar.js'), require('./serial-ganda.js'),
       require('./matriks-latin.js'), require('./matriks-isi.js'), require('./matriks-sekat.js'),
-      require('./pn-bar.js'), require('./pn-tabel.js'), require('./pn-garis.js'), require('./pn-pie.js'), require('./variasi.js'), require('./kerangka.js'));
+      require('./pn-bar.js'), require('./pn-tabel.js'), require('./pn-garis.js'), require('./pn-pie.js'), require('./variasi.js'), require('./kerangka.js'),
+      [require('./transformasi.js'), require('./transformasi-analogi.js'), require('./lipat-kertas.js'), require('./serial-petak.js'),
+        require('./matriks-tumpuk.js'), require('./matriks-bentuk.js')]);
     module.exports = api;
   } else {
     api = factory(root.Verbal, root.Cerita, root.TabelKu, root.GrafikKu, root.Figural, root.SerialPutar, root.SerialGanda,
-      root.MatriksLatin, root.MatriksIsi, root.MatriksSekat, root.PnBar, root.PnTabel, root.PnGaris, root.PnPie, root.Variasi, root.Kerangka);
+      root.MatriksLatin, root.MatriksIsi, root.MatriksSekat, root.PnBar, root.PnTabel, root.PnGaris, root.PnPie, root.Variasi, root.Kerangka,
+      [root.Transformasi, root.TransformasiAnalogi, root.LipatKertas, root.SerialPetak, root.MatriksTumpuk, root.MatriksBentuk]);
     root.Bank = api;
   }
 })(typeof self !== 'undefined' ? self : this, function (Verbal, Cerita, TabelKu, GrafikKu, Figural, SerialPutar, SerialGanda,
-  MatriksLatin, MatriksIsi, MatriksSekat, PnBar, PnTabel, PnGaris, PnPie, Variasi, Kerangka) {
+  MatriksLatin, MatriksIsi, MatriksSekat, PnBar, PnTabel, PnGaris, PnPie, Variasi, Kerangka, FiguralTambahan) {
   'use strict';
 
   function dari(mod, kel) {
@@ -73,6 +76,12 @@
     if (subtes === 'pn' && kunci === 'tabel') return 'tabel-pn';
     return kunci;
   }
+
+  // keluarga figural tambahan (pengayaan) ikut diundi pada slot serial atau matriks menurut `kolam`-nya,
+  // jadi komposisi paket tidak berubah
+  FiguralTambahan.forEach(function (mod) {
+    mod.KELUARGA.forEach(function (kel) { SUBMATERI[kel.kolam].keluarga.push(dari(mod, kel)); });
+  });
 
   Variasi.KELUARGA.forEach(function (kel) {
     SUBMATERI[kunciSubmateri(kel.subtes, kel.submateri)].keluarga.push(dari(Variasi, kel));

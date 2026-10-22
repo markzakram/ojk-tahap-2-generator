@@ -12,6 +12,8 @@
  *      komposisi, tingkat, dan proporsi kustom dipatuhi.
  *   2c. Regresi revisi QC paket P001 (uji/qc.js): tanpa label/petunjuk verbal, pertanyaan tidak tebal,
  *      tanpa "juta"/"ribu", line graph dapat digeser tepat, kotak pie, tanpa matriks 2x2 biasa, pengecoh nyata.
+ *   2d. Keluarga figural tambahan (uji/figural-baru.js): transformasi, lipat kertas, petak/jarum, matriks
+ *      tumpuk/bentuk/jumlah pada ketiga tingkat; validator, mutasi kunci, gambar, teks, dan butir kembar.
  *   3. Validator NEGATIF: butir yang sengaja dirusak harus ditolak (uji/negatif.js).
  *   4. Logika mode coba interaktif: kunci lolos, tampilan awal tidak.
  *   5. Ekspor: Word, PDF, PNG, Excel, JSON, ZIP diperiksa isinya (uji/berkas.js); Word format input SiAdu
@@ -515,6 +517,8 @@ async function utama() {
     require('./variasi.js').jalankan(cek);
     judul('2c. Revisi QC paket P001: format naskah, nominal, line graph, pie, figural, pengecoh');
     require('./qc.js').jalankan(cek);
+    judul('2d. Keluarga figural tambahan: transformasi, lipat kertas, petak, matriks tumpuk/bentuk');
+    require('./figural-baru.js').jalankan(cek, { n: cepat ? 15 : 40, raster: 1 });
     ujiNegatif();
     ujiCoba();
     await ujiEkspor();
