@@ -1,0 +1,506 @@
+{
+  "CDS-A0": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 300,
+    "percobaanRata": 2.5,
+    "diuji": "2026-11-10"
+  },
+  "CDS-A1": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 300,
+    "percobaanRata": 2.5,
+    "diuji": "2026-11-10"
+  },
+  "CDS-A2": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 300,
+    "percobaanRata": 2.6,
+    "diuji": "2026-11-10"
+  },
+  "CDS-A3": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 300,
+    "percobaanRata": 22.9,
+    "diuji": "2026-11-10"
+  },
+  "CDS-B0": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 286,
+    "percobaanRata": 27,
+    "diuji": "2026-11-10"
+  },
+  "CDS-B1": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 281,
+    "percobaanRata": 27.6,
+    "diuji": "2026-11-10"
+  },
+  "CDS-B2": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 291,
+    "percobaanRata": 25.2,
+    "diuji": "2026-11-10"
+  },
+  "CDS-B3": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 286,
+    "percobaanRata": 27.3,
+    "diuji": "2026-11-10"
+  },
+  "CDS-C0": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 284,
+    "percobaanRata": 124.6,
+    "diuji": "2026-11-10"
+  },
+  "CDS-C1": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 279,
+    "percobaanRata": 120,
+    "diuji": "2026-11-10"
+  },
+  "CDS-C2": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 288,
+    "percobaanRata": 123,
+    "diuji": "2026-11-10"
+  },
+  "CDS-C3": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 283,
+    "percobaanRata": 130.7,
+    "diuji": "2026-11-10"
+  },
+  "DL-AKHIR-AWAL": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 1000,
+    "percobaanRata": 1.3,
+    "diuji": "2026-11-10"
+  },
+  "DL-ARAH": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 241,
+    "percobaanRata": 8.6,
+    "diuji": "2026-11-10"
+  },
+  "DL-ARAH-LEBAR": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 961,
+    "percobaanRata": 1.7,
+    "diuji": "2026-11-10"
+  },
+  "DL-BERTINGKAT": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 559,
+    "percobaanRata": 1.8,
+    "diuji": "2026-11-10"
+  },
+  "DL-BINER": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 14,
+    "percobaanRata": 1,
+    "diuji": "2026-11-10"
+  },
+  "DL-GESER": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 1000,
+    "percobaanRata": 2.2,
+    "diuji": "2026-11-10"
+  },
+  "DL-HITUNG": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 825,
+    "percobaanRata": 1.1,
+    "diuji": "2026-11-10"
+  },
+  "DL-HITUNG-CAMPUR": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 998,
+    "percobaanRata": 1,
+    "diuji": "2026-11-10"
+  },
+  "DL-LUBANG": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 1000,
+    "percobaanRata": 2.3,
+    "diuji": "2026-11-10"
+  },
+  "DL-OPERASI": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 407,
+    "percobaanRata": 1.6,
+    "diuji": "2026-11-10"
+  },
+  "DL-RANTAI": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 1000,
+    "percobaanRata": 1.8,
+    "diuji": "2026-11-10"
+  },
+  "DL-ROTASI": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 1000,
+    "percobaanRata": 1,
+    "diuji": "2026-11-10"
+  },
+  "DL-SELANG": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 879,
+    "percobaanRata": 10.7,
+    "diuji": "2026-11-10"
+  },
+  "DL-SIKLIS": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 1000,
+    "percobaanRata": 2.8,
+    "diuji": "2026-11-10"
+  },
+  "DL-SIMBOL": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 48,
+    "percobaanRata": 1,
+    "diuji": "2026-11-10"
+  },
+  "DL-SISIP": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 1000,
+    "percobaanRata": 1.8,
+    "diuji": "2026-11-10"
+  },
+  "FS-HEX-JALUR": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 823,
+    "percobaanRata": 8.2,
+    "diuji": "2026-11-10"
+  },
+  "FS-HEX-KECEPATAN": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 544,
+    "percobaanRata": 3,
+    "diuji": "2026-11-10"
+  },
+  "FS-HEX-PUTAR-TUKAR": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 994,
+    "percobaanRata": 1.1,
+    "diuji": "2026-11-10"
+  },
+  "FS-HEX-TUKAR": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 830,
+    "percobaanRata": 1.3,
+    "diuji": "2026-11-10"
+  },
+  "FS-PENTA-KOSONG": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 110,
+    "percobaanRata": 1.4,
+    "diuji": "2026-11-10"
+  },
+  "FS-PENTA-LAPIS": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 8,
+    "percobaanRata": 2.3,
+    "diuji": "2026-11-10"
+  },
+  "FS-PENTA-PUSAT": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 465,
+    "percobaanRata": 1.1,
+    "diuji": "2026-11-10"
+  },
+  "FS-PENTA-TIGA": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 18,
+    "percobaanRata": 2,
+    "diuji": "2026-11-10"
+  },
+  "FS-SQ-BERGANTIAN": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 64,
+    "percobaanRata": 3.8,
+    "diuji": "2026-11-10"
+  },
+  "FS-SQ-KECEPATAN": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 845,
+    "percobaanRata": 3.1,
+    "diuji": "2026-11-10"
+  },
+  "FS-SQ-LANGKAH": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 16,
+    "percobaanRata": 3,
+    "diuji": "2026-11-10"
+  },
+  "FS-SQ-LINTAS": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 56,
+    "percobaanRata": 1.2,
+    "diuji": "2026-11-10"
+  },
+  "FS-SQ-PUTAR-TUKAR": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 999,
+    "percobaanRata": 1,
+    "diuji": "2026-11-10"
+  },
+  "FS-SQ-TUKAR": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 992,
+    "percobaanRata": 1.1,
+    "diuji": "2026-11-10"
+  },
+  "FS-TRI-KOSONG": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 168,
+    "percobaanRata": 1,
+    "diuji": "2026-11-10"
+  },
+  "FS-TRI-PANTUL": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 78,
+    "percobaanRata": 1.1,
+    "diuji": "2026-11-10"
+  },
+  "FS-TRI-SIKLUS": {
+    "versi": 1,
+    "seed": 1000,
+    "lolos": 1000,
+    "sidik": 219,
+    "percobaanRata": 1,
+    "diuji": "2026-11-10"
+  },
+  "RA-DURASI": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 27,
+    "percobaanRata": 24.5,
+    "diuji": "2026-11-10"
+  },
+  "RA-KANTOR": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 177,
+    "percobaanRata": 21.6,
+    "diuji": "2026-11-10"
+  },
+  "RA-SAMA-BEDA": {
+    "versi": 2,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 25,
+    "percobaanRata": 1.9,
+    "diuji": "2026-11-10"
+  },
+  "TL-PETUGAS": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 65,
+    "percobaanRata": 1.3,
+    "diuji": "2026-11-10"
+  },
+  "TL-PETUGAS-AMBANG": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 70,
+    "percobaanRata": 10.5,
+    "diuji": "2026-11-10"
+  },
+  "TL-PETUGAS-BEBAS": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 300,
+    "percobaanRata": 31.4,
+    "diuji": "2026-11-10"
+  },
+  "TL-RAPAT": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 300,
+    "percobaanRata": 3.6,
+    "diuji": "2026-11-10"
+  },
+  "TL-RAPAT-AKHIR": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 300,
+    "percobaanRata": 3.4,
+    "diuji": "2026-11-10"
+  },
+  "TL-RAPAT-PANJANG": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 300,
+    "percobaanRata": 1.4,
+    "diuji": "2026-11-10"
+  },
+  "TL-RUANG": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 300,
+    "percobaanRata": 8.1,
+    "diuji": "2026-11-10"
+  },
+  "TS-D1": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 253,
+    "percobaanRata": 1.5,
+    "diuji": "2026-11-10"
+  },
+  "TS-D2": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 293,
+    "percobaanRata": 1,
+    "diuji": "2026-11-10"
+  },
+  "TS-D3": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 152,
+    "percobaanRata": 1,
+    "diuji": "2026-11-10"
+  },
+  "TS-D4": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 207,
+    "percobaanRata": 1,
+    "diuji": "2026-11-10"
+  },
+  "TS-D5": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 126,
+    "percobaanRata": 1,
+    "diuji": "2026-11-10"
+  },
+  "TS-P1": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 221,
+    "percobaanRata": 1,
+    "diuji": "2026-11-10"
+  },
+  "TS-P2": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 269,
+    "percobaanRata": 1,
+    "diuji": "2026-11-10"
+  },
+  "TS-P3": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 229,
+    "percobaanRata": 2.1,
+    "diuji": "2026-11-10"
+  }
+}
