@@ -3,7 +3,7 @@ import { JUMLAH_LATSOL, JUMLAH_TRYOUT, NAMA_SUBTES } from '@/lib/data/chapters';
 import { hitungRingkasan, type BarisChapter, type StatusChapter } from '@/lib/data/ringkasan';
 import KepalaApp from './KepalaApp';
 
-// Desain C · Dashboard bank soal. Semua angka dihitung dari Mapping (lib/data/chapters.ts), daftar family (registry),
+// Ringkasan bank soal bergaya generator Tahap 1. Semua angka dihitung dari Mapping (lib/data/chapters.ts), daftar family (registry),
 // dan hasil `npm run verify` terakhir (lib/data/kapasitas.json).
 
 const angka = (n: number) => n.toLocaleString('id-ID');
@@ -34,14 +34,14 @@ export default function Ringkasan() {
 
   return (
     <>
-      <KepalaApp aktif="ringkasan" kanan={<span>{r.diujiTerakhir ? `Kapasitas diuji ${r.diujiTerakhir}` : 'Kapasitas belum diuji'}</span>} />
+      <KepalaApp aktif="ringkasan" kanan={r.diujiTerakhir ? `Kapasitas diuji ${r.diujiTerakhir}` : 'Kapasitas belum diuji'} />
       <main className="dasbor">
         <div className="dasbor-kepala">
           <div>
             <h1>Bank soal TKU</h1>
             <p>{JUMLAH_TRYOUT} tryout dan {JUMLAH_LATSOL} latsol untuk empat subtes, disusun dari family yang lolos verifikasi.</p>
           </div>
-          <Link className="btn utama" href="/studio">Buka studio</Link>
+          <Link className="tombol primary" href="/studio">Buka studio</Link>
         </div>
 
         <div className="metrik-grid">

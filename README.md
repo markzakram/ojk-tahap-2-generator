@@ -4,20 +4,34 @@ Generator soal Tes Kemampuan Umum (TKU) Tahap 2 PCAM 10 OJK 2026. Bahan riset, b
 
 ```bash
 npm install
-npm run dev -- -p 3100      # Ringkasan di http://localhost:3100, Studio di /studio
+npm run dev -- -p 3100      # Ringkasan di http://localhost:3100, Studio di /studio, Tahap 1 di /tahap-1
 npm run verify              # 300 seed per family; `npm run verify -- 1000 FS-` untuk family tertentu
 npm run generate            # daftar family
 npm run generate -- CDS-A0 abc123   # cetak satu soal + kunci + pembahasan
 ```
 
-Tampilan mengikuti desain "C + A" dari kanvas [Desain TKU Studio](https://claude.ai/artifact/EBoaLFiR6rhc52gZbg2MDW):
+Tampilan mengikuti generator Tahap 1 (`tahap-1/css/style.css`): bilah atas 50 px dengan judul, tab **Tahap 1 | Tahap 2**, menu halaman, dan *Cara pakai*; latar terang, panel putih bertepi tipis, huruf sistem (Segoe UI), dan aksen biru yang sama.
 - **Ringkasan (`/`)**: berisi
   - target 1.440 soal dan jumlah soal yang sudah punya generator;
   - kebutuhan per subtes dan kapasitas per chapter;
   - slot paket dan daftar hal yang perlu diputuskan.
 
   Semua angka dihitung dari Mapping, daftar family, dan [`lib/data/kapasitas.json`](lib/data/kapasitas.json). Berkas itu ditulis otomatis oleh `npm run verify` dan digabung per family; hasil untuk versi family yang lama diabaikan.
-- **Studio (`/studio?f=…&s=…`)**: sidebar per chapter yang bisa dicari, soal interaktif, serta panel kunci, pembahasan, dan kapasitas di sampingnya.
+- **Studio (`/studio?f=…&s=…`)**: satu layar tiga panel seperti Tahap 1. Panel kiri berisi langkah 1, pilih family dari daftar chapter yang bisa dicari. Panel tengah berisi langkah 2, seed, lalu soal interaktif. Panel kanan berisi langkah 3, kunci dan pembahasan, serta langkah 4, kapasitas family.
+
+## Situs gabungan dengan Tahap 1
+
+Folder [`tahap-1/`](tahap-1/) adalah generator Tahap 1 (Tes Potensi Dasar) yang dimasukkan lewat `git subtree`; pengembangannya tetap di repo/folder Tahap 1. Situs ini melayani halamannya di **`/tahap-1`** (dialihkan ke `/tahap-1/index.html`), jadi satu proyek Vercel memuat kedua tahap.
+
+- `npm run dev` dan `npm run build` (juga build Vercel) lebih dulu menjalankan [`scripts/salin-tahap-1.mjs`](scripts/salin-tahap-1.mjs), yang menyalin `index.html`, `css/`, `js/`, dan aset gambar Badges dari `tahap-1/` ke `public/tahap-1/`. Folder itu dibuat ulang setiap kali dan tidak masuk git. CLI, uji, dan contoh keluaran Tahap 1 tidak ikut disalin.
+- Di salinan itu `js/situs.js` diberi alamat kedua tahap, sehingga bilah atas Tahap 1 juga menampilkan tab **Tahap 1 | Tahap 2**. Bila dibuka sendiri (folder Tahap 1, `cli/buka.js`, Portal), tab itu tidak tampil.
+- Memperbarui Tahap 1 dari foldernya (setelah perubahan di sana di-commit):
+
+  ```bash
+  git subtree pull --prefix=tahap-1 "/g/Ali/code/Tes OJK Generator/Tahap 1" main -m "Perbarui tahap-1"
+  ```
+
+- Ekspor untuk Portal lokal (`TKU_PORTAL=1`, lihat `next.config.mjs`) tidak menyalin Tahap 1, karena Portal melayani Tahap 1 langsung dari foldernya. Di dalam bingkai Portal, tab antartahap disembunyikan karena Portal sudah punya tabnya sendiri.
 
 ## Konsep: family + seed
 

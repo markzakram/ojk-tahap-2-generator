@@ -4,3 +4,5 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+# salinan halaman Tahap 1 (scripts/salin-tahap-1.mjs)
+/public/tahap-1/
