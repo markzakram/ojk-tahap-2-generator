@@ -1,5 +1,6 @@
 // Verifikasi seluruh family: `npm run verify` (default 300 seed per family), `npm run verify -- 1000`,
-// atau hanya family berawalan tertentu: `npm run verify -- 300 FS-`.
+// atau hanya family berawalan tertentu: `npm run verify -- 300 FS-`. Tambahkan `--tanpa-simpan` agar kapasitas.json tidak
+// ditulis (mis. saat beberapa orang/agen menguji family berbeda bersamaan).
 // Yang diperiksa per seed:
 //  1. soal berhasil dibangkitkan;
 //  2. deterministik — seed yang sama dibangkitkan dua kali menghasilkan JSON identik;
@@ -15,8 +16,10 @@ import type { CatatanKapasitas } from '../lib/data/kapasitas';
 const BERKAS_KAPASITAS = 'lib/data/kapasitas.json';
 const kapasitas: Record<string, CatatanKapasitas> = existsSync(BERKAS_KAPASITAS) ? JSON.parse(readFileSync(BERKAS_KAPASITAS, 'utf8')) : {};
 
-const N = Number(process.argv[2] ?? 300);
-const AWALAN = process.argv[3] ?? '';
+const argumen = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const TANPA_SIMPAN = process.argv.includes('--tanpa-simpan');
+const N = Number(argumen[0] ?? 300);
+const AWALAN = argumen[1] ?? '';
 const DIPERIKSA = FAMILIES.filter((f) => f.id.startsWith(AWALAN));
 let gagalTotal = 0;
 const baris: string[] = [];
@@ -68,7 +71,10 @@ for (const f of DIPERIKSA) {
 console.log(`Verifikasi ${DIPERIKSA.length} family × ${N} seed\n`);
 console.log(baris.join('\n'));
 console.log(gagalTotal ? `\n✗ ${gagalTotal} masalah ditemukan` : '\n✓ Semua family lolos');
-const urut = Object.fromEntries(Object.keys(kapasitas).sort().map((k) => [k, kapasitas[k]]));
-writeFileSync(BERKAS_KAPASITAS, JSON.stringify(urut, null, 2) + '\n');
-console.log(`Kapasitas disimpan ke ${BERKAS_KAPASITAS}`);
+if (TANPA_SIMPAN) console.log('Kapasitas tidak disimpan (--tanpa-simpan)');
+else {
+  const urut = Object.fromEntries(Object.keys(kapasitas).sort().map((k) => [k, kapasitas[k]]));
+  writeFileSync(BERKAS_KAPASITAS, JSON.stringify(urut, null, 2) + '\n');
+  console.log(`Kapasitas disimpan ke ${BERKAS_KAPASITAS}`);
+}
 process.exit(gagalTotal ? 1 : 0);

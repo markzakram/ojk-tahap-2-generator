@@ -57,6 +57,25 @@ Folder [`tahap-1/`](tahap-1/) adalah generator Tahap 1 (Tes Potensi Dasar) yang 
 3. Jalankan `npm run verify`; semua seed harus lolos, deterministik, dan lulus kontrol negatif.
 4. Bila tipe interaksinya baru, tambahkan komponen di `components/` dan cabangnya di `components/Studio.tsx`.
 
+## Bahasa Inggris
+
+Empat bentuk non-reading dari [Blueprint Bahasa Inggris](bahan/Blueprint%20Bahasa%20Inggris.md) (sama dengan versi Google Drive) ada di `lib/bahasa-inggris/`: soal pilihan ganda teks (bentuk SIADU *Option New*) yang ditampilkan `components/PilihanGandaSoal.tsx`.
+
+| Bentuk | Opsi | Isi |
+|---|---|---|
+| Sentence Completion | 4 (A–D) | 1 kalimat, 1 bagian kosong satu kata; opsi sekelas dan seinfleksi |
+| Sentence Improvement | 5; E = *No improvement needed* | rentang bercetak miring; E menjadi kunci hanya bila kalimat awal benar (sekitar 18%) |
+| Grammatically Correct Sentence | 5 (A–E) | lima kalimat lengkap, tepat satu benar; setiap kalimat salah memuat 1–2 kesalahan yang bisa ditunjuk |
+| Sentence Arrangement | 4 urutan (A–D) | 5 fragmen berlabel A–E; ke-120 urutan diuji, tepat satu membentuk kalimat sah |
+
+- **Label**: SHL = pola yang *teramati* pada contoh riset (makna/kolokasi, gerund setelah preposisi, agreement + preposisi waktu, susunan frasa); VARIASI = *perluasan berbasis buku* (Azar & Hagen, edisi 5).
+- **Solver** tiap tipe menilai SETIAP opsi sendiri, bukan membaca kunci pembangun. Completion makna memakai matriks keterterimaan yang dikurasi: kata sasaran, petunjuk yang terlihat, sinonim yang diterima (tidak pernah jadi pengecoh), dan kata yang ditolak beserta alasannya. Bentuk kata, tense, dan penghubung dicek dengan aturan dan leksikon fitur. Improvement mengurai bentuk verb setiap opsi lalu menerapkan aturan posisi (setelah preposisi, setelah verb tertentu, rangkaian paralel, agreement, penanda waktu). Correct Sentence menilai kelima kalimat dari anotasi (inti subjek, rangkaian verb, peran subjek, keterangan waktu). Arrangement memakai tata bahasa bebas konteks (parser Earley) yang sengaja longgar agar urutan alternatif tertangkap.
+- **Pemeriksaan format**: tidak ada opsi kembar, artikel *a/an* tidak membocorkan kunci, panjang kalimat sesuai tingkat, kunci tidak dapat ditebak dari bentuk opsi, dan ejaan BrE/AmE tidak pernah menjadi pembeda.
+- **Pembahasan** mengikuti format blueprint bagian 10: Jawaban, Konsep, Kata Kunci, alasan, alasan setiap opsi salah, dan Cara Cepat.
+- **Tingkat** Dasar/Menengah/Menantang (blueprint bagian 9) tersimpan di tiap soal untuk perakit paket.
+- Contoh blueprint dan contoh dokumen tim (Drive) dipakai sebagai uji emas. Contoh adjective blueprint §3 (*a ___* dengan opsi *excessive*) ditolak pemeriksa karena *a/an* membocorkan kunci, jadi bank memakai pengecoh lain. Isi bank tetap perlu ditelaah sampel oleh pengajar atau penutur asli, terutama matriks makna Sentence Completion.
+- Reading Comprehension belum dibuat. Blueprint sengaja tidak mencakupnya; bahan contoh ada di folder Drive "Gambaran Tes OJK SHL" dan arsip 2025.
+
 ## Status
 
 Angka dalam kurung = sidik struktur unik per 300 seed untuk Deduktif dan per 1.000 seed untuk Induktif (`npm run verify -- 1000 FS-`). Angka kecil yang sama pada 300 dan 1.000 seed berarti family itu sudah jenuh: itulah seluruh struktur yang mungkin.
@@ -76,7 +95,11 @@ Angka dalam kurung = sidik struktur unik per 300 seed untuk Deduktif dan per 1.0
 | Drag the Line - 3 Character | DL-SIMBOL O/X bergiliran (SHL, 48), DL-RANTAI satu karakter sama (SHL, 1000), DL-GESER selisih menggeser alfabet (SHL, 1000); DL-AKHIR-AWAL, DL-BINER (VARIASI) |
 | Drag the Line - 4 Character | DL-LUBANG ruang tertutup huruf (SHL, 1000); DL-SIKLIS hipotesis hlm. 17, DL-ROTASI (VARIASI) |
 | Drag the Line - Special Character | DL-HITUNG rantai × ÷ (SHL, 825), DL-ARAH simbol arah (SHL, 241); DL-ARAH-LEBAR, DL-HITUNG-CAMPUR (VARIASI) |
-| Bahasa Inggris | belum dibuat — lihat `bahan/00 - Ringkasan Bahan.md` §3 |
+| Sentence Completion | SC-ADJ adjective dalam konteks (SHL, 23), SC-NOUN noun + tujuan/kolokasi (SHL, 20), SC-VERB verb + preposisi/kolokasi (SHL, 21); SC-BENTUK bentuk kata, SC-VERBA tense/passive/agreement, SC-KONEKTOR penghubung (VARIASI) |
+| Sentence Improvement | SI-GER-PREP gerund setelah preposisi (SHL, 78), SI-GER-TO to sebagai preposisi (SHL, 47); SI-KOMPLEMEN, SI-PARALEL, SI-AGREEMENT, SI-TENSE (VARIASI) |
+| Grammatically Correct Sentence | GCS-SVA-WAKTU agreement + preposisi waktu (SHL, 66), GCS-WAKTU (SHL, 14); GCS-MODAL-PASIF, GCS-NOUN-CLAUSE, GCS-KUANTIFIER, GCS-PRONOMINA (VARIASI) |
+| Sentence Arrangement | SA-FRASA noun phrase dan complement (SHL, 12); SA-KLAUSA noun clause, SA-INFINITIF verb + infinitive (VARIASI) |
+| Reading Comprehension | belum dibuat — belum ada blueprint |
 
 Catatan tafsir yang dikunci di kode dan ditulis eksplisit di soal: CDS-C memakai jadwal mulai tanggal 1, setiap sesi dimulai pada hari kerja paling awal yang memungkinkan, tanggal larangan tetap hari kerja (ikut terhitung dalam jeda) — kunci sumber hlm. 21–22 tidak diterbitkan ulang; TL-RUANG memakai pembongkaran 30/60 menit (sumber 45 menit tidak muat di grid 30 menit); TL-PETUGAS menjadwalkan tim jawaban hanya saat kurang dengan total minimum; "semua kegiatan sedini mungkin" (TS-P3) = susunan yang tidak dapat dipercepat tanpa memperlambat kegiatan lain (Pareto); "Ruang Pertemuan hanya jika tidak ada ruang biasa yang memenuhi" (RA-KANTOR) dinilai setelah semua ketentuan lain, per orang, tanpa bergantung urutan seret.
 

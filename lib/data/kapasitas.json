@@ -359,6 +359,54 @@
     "percobaanRata": 1,
     "diuji": "2026-11-10"
   },
+  "GCS-KUANTIFIER": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 7,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "GCS-MODAL-PASIF": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 14,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "GCS-NOUN-CLAUSE": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 10,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "GCS-PRONOMINA": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 6,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "GCS-SVA-WAKTU": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 66,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "GCS-WAKTU": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 14,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
   "RA-DURASI": {
     "versi": 1,
     "seed": 300,
@@ -382,6 +430,126 @@
     "sidik": 25,
     "percobaanRata": 1.9,
     "diuji": "2026-11-10"
+  },
+  "SA-FRASA": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 12,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "SA-INFINITIF": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 12,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "SA-KLAUSA": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 12,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "SC-ADJ": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 23,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "SC-BENTUK": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 23,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "SC-KONEKTOR": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 14,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "SC-NOUN": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 20,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "SC-VERB": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 21,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "SC-VERBA": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 19,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "SI-AGREEMENT": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 32,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "SI-GER-PREP": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 78,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "SI-GER-TO": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 47,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "SI-KOMPLEMEN": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 82,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "SI-PARALEL": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 53,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
+  },
+  "SI-TENSE": {
+    "versi": 1,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 28,
+    "percobaanRata": 1,
+    "diuji": "2026-11-16"
   },
   "TL-PETUGAS": {
     "versi": 1,

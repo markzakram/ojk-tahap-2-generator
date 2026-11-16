@@ -12,11 +12,13 @@ import type { TimelineItem } from '@/lib/deduktif/timeline/model';
 import type { Susunan, TimeslotItem } from '@/lib/deduktif/timeslot/model';
 import type { DragLineItem } from '@/lib/induktif/drag-line/pola';
 import type { Frame } from '@/lib/induktif/fill-shape/geometri';
+import type { PilihanGandaItem } from '@/lib/bahasa-inggris/model';
 import type { FillShapeItem } from '@/lib/induktif/fill-shape/pola';
 import CalendarSoal from './CalendarSoal';
 import DragLineSoal from './DragLineSoal';
 import FillShapeSoal from './FillShapeSoal';
 import KepalaApp from './KepalaApp';
+import PilihanGandaSoal from './PilihanGandaSoal';
 import RoomSoal from './RoomSoal';
 import TimelineSoal from './TimelineSoal';
 import TimeslotSoal from './TimeslotSoal';
@@ -165,6 +167,7 @@ export default function Studio() {
                 {jenis === 'timeline' && <TimelineSoal key={hasil.soal.uid} item={hasil.soal.item as TimelineItem} kunci={hasil.soal.jawaban as number[]} tampilKunci={tampilKunci} />}
                 {jenis === 'timeslot' && <TimeslotSoal key={hasil.soal.uid} item={hasil.soal.item as TimeslotItem} kunci={hasil.soal.jawaban as Susunan} tampilKunci={tampilKunci} />}
                 {jenis === 'room-allocation' && <RoomSoal key={hasil.soal.uid} item={hasil.soal.item as RoomItem} kunci={hasil.soal.jawaban as Alokasi} tampilKunci={tampilKunci} />}
+                {jenis === 'pilihan-ganda' && <PilihanGandaSoal key={hasil.soal.uid} item={hasil.soal.item as PilihanGandaItem} kunci={hasil.soal.jawaban as string} tampilKunci={tampilKunci} />}
               </div>
             )}
           </div>
@@ -176,7 +179,12 @@ export default function Studio() {
           {'galat' in hasil ? <p className="hint">Soal gagal dibangun untuk seed ini.</p> : tampilKunci ? (
             <div className="kunci-blok">
               <p className="kunci-teks">{hasil.soal.pembahasan.jawaban}</p>
+              {hasil.soal.pembahasan.konsep && <div><b className="subjudul">Konsep</b>{hasil.soal.pembahasan.konsep}</div>}
+              {hasil.soal.pembahasan.kataKunci && <div><b className="subjudul">Kata kunci</b>{hasil.soal.pembahasan.kataKunci}</div>}
               <ol>{hasil.soal.pembahasan.langkah.map((l, i) => <li key={i}>{l.teks}</li>)}</ol>
+              {hasil.soal.pembahasan.opsiSalah && (
+                <div><b className="subjudul">Alasan opsi salah</b><ul className="opsi-salah">{hasil.soal.pembahasan.opsiSalah.map((t) => <li key={t}>{t}</li>)}</ul></div>
+              )}
               {hasil.soal.pembahasan.caraCepat && <div className="cepat"><b>Cara cepat:</b> {hasil.soal.pembahasan.caraCepat}</div>}
               <div className="sidik">Lolos pada percobaan ke-{hasil.soal.percobaan + 1} · sidik {hasil.soal.sidik}</div>
             </div>

@@ -2,6 +2,7 @@
 // Tanpa argumen: tampilkan daftar family.
 import { bangkitkan } from '../lib/core/engine';
 import { FAMILIES, familyById } from '../lib/core/registry';
+import type { PilihanGandaItem } from '../lib/bahasa-inggris/model';
 
 const [id, seed = 'contoh', ...sisa] = process.argv.slice(2);
 if (!id) {
@@ -19,6 +20,24 @@ if (sisa.includes('--json')) {
   if (it.jenis === 'drag-line') console.log(`Simpul: ${it.simpul!.map((s) => s.kode).join('  ')}
 Awalan: ${it.awalan!.map((id) => it.simpul!.find((s) => s.id === id)!.kode).join(' → ')}`);
   if (it.jenis === 'fill-shape') it.frame!.forEach((f, t) => console.log(`G${t + 1} ${f.map((w) => 'WHU'[w]).join('')}`));
+  if (it.jenis === 'pilihan-ganda') {
+    const pg = soal.item as PilihanGandaItem;
+    console.log(`[${pg.tingkat} · ${pg.kaidah} · ${pg.konteks}] ${pg.instruksi}`);
+    if (pg.stimulus.length) console.log(pg.stimulus.map((p) => (p.gaya === 'kosong' ? '_____' : p.gaya === 'miring' ? `*${p.teks}*` : p.teks)).join(''));
+    for (const f of pg.fragmen ?? []) console.log(`  [${f.label}] ${f.teks}`);
+    for (const o of pg.opsi) console.log(`  ${o.label}. ${o.teks}`);
+    const pb = soal.pembahasan;
+    console.log(`
+Jawaban: ${pb.jawaban}`);
+    if (pb.konsep) console.log(`Konsep: ${pb.konsep}`);
+    if (pb.kataKunci) console.log(`Kata kunci: ${pb.kataKunci}`);
+    pb.langkah.forEach((l) => console.log(`  ${l.teks}`));
+    if (pb.opsiSalah) { console.log('Alasan opsi salah:'); pb.opsiSalah.forEach((t) => console.log(`  ${t}`)); }
+    if (pb.caraCepat) console.log(`Cara cepat: ${pb.caraCepat}`);
+    console.log(`
+Sidik: ${soal.sidik}`);
+    process.exit(0);
+  }
   if (item.judul) console.log(`# ${item.judul}`);
   for (const s of [...(item.instruksi ?? []), ...(item.paragraf ?? [])]) console.log(s);
   if (item.pertanyaan) console.log(item.pertanyaan);

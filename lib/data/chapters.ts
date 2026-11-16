@@ -27,10 +27,10 @@ export const CHAPTERS: ChapterMapping[] = [
   { id: 'badges', subtes: 'deduktif', nama: 'Badges', bentuk: 'Logical Ranking', perTryout: 3, perLatsol: 10, siadu: '3309', catatan: 'Belum ada blueprint' },
   { id: 'timeslot-scheduling', subtes: 'deduktif', nama: 'Timeslot Scheduling', bentuk: 'Timeslot Scheduling', perTryout: 2, perLatsol: 10, siadu: '3412' },
   // Tes Bahasa Inggris — 12 soal, 15 menit (urutan chapter tetap, soal diacak, kecuali Reading)
-  { id: 'sentence-completion', subtes: 'bahasa-inggris', nama: 'Sentence Completion - 4 Option', bentuk: 'Option New', perTryout: 4, perLatsol: 3, siadu: '3405', catatan: 'Menyusul' },
-  { id: 'sentence-improvement', subtes: 'bahasa-inggris', nama: 'Sentence Improvement', bentuk: 'Option New', perTryout: 2, perLatsol: 2, siadu: '3406', catatan: 'Menyusul' },
-  { id: 'grammatically-correct-sentence', subtes: 'bahasa-inggris', nama: 'Grammatically Correct Sentence', bentuk: 'Option New', perTryout: 1, perLatsol: 1, siadu: '3407', catatan: 'Menyusul' },
-  { id: 'sentence-arrangement', subtes: 'bahasa-inggris', nama: 'Sentence Arrangement - 4 Option', bentuk: 'Option New', perTryout: 1, perLatsol: 1, siadu: '3408', catatan: 'Menyusul' },
+  { id: 'sentence-completion', subtes: 'bahasa-inggris', nama: 'Sentence Completion - 4 Option', bentuk: 'Option New', perTryout: 4, perLatsol: 3, siadu: '3405' },
+  { id: 'sentence-improvement', subtes: 'bahasa-inggris', nama: 'Sentence Improvement', bentuk: 'Option New', perTryout: 2, perLatsol: 2, siadu: '3406' },
+  { id: 'grammatically-correct-sentence', subtes: 'bahasa-inggris', nama: 'Grammatically Correct Sentence', bentuk: 'Option New', perTryout: 1, perLatsol: 1, siadu: '3407' },
+  { id: 'sentence-arrangement', subtes: 'bahasa-inggris', nama: 'Sentence Arrangement - 4 Option', bentuk: 'Option New', perTryout: 1, perLatsol: 1, siadu: '3408' },
   { id: 'reading-comprehension', subtes: 'bahasa-inggris', nama: 'Reading Comprehension - 4 Option', bentuk: 'Option New', perTryout: 4, perLatsol: 3, siadu: '3220', catatan: 'Belum ada blueprint' },
 ];
 

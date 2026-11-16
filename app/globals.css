@@ -320,6 +320,28 @@ input[type="text"], input[type="search"], input:not([type]), select, textarea {
 .dl-mata.kunci { fill: var(--pilih); }
 .dl-nomor { font-size: 0.22px; fill: var(--pilih); font-weight: 700; }
 
+/* ---------- isi soal: pilihan ganda Bahasa Inggris (gaya opsi Tahap 1) ---------- */
+.pg-instruksi { margin: 0 0 8px; color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pg-tingkat { font-style: normal; font-size: 11px; padding: 1px 8px; border-radius: 99px; background: #eef1f7; color: var(--muted); }
+.pg-kalimat { font-size: 15px; line-height: 1.7; margin: 4px 0 12px; }
+.pg-kosong { display: inline-block; min-width: 5.5em; border-bottom: 2px solid var(--text); margin: 0 2px; vertical-align: -2px; }
+.pg-miring { font-style: italic; text-decoration: underline; text-decoration-color: var(--primer); text-underline-offset: 3px; }
+.pg-fragmen { display: grid; gap: 6px; margin: 4px 0 14px; }
+.pg-fragmen-item { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px; border: 1px dashed var(--line-2); border-radius: 7px; background: var(--panel-2); font-size: 14px; }
+.pg-fragmen-item b { flex: none; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 4px; background: var(--text); color: #fff; font-size: 12px; }
+.opsi-daftar { display: grid; gap: 5px; margin: 8px 0 2px; }
+.opsi { display: flex; align-items: center; gap: 8px; text-align: left; padding: 6px 9px; width: 100%; font-size: 14px; }
+.opsi .huruf { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: #eef1f7; font-weight: 700; font-size: 12px; }
+.opsi.dipilih { border-color: var(--primer); background: var(--primer-soft); }
+.opsi.dipilih .huruf { background: var(--primer); color: #fff; }
+.opsi.benar { background: var(--ok-soft); border-color: #9ad9c2; }
+.opsi.benar .huruf { background: var(--ok); color: #fff; }
+.opsi.salah { background: var(--bad-soft); border-color: #f0b4ae; }
+.opsi.salah .huruf { background: var(--bad); color: #fff; }
+.opsi.kunci-benar { box-shadow: inset 4px 0 0 var(--ok); }
+.kunci-blok .opsi-salah { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; }
+.kunci-blok b.subjudul { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+
 /* ---------- Ringkasan bank soal ---------- */
 .dasbor { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
 .dasbor-kepala {

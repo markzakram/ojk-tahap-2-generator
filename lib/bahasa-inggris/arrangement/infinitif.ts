@@ -1,0 +1,187 @@
+import { buatFamily, type Kerangka } from './family';
+
+// VARIASI — perluasan berbasis buku (blueprint bagian 6, "Contoh Arrangement — verb dan infinitive (perluasan)"; bagian 7
+// baris "Gerund/infinitive"; Azar 14-2–14-6, 14-10–14-12, bab 15). Pola verb + to-infinitive, verb + objek + to-infinitive,
+// passive + infinitive, dan verb + gerund. Sambungan dikunci verb–to, objek–to, dan to–bentuk dasar beserta objeknya.
+
+const KERANGKA: Kerangka[] = [
+  {
+    id: 'requires-to', tingkat: 'menengah', kaidah: 'verb-objek-infinitive', konteks: 'kebijakan dan kepatuhan',
+    fragmen: ['The revised policy', 'requires all', 'employees to submit', 'their monthly', 'expense claims'],
+    fungsi: ['subjek', 'predikat + determiner objek', 'noun inti objek + to-infinitive', 'determiner + adjective objek submit', 'noun inti objek submit'],
+    kait: [
+      'subjek tunggal The revised policy cocok dengan requires',
+      'determiner all memerlukan noun jamak employees, yang menjadi objek requires sebelum to submit',
+      'submit memerlukan objek yang diawali their monthly',
+      'their monthly masih memerlukan noun inti expense claims',
+    ],
+    konsep: 'Urutan verb, objek, dan infinitive',
+    kataKunci: 'requires all, employees to submit, their monthly',
+    caraCepat: 'Pasangkan requires all dengan employees to submit, lalu cari objek setelah submit.',
+  },
+  {
+    id: 'decided-to', tingkat: 'dasar', kaidah: 'verb-infinitive', konteks: 'kantor dan proyek',
+    fragmen: ['The director', 'decided to', 'postpone the', 'opening of the', 'new branch office'],
+    fungsi: ['subjek', 'verb utama + to', 'bentuk dasar + determiner objek', 'noun inti objek + preposisi of + determiner', 'noun phrase objek of'],
+    kait: [
+      'The director adalah subjek dan decided adalah verb utamanya',
+      'to pada decided to memerlukan bentuk dasar postpone',
+      'determiner the memerlukan noun opening',
+      'the memerlukan noun phrase new branch office',
+    ],
+    konsep: 'Verb + to-infinitive',
+    kataKunci: 'decided to, postpone the, opening of the',
+    caraCepat: 'Ingat decide + to + V1, lalu lengkapi objek postpone dengan frasa of.',
+  },
+  {
+    id: 'asked-to-collect', tingkat: 'menengah', kaidah: 'verb-objek-infinitive', konteks: 'pendidikan dan pelatihan',
+    fragmen: ['The principal', 'asked all class', 'teachers to collect', 'the signed', 'permission forms'],
+    fungsi: ['subjek', 'verb + determiner + pewatas objek', 'noun inti objek + to-infinitive', 'determiner + participle objek collect', 'noun inti objek collect'],
+    kait: [
+      'The principal adalah subjek dan asked adalah verb utamanya',
+      'all class memerlukan noun inti teachers, yang menjadi objek asked sebelum to collect',
+      'collect memerlukan objek yang diawali the signed',
+      'the signed masih memerlukan noun inti permission forms',
+    ],
+    konsep: 'Pola ask + objek + to-infinitive',
+    kataKunci: 'asked all class teachers, to collect, the signed',
+    caraCepat: 'Pola ask someone to do something: orang yang diminta berada di antara asked dan to.',
+  },
+  {
+    id: 'allows-to', tingkat: 'dasar', kaidah: 'verb-objek-infinitive', konteks: 'teknologi',
+    fragmen: ['The new mobile application', 'allows residents to', 'report broken street', 'lights to the', "city's maintenance office"],
+    fungsi: ['subjek', 'predikat + objek orang + to', 'bentuk dasar report + awal objek', 'noun inti objek + preposisi to + determiner', 'penerima laporan (posesif + noun)'],
+    kait: [
+      'subjek tunggal The new mobile application cocok dengan allows',
+      'to pada allows residents to memerlukan bentuk dasar report',
+      'broken street memerlukan noun inti lights',
+      "the pada lights to the memerlukan noun dan bersama city's membentuk penanda kepemilikan bagi maintenance office",
+    ],
+    konsep: 'Pola allow + objek + to-infinitive',
+    kataKunci: 'allows residents to, report broken street lights, to the',
+    caraCepat: 'Pola allow someone to do something, lalu lengkapi report + benda + to + penerima.',
+  },
+  {
+    id: 'agreed-to-share', tingkat: 'dasar', kaidah: 'verb-infinitive-gerund', konteks: 'ekonomi umum',
+    fragmen: ['Both local companies', 'have agreed to', 'share the cost', 'of building a', 'new training facility'],
+    fungsi: ['subjek jamak', 'predikat present perfect + to', 'bentuk dasar + objek', 'preposisi of + gerund + determiner', 'noun phrase objek building'],
+    kait: [
+      'subjek jamak Both local companies cocok dengan have agreed',
+      'to pada agreed to memerlukan bentuk dasar share',
+      'the cost diterangkan frasa of building',
+      'determiner a memerlukan noun phrase new training facility',
+    ],
+    konsep: 'Verb + to-infinitive dan preposisi + gerund',
+    kataKunci: 'have agreed to, share the cost, of building',
+    caraCepat: 'Setelah agree to pakai bentuk dasar; setelah preposisi of pakai gerund.',
+  },
+  {
+    id: 'expected-to', tingkat: 'menantang', kaidah: 'passive-infinitive-gerund', konteks: 'pendidikan dan pelatihan',
+    fragmen: ['All participants', 'are expected to', 'complete the online', 'safety course before', 'attending the first workshop'],
+    fungsi: ['subjek jamak', 'passive + to', 'bentuk dasar + awal objek', 'noun inti objek + preposisi before', 'gerund + objek'],
+    kait: [
+      'subjek jamak All participants cocok dengan are expected',
+      'to pada expected to memerlukan bentuk dasar complete',
+      'the online memerlukan noun inti safety course',
+      'preposisi before memerlukan gerund attending',
+    ],
+    konsep: 'Passive + to-infinitive dan preposisi + gerund',
+    kataKunci: 'are expected to, complete the online, before attending',
+    caraCepat: 'Pasangkan be expected to dengan V1, lalu pakai V-ing setelah preposisi before.',
+  },
+  {
+    id: 'encourages-to', tingkat: 'menengah', kaidah: 'verb-objek-infinitive', konteks: 'lingkungan dan energi',
+    fragmen: ['The city council', 'encourages local businesses', 'to reduce their', 'use of plastic', 'packaging'],
+    fungsi: ['subjek', 'predikat + objek', 'to-infinitive + determiner', 'noun inti objek reduce + preposisi of', 'objek of'],
+    kait: [
+      'subjek tunggal The city council cocok dengan encourages',
+      'pola encourage + objek + to-infinitive menempatkan to reduce sesudah local businesses',
+      'determiner their memerlukan noun use',
+      'of plastic memerlukan noun inti packaging',
+    ],
+    konsep: 'Pola encourage + objek + to-infinitive',
+    kataKunci: 'encourages local businesses, to reduce their, use of',
+    caraCepat: 'Pola encourage someone to do something, lalu lengkapi their + noun.',
+  },
+  {
+    id: 'decided-how-to', tingkat: 'menantang', kaidah: 'verb-wh-infinitive', konteks: 'riset',
+    fragmen: ['The research team', 'has not yet decided', 'how to share the', 'survey results with', 'local residents'],
+    fungsi: ['subjek', 'predikat present perfect negatif', 'how + to-infinitive + determiner', 'objek share + preposisi with', 'pihak yang menerima (objek with)'],
+    kait: [
+      'The research team adalah subjek dan has not yet decided adalah predikatnya',
+      'decided memerlukan objek how to share',
+      'determiner the memerlukan noun phrase survey results',
+      'pola share + sesuatu + with + orang menempatkan local residents sesudah with',
+    ],
+    konsep: 'Verb + how + to-infinitive',
+    kataKunci: 'has not yet decided, how to share the, results with',
+    caraCepat: 'Pasangkan decided dengan how to + V1, lalu susun share + objek + with + orang.',
+  },
+  {
+    id: 'plans-to-open', tingkat: 'dasar', kaidah: 'verb-infinitive', konteks: 'pendidikan dan pelatihan',
+    fragmen: ['The school librarian', 'plans to open', 'a quiet study', 'room for', 'older students'],
+    fungsi: ['subjek', 'predikat + to-infinitive', 'determiner + adjective + pewatas objek', 'noun inti objek + preposisi for', 'objek for'],
+    kait: [
+      'subjek tunggal The school librarian cocok dengan plans',
+      'open memerlukan objek yang diawali a quiet study',
+      'a quiet study memerlukan noun inti room',
+      'preposisi for memerlukan objek older students',
+    ],
+    konsep: 'Verb + to-infinitive dengan objek noun phrase',
+    kataKunci: 'plans to open, a quiet study room, for',
+    caraCepat: 'Plan + to + V1, lalu susun a + adjective + noun sebagai objek.',
+  },
+  {
+    id: 'considering-moving', tingkat: 'menengah', kaidah: 'verb-gerund', konteks: 'kantor dan proyek',
+    fragmen: ['The management team', 'is considering moving', 'all weekly staff', 'meetings to a', 'larger room'],
+    fungsi: ['subjek', 'predikat progressive + gerund', 'awal objek moving', 'noun inti objek + preposisi to + determiner', 'tujuan'],
+    kait: [
+      'The management team adalah subjek dan is considering adalah predikatnya',
+      'gerund moving memerlukan objek all weekly staff meetings',
+      'all weekly staff memerlukan noun inti jamak meetings',
+      'determiner a memerlukan noun phrase larger room',
+    ],
+    konsep: 'Verb consider + gerund',
+    kataKunci: 'is considering moving, staff meetings to a',
+    caraCepat: 'Consider diikuti V-ing; objek gerund lalu to + tujuan.',
+  },
+  {
+    id: 'advised-to-boil', tingkat: 'menengah', kaidah: 'verb-objek-infinitive', konteks: 'kegiatan masyarakat',
+    fragmen: ['The health officer', 'advised all local', 'residents to boil', 'their drinking', 'water'],
+    fungsi: ['subjek', 'verb + determiner + adjective objek', 'noun inti objek + to-infinitive', 'determiner + pewatas objek boil', 'noun inti objek boil'],
+    kait: [
+      'The health officer adalah subjek dan advised adalah verb utamanya',
+      'all local memerlukan noun jamak residents, yang menjadi objek advised sebelum to boil',
+      'boil memerlukan objek yang diawali their drinking',
+      'their drinking masih memerlukan noun inti water',
+    ],
+    konsep: 'Pola advise + objek + to-infinitive',
+    kataKunci: 'advised all local residents, to boil, their drinking water',
+    caraCepat: 'Pola advise someone to do something, lalu lengkapi their + noun.',
+  },
+  {
+    id: 'reminded-to', tingkat: 'menengah', kaidah: 'verb-objek-infinitive', konteks: 'teknologi',
+    fragmen: ['The help desk', 'reminds all new', 'users to change', 'their default', 'passwords'],
+    fungsi: ['subjek tunggal', 'verb + determiner + adjective objek', 'noun inti objek + to-infinitive', 'determiner + adjective objek change', 'noun inti objek change'],
+    kait: [
+      'subjek tunggal The help desk cocok dengan reminds',
+      'all new memerlukan noun jamak users, yang menjadi objek reminds sebelum to change',
+      'change memerlukan objek yang diawali their default',
+      'their default masih memerlukan noun inti passwords',
+    ],
+    konsep: 'Pola remind + objek + to-infinitive',
+    kataKunci: 'reminds all new users, to change, their default',
+    caraCepat: 'Pola remind someone to do something: orang yang diingatkan berada di antara reminds dan to.',
+  },
+];
+
+export const familyInfinitif = buatFamily({
+  id: 'SA-INFINITIF',
+  nama: 'Verb + infinitive/gerund',
+  label: 'VARIASI',
+  sumber: 'Blueprint Bahasa Inggris §6 (contoh verb dan infinitive, perluasan) · §7 Gerund/infinitive · Azar 14-2–14-6, 14-10–14-12, bab 15',
+  ringkas: 'Pola verb + to-infinitive, verb + objek + to-infinitive, passive + infinitive, dan verb + gerund. Sambungan dikunci verb–to, objek–to, dan to–bentuk dasar beserta objeknya.',
+  kerangka: KERANGKA,
+});
+
+export const KERANGKA_INFINITIF = KERANGKA;

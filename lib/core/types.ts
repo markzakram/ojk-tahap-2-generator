@@ -26,6 +26,12 @@ export interface Pembahasan {
   jawaban: string;
   langkah: LangkahPembahasan[];
   caraCepat?: string;
+  /** Format pembahasan blueprint Bahasa Inggris: kaidah/kolokasi/hubungan makna yang diuji. */
+  konsep?: string;
+  /** Kata atau bagian kalimat yang menjadi petunjuk. */
+  kataKunci?: string;
+  /** Alasan tiap opsi salah menurut urutan huruf, mis. "A. Controversial menunjukkan perdebatan." */
+  opsiSalah?: string[];
 }
 
 /**

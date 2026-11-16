@@ -9,6 +9,7 @@ import { calendarGiliranB0, calendarGiliranB1, calendarGiliranB2, calendarGilira
 import { FILL_SHAPE_FAMILIES } from '../induktif/fill-shape/pola';
 import { DRAG_LINE_FAMILIES } from '../induktif/drag-line/pola';
 import { calendarSesiC0, calendarSesiC1, calendarSesiC2, calendarSesiC3 } from '../deduktif/calendar/sesi';
+import { BAHASA_INGGRIS_FAMILIES } from '../bahasa-inggris';
 
 /** Seluruh family yang tersedia. Tambahkan family baru di sini; id harus unik dan tidak boleh diganti setelah dipakai. */
 export const FAMILIES: Family<any, any>[] = [
@@ -31,6 +32,7 @@ export const FAMILIES: Family<any, any>[] = [
   roomDurasi,
   ...TIMELINE_FAMILIES,
   ...TIMESLOT_FAMILIES,
+  ...BAHASA_INGGRIS_FAMILIES,
 ];
 
 export function familyById(id: string): Family<any, any> {
