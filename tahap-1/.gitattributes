@@ -1,0 +1,6 @@
+# berkas keluaran generator: biner, akhir barisnya tidak boleh diubah git
+*.pdf  binary
+*.docx binary
+*.xlsx binary
+*.png  binary
+*.zip  binary

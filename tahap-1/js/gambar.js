@@ -1,0 +1,95 @@
+/*
+ * gambar.js — mengubah deskriptor gambar sebuah butir menjadi SVG.
+ *
+ * Butir hanya menyimpan MODEL gambar (data murni berukuran kecil), bukan SVG-nya.
+ * SVG dirakit saat dibutuhkan — untuk pratinjau, PNG, Word, dan PDF — sehingga
+ * ratusan paket tidak memenuhi memori dengan teks SVG, dan setiap gambar selalu
+ * digambar ulang dari data yang sama yang diperiksa validator.
+ *
+ * Deskriptor: { id, jenis, model, state?, judul? }
+ *   jenis: tabel | bar | bar-tumpuk | garis | pie |
+ *          serial | matriks | sel |
+ *          latin | latin-opsi (matriks 5x5), isi | isi-opsi (matriks 5x6),
+ *          sekat | sekat-opsi (matriks 2x2 bersekat), ganda | ganda-opsi (deret kotak ganda)
+ *
+ * Keluarga figural tambahan (lipat kertas, petak, matriks bentuk, dan keluarga bercorak) membawa
+ * penggambarnya sendiri di peta `GAMBAR` modulnya: { jenis: function (model, judul) }.
+ */
+(function (root, factory) {
+  var api;
+  if (typeof module === 'object' && module.exports) {
+    api = factory(require('./chart.js'), require('./figural.js'), require('./matriks-latin.js'), require('./matriks-isi.js'),
+      require('./matriks-sekat.js'), require('./serial-ganda.js'),
+      [require('./pola-riset.js'), require('./lipat-kertas.js'), require('./serial-petak.js'), require('./matriks-bentuk.js'), require('./transformasi-corak.js'),
+        require('./analogi-corak.js'), require('./serial-corak.js'), require('./matriks-corak.js'), require('./peringkat-langkah.js'), require('./badges-langkah.js'),require('./bank-aset-badges.js')]);
+    module.exports = api;
+  } else {
+    api = factory(root.Chart, root.Figural, root.MatriksLatin, root.MatriksIsi, root.MatriksSekat, root.SerialGanda,
+      [root.PolaRiset, root.LipatKertas, root.SerialPetak, root.MatriksBentuk, root.TransformasiCorak, root.AnalogiCorak, root.SerialCorak, root.MatriksCorak, root.PeringkatLangkah, root.BadgesLangkah,root.BankAsetBadges]);
+    root.Gambar = api;
+  }
+})(typeof self !== 'undefined' ? self : this, function (Chart, Figural, MatriksLatin, MatriksIsi, MatriksSekat, SerialGanda, Tambahan) {
+  'use strict';
+
+  /** Penggambar dari modul figural tambahan, menurut jenis gambar. */
+  var GAMBAR_TAMBAHAN = {};
+  Tambahan.forEach(function (mod) {
+    Object.keys((mod && mod.GAMBAR) || {}).forEach(function (jenis) {
+      if (GAMBAR_TAMBAHAN[jenis]) throw new Error('jenis gambar ganda: ' + jenis);
+      GAMBAR_TAMBAHAN[jenis] = mod.GAMBAR[jenis];
+    });
+  });
+
+  /** @returns {{svg:string, lebar:number, tinggi:number}} */
+  function svg(d) {
+    var m = d.model;
+    switch (d.jenis) {
+      case 'tabel': return Chart.tabel(m);
+      case 'bar': return Chart.bar(m);
+      case 'bar-tumpuk': return Chart.barTumpuk(m, d.state);
+      case 'garis': return Chart.garis(m, d.state);
+      case 'pie': return Chart.pie(m, d.state);
+      case 'serial': return Figural.svgSerial(m.sels, m.ukuran);
+      case 'matriks': return Figural.svgMatriks(m.grid, m.mr, m.mc, m.ukuran);
+      case 'sel': return Figural.svgSel(m.cell, m.ukuran || 120);
+      case 'latin': return MatriksLatin.svgMatriks(m.grid, m.lubang);
+      case 'latin-opsi': return MatriksLatin.svgPotongan(m.isi);
+      case 'isi': return MatriksIsi.svgMatriks(m.grid, m.lubang);
+      case 'isi-opsi': return MatriksIsi.svgDeret(m.isi);
+      case 'sekat': return MatriksSekat.svgSekat(m.pojok, m.dalam, m.tanya);
+      case 'sekat-opsi': return MatriksSekat.svgPojok(m.fig, m.q);
+      case 'ganda': return SerialGanda.svgDeret(m.kotak);
+      case 'ganda-opsi': return SerialGanda.svgAtas(m.atas);
+      // gambar pembahasan figural (tahapan pola beserta penandanya); judul ikut digambar di atasnya
+      case 'serial-tabel': return Figural.svgTabelSerial(m, d.judul);
+      case 'matriks3-letak': return Figural.svgLetak3(m, d.judul);
+      case 'matriks3-aturan': return Figural.svgAturan3(m, d.judul);
+      case 'sambung-hitung': return Figural.svgHitungSambung(m, d.judul);
+      case 'latin-tahap': return MatriksLatin.svgTahap(m, d.judul);
+      case 'isi-hitung': return MatriksIsi.svgHitung(m, d.judul);
+      case 'sekat-asal': return MatriksSekat.svgAsal(m, d.judul);
+      case 'sekat-gabung': return MatriksSekat.svgGabung(m, d.judul);
+      case 'ganda-arti': return SerialGanda.svgArti(m, d.judul);
+      case 'ganda-akhir': return SerialGanda.svgAkhir(m, d.judul);
+      default:
+        if (GAMBAR_TAMBAHAN[d.jenis]) return GAMBAR_TAMBAHAN[d.jenis](m, d.judul);
+        throw new Error('jenis gambar tidak dikenal: ' + d.jenis);
+    }
+  }
+
+  /** Semua gambar soal sebuah butir: stimulus, lalu pilihan bergambar. */
+  function daftarSoal(butir) {
+    var out = [];
+    (butir.stimulus.gambar || []).forEach(function (g) { out.push(g); });
+    (butir.opsi || []).forEach(function (o) { if (o.gambar) out.push(o.gambar); });
+    return out;
+  }
+
+  /** Gambar yang hanya muncul di pembahasan (kondisi kunci butir interaktif). */
+  function daftarPembahasan(butir) { return butir.gambarPembahasan || []; }
+
+  // Gambar pada sel Logical Ranking, terpisah dari stimulus agar tidak muncul sebagai galeri soal.
+  function daftarLampiran(butir) { return butir.isian&&butir.isian.jenis==='peringkat'?butir.isian.gambar||[]:[]; }
+
+  return { svg: svg, daftarSoal: daftarSoal, daftarPembahasan: daftarPembahasan, daftarLampiran: daftarLampiran };
+});
