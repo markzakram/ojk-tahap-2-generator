@@ -95,6 +95,8 @@ Istilah figural **titik di pangkal panah** diperbaiki menjadi **titik di tengah 
 
 Buka `index.html` (klik dua kali; tidak perlu server). Bisa juga lewat alamat `http://localhost` dengan `node cli/buka.js` atau tombol Agent Office (lihat bagian 3 dan 4); isinya sama.
 
+Generator ini juga tampil di situs gabungan Tahap 1 + Tahap 2 (repo `ojk-tahap-2-generator`, folder `tahap-1/`, dilayani di `/tahap-1`). Di sana bilah atas menampilkan tab **Tahap 1 | Tahap 2** (`js/situs.js`, alamatnya diisi saat build situs gabungan); bila dibuka sendiri, tab itu tidak tampil.
+
 1. **Subtes**: Kemampuan Umum, Penalaran Numerik, atau keduanya.
 2. **Soal tiap submateri**: jumlah soal per submateri dalam satu paket (baku: Kemampuan Umum 12 soal, Penalaran Numerik 10 soal). Tombol *Baku* mengembalikan komposisi awal.
 3. **Tingkat kesulitan**: campur (mudah:sedang:sulit = 3:5:2, bisa diubah) atau satu tingkat saja.
@@ -446,6 +448,7 @@ js/                   modul (script klasik, bentuk UMD: jalan di peramban dan No
   validator.js                             pemeriksa independen
   dokumen.js docx.js pdf.js xlsx.js zip.js ekspor.js   penulis berkas
   coba.js app.js                           mode coba interaktif dan perekat antarmuka
+  situs.js                                 tab Tahap 1 | Tahap 2 di situs gabungan (kosong bila berdiri sendiri)
 cli/generate.js       perintah baris
 cli/buka.js           server lokal untuk index.html (node cli/buka.js; tombol Agent Office)
 uji/                  uji: semua.js (jalankan ini), negatif.js, qc.js, siadu.js, variasi.js, figural-baru.js, berkas.js, browser.js, peramban.js, server.js
