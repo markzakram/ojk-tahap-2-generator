@@ -175,12 +175,9 @@ function jalankan(cek) {
   cek(berMataUangLain.length === 0, 'paket-002 USD: tidak ada £ atau € di soal, tabel, grafik, opsi, kunci, dan pembahasan', berMataUangLain.length ? berMataUangLain[0].id + ': ' + berMataUangLain[0].keluarga : '');
   cek(butir.every(function (b) { return !(b.pembahasan || []).some(function (t) { return /Pilihan lain yang menjebak/.test(t); }); }), 'paket-002: pembahasan hanya menjelaskan jawaban benar (tanpa analisis opsi salah)');
   var salahKelas = butir.filter(function (b) {
-    var k = b.klasifikasi;
-    if (!k || k.category !== 'Tes Potensi Dasar' || k.lesson !== Kerangka.LESSON[b.subtes]) return true;
-    if (b.subtes === 'pn') return k.subchapter !== null || ['Bar Chart', 'Table Decision', 'Line Graph', 'Pie Chart'].indexOf(k.chapter) < 0;
-    return !Kerangka.BAB[k.chapter] || Kerangka.BAB[k.chapter].indexOf(k.subchapter) < 0;
+    return Kerangka.periksa(b).length > 0;
   });
-  cek(salahKelas.length === 0, 'paket-002 Kerangka Course: Category/Lesson/Chapter/Subchapter tercantum di acuan (PN tanpa Subchapter)', salahKelas.length ? salahKelas[0].id + ' ' + JSON.stringify(salahKelas[0].klasifikasi) : '');
+  cek(salahKelas.length === 0, 'mapping terbaru: Category/Lesson/Chapter/Subchapter sesuai jenis soal (verbal, figural, PN tanpa Subchapter)', salahKelas.length ? salahKelas[0].id + ' ' + JSON.stringify(salahKelas[0].klasifikasi) : '');
   cek(butir.every(function (b) { return Kerangka.NONAKTIF.indexOf(b.keluarga) < 0; }), 'paket-002: keluarga di luar Kerangka Course (peluang, himpunan, barisan) dan konversi kurs tidak dibuat');
   var rumusRusak = [];
   butir.forEach(function (b) { (b.pembahasan || []).forEach(function (t) { if (Rumus.adalah(t)) { var g = Rumus.periksa(Rumus.isi(t)); if (g) rumusRusak.push(b.id + ': ' + g); } }); });

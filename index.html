@@ -20,10 +20,12 @@
 
 <div id="help" class="help" hidden>
   <ol>
-    <li><b>Atur paket.</b> Pilih subtes, jumlah soal tiap submateri, tingkat kesulitan, jumlah paket (sampai 500), dan benih. Benih yang sama dengan pengaturan yang sama selalu menghasilkan paket yang sama persis.</li>
+    <li><b>Pilih mode.</b> Gunakan <i>Tryout</i> untuk komposisi per submateri, atau <i>Per Chapter/Subchapter</i> untuk menambahkan materi dan jumlah soal masing-masing. Anda bisa memilih satu atau beberapa materi sekaligus.</li>
+    <li><b>Atur jumlah.</b> Jumlah soal pada daftar materi berlaku untuk setiap set. Pilih tingkat kesulitan, jumlah paket/set (sampai 500), dan benih. Benih dan pengaturan yang sama menghasilkan soal yang sama.</li>
+    <li><b>Figural sesuai riset.</b> Hanya The Next Box, The Next Double Box, matriks 3×3, 2×2 bersekat, 5×5, dan 5×6. Variasi dibuat pada pola di dalam keenam bentuk tersebut.</li>
     <li><b>Generate.</b> Setiap soal dibuat dari fakta dan angka yang dihitung ulang oleh <i>validator</i> dari nol. Hasil baru tampil bila lolos semua pemeriksaan (jawaban, pengecoh, dan tidak ada soal kembar).</li>
     <li><b>Lihat paket.</b> Pilih paket dan subtes di tengah. Tombol <i>Tampilkan kunci &amp; pembahasan</i> membuka jawaban dan langkah penyelesaian. Klik pilihan A&ndash;E untuk berlatih.</li>
-    <li><b>Penalaran Numerik</b> berbentuk interaktif: tekan <i>Coba interaktif</i> pada soalnya, geser batang, titik, atau batas irisan (atau isi kolomnya), lalu tekan <i>Periksa jawaban</i>.</li>
+    <li><b>Penalaran Numerik</b> berbentuk interaktif: tekan <i>Coba interaktif</i> pada soalnya, atur grafik, pilih keputusan tabel, atau pasangkan nomor badge ke nama, lalu tekan <i>Periksa jawaban</i>.</li>
     <li><b>Unduh.</b> Word format input SiAdu (satu berkas per subtes) dan PDF per paket; Excel, JSON, dan ZIP untuk semua paket. Untuk puluhan sampai ratusan paket gunakan CLI (perintahnya ada di panel kanan).</li>
   </ol>
 </div>
@@ -32,6 +34,10 @@
 
   <!-- ============ KIRI: PENGATURAN ============ -->
   <section class="panel" id="panel-atur">
+    <label class="field"><span>Mode generate</span>
+      <select id="mode-generate"><option value="tryout">Tryout</option><option value="materi">Per Chapter/Subchapter</option></select>
+    </label>
+    <div id="pengaturan-tryout">
     <h2><span class="step">1</span> Subtes</h2>
     <div class="row wrap gap-s" id="pilih-subtes"></div>
     <p class="hint" id="info-subtes"></p>
@@ -40,6 +46,24 @@
       <button id="btn-baku" class="ghost mode-btn" type="button" title="Kembalikan komposisi baku">Baku</button>
     </h2>
     <div id="komposisi"></div>
+    </div>
+
+    <div id="pengaturan-materi" hidden>
+      <h2><span class="step">1</span> Pilih materi</h2>
+      <label class="field"><span>Category</span><select id="materi-category"></select></label>
+      <label class="field"><span>Lesson</span><select id="materi-lesson"></select></label>
+      <label class="field"><span>Chapter</span><select id="materi-chapter"></select></label>
+      <label class="field"><span>Subchapter</span><select id="materi-subchapter"></select></label>
+      <p class="hint" id="materi-info"></p>
+      <div class="row gap-s">
+        <label class="num-field"><span>Soal per set</span><input type="number" id="materi-jumlah" value="5" min="1" max="60" step="1"></label>
+        <button class="ghost" id="btn-tambah-materi" type="button">Tambahkan</button>
+      </div>
+      <div class="status-line" id="status-materi" role="status"></div>
+      <h2><span class="step">2</span> Materi yang dipilih</h2>
+      <div id="daftar-materi"></div>
+      <p class="hint" id="total-materi"></p>
+    </div>
 
     <h2><span class="step">3</span> Tingkat kesulitan</h2>
     <label class="field">
@@ -57,9 +81,9 @@
       <label class="num-field"><span>Sulit</span><input type="number" id="pr-sulit" value="2" min="0" max="100" step="1"></label>
     </div>
 
-    <h2><span class="step">4</span> Jumlah paket &amp; benih</h2>
+    <h2><span class="step">4</span> <span id="judul-jumlah">Jumlah paket &amp; benih</span></h2>
     <div class="row gap-s wrap">
-      <label class="num-field" title="Jumlah paket yang dibuat sekaligus (1 sampai 500)"><span>Paket</span><input type="number" id="jumlah" value="3" min="1" max="500" step="1"></label>
+      <label class="num-field" title="Jumlah paket atau set yang dibuat sekaligus (1 sampai 500)"><span id="label-jumlah">Paket</span><input type="number" id="jumlah" value="3" min="1" max="500" step="1"></label>
       <label class="num-field" title="Bilangan bulat 0 sampai 4294967295. Kosong atau tombol Acak = benih acak."><span>Benih</span><input type="number" id="benih" min="0" max="4294967295" step="1" placeholder="acak"></label>
       <button class="ghost" id="btn-acak" type="button">Acak</button>
     </div>
@@ -73,10 +97,10 @@
 
   <!-- ============ TENGAH: PRATINJAU ============ -->
   <section class="panel wide" id="panel-lihat">
-    <h2><span class="step">5</span> Pratinjau paket</h2>
+    <h2><span class="step">5</span> Pratinjau soal</h2>
 
     <div id="kosong" class="kosong">
-      <p>Belum ada paket. Atur pengaturan di kiri, lalu tekan <b>Generate paket</b>.</p>
+      <p>Belum ada soal. Pilih mode dan materi di kiri, lalu tekan tombol <b>Generate</b>.</p>
     </div>
 
     <div id="lihat" hidden>
@@ -99,17 +123,17 @@
     <div id="ringkasan" class="ringkasan"><p class="hint">Belum ada hasil.</p></div>
 
     <h2><span class="step">7</span> Unduh</h2>
-    <p class="hint">Paket yang sedang dilihat:</p>
+    <p class="hint">Hasil yang sedang dilihat:</p>
     <div class="row wrap gap-s">
       <button class="ghost" id="btn-docx" type="button" disabled>Word SiAdu (.docx)</button>
       <button class="ghost" id="btn-pdf" type="button" disabled>PDF</button>
     </div>
-    <p class="hint">Semua paket:</p>
+    <p class="hint">Semua hasil:</p>
     <div class="row wrap gap-s">
       <button class="ghost" id="btn-xlsx" type="button" disabled>Excel (.xlsx)</button>
       <button class="ghost" id="btn-json" type="button" disabled>JSON</button>
     </div>
-    <p class="hint">ZIP semua paket berisi:</p>
+    <p class="hint">ZIP semua hasil berisi:</p>
     <div class="row wrap gap-s cek-zip">
       <label class="check"><input type="checkbox" id="z-docx" checked> Word</label>
       <label class="check"><input type="checkbox" id="z-pdf" checked> PDF</label>
@@ -130,6 +154,8 @@
 
 </main>
 
+<script src="js/bank-aset-badges-data.js"></script>
+<script src="js/bank-aset-badges.js"></script>
 <script src="js/rng.js"></script>
 <script src="js/metrik.js"></script>
 <script src="js/format.js"></script>
@@ -149,35 +175,51 @@
 <script src="js/tabelku.js"></script>
 <script src="js/grafikku.js"></script>
 <script src="js/verbal-topik.js"></script>
+<script src="js/verbal-bahas.js"></script>
 <script src="js/verbal.js"></script>
 <script src="js/inferensi.js"></script>
-<script src="js/figure.js"></script>
-<script src="js/families.js"></script>
-<script src="js/render.js"></script>
 <script src="js/figural.js"></script>
-<script src="js/serial-putar.js"></script>
 <script src="js/bentuk.js"></script>
 <script src="js/serial-ganda.js"></script>
 <script src="js/matriks-latin.js"></script>
 <script src="js/matriks-isi.js"></script>
 <script src="js/matriks-sekat.js"></script>
-<script src="js/transformasi.js"></script>
-<script src="js/transformasi-analogi.js"></script>
+<script src="js/corak.js"></script>
 <script src="js/lipat-kertas.js"></script>
 <script src="js/serial-petak.js"></script>
-<script src="js/matriks-tumpuk.js"></script>
 <script src="js/matriks-bentuk.js"></script>
+<script src="js/transformasi-corak.js"></script>
+<script src="js/analogi-corak.js"></script>
+<script src="js/serial-corak.js"></script>
+<script src="js/matriks-corak.js"></script>
 <script src="js/pn-bar.js"></script>
 <script src="js/pn-tabel.js"></script>
 <script src="js/pn-garis.js"></script>
 <script src="js/pn-pie.js"></script>
+<script src="js/badges-shl.js"></script>
+<script src="js/badges-konteks.js"></script>
+<script src="js/peringkat-data.js"></script>
+<script src="js/badges-visual-qc.js"></script>
+<script src="js/peringkat-langkah.js"></script>
+<script src="js/badges-langkah.js"></script>
+<script src="js/ikon-produk.js"></script>
+<script src="js/profil-badges.js"></script>
+<script src="js/foto-badges-data.js"></script>
+<script src="js/foto-badges.js"></script>
+<script src="js/pn-peringkat.js"></script>
+<script src="js/cek-kartu-badges.js"></script>
+<script src="js/cek-peringkat.js"></script>
+<script src="js/pola-riset.js"></script>
+<script src="js/riset-figural.js"></script>
+<script src="js/cek-pola-riset.js"></script>
 <script src="js/gambar.js"></script>
-<script src="js/cek-transformasi.js"></script>
-<script src="js/cek-transformasi-analogi.js"></script>
 <script src="js/cek-lipat-kertas.js"></script>
 <script src="js/cek-serial-petak.js"></script>
-<script src="js/cek-matriks-tumpuk.js"></script>
 <script src="js/cek-matriks-bentuk.js"></script>
+<script src="js/cek-transformasi-corak.js"></script>
+<script src="js/cek-analogi-corak.js"></script>
+<script src="js/cek-serial-corak.js"></script>
+<script src="js/cek-matriks-corak.js"></script>
 <script src="js/variasi.js"></script>
 <script src="js/kerangka.js"></script>
 <script src="js/bank.js"></script>

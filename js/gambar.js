@@ -8,27 +8,27 @@
  *
  * Deskriptor: { id, jenis, model, state?, judul? }
  *   jenis: tabel | bar | bar-tumpuk | garis | pie |
- *          serial | matriks | sel | serial-putar | figur |
+ *          serial | matriks | sel |
  *          latin | latin-opsi (matriks 5x5), isi | isi-opsi (matriks 5x6),
  *          sekat | sekat-opsi (matriks 2x2 bersekat), ganda | ganda-opsi (deret kotak ganda)
  *
- * Keluarga figural tambahan (transformasi, lipat kertas, petak, matriks tumpuk/bentuk) membawa
+ * Keluarga figural tambahan (lipat kertas, petak, matriks bentuk, dan keluarga bercorak) membawa
  * penggambarnya sendiri di peta `GAMBAR` modulnya: { jenis: function (model, judul) }.
  */
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
-    api = factory(require('./chart.js'), require('./figural.js'), require('./serial-putar.js'), require('./matriks-latin.js'), require('./matriks-isi.js'),
+    api = factory(require('./chart.js'), require('./figural.js'), require('./matriks-latin.js'), require('./matriks-isi.js'),
       require('./matriks-sekat.js'), require('./serial-ganda.js'),
-      [require('./transformasi.js'), require('./transformasi-analogi.js'), require('./lipat-kertas.js'), require('./serial-petak.js'),
-        require('./matriks-tumpuk.js'), require('./matriks-bentuk.js')]);
+      [require('./pola-riset.js'), require('./lipat-kertas.js'), require('./serial-petak.js'), require('./matriks-bentuk.js'), require('./transformasi-corak.js'),
+        require('./analogi-corak.js'), require('./serial-corak.js'), require('./matriks-corak.js'), require('./peringkat-langkah.js'), require('./badges-langkah.js'),require('./bank-aset-badges.js')]);
     module.exports = api;
   } else {
-    api = factory(root.Chart, root.Figural, root.SerialPutar, root.MatriksLatin, root.MatriksIsi, root.MatriksSekat, root.SerialGanda,
-      [root.Transformasi, root.TransformasiAnalogi, root.LipatKertas, root.SerialPetak, root.MatriksTumpuk, root.MatriksBentuk]);
+    api = factory(root.Chart, root.Figural, root.MatriksLatin, root.MatriksIsi, root.MatriksSekat, root.SerialGanda,
+      [root.PolaRiset, root.LipatKertas, root.SerialPetak, root.MatriksBentuk, root.TransformasiCorak, root.AnalogiCorak, root.SerialCorak, root.MatriksCorak, root.PeringkatLangkah, root.BadgesLangkah,root.BankAsetBadges]);
     root.Gambar = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Chart, Figural, SerialPutar, MatriksLatin, MatriksIsi, MatriksSekat, SerialGanda, Tambahan) {
+})(typeof self !== 'undefined' ? self : this, function (Chart, Figural, MatriksLatin, MatriksIsi, MatriksSekat, SerialGanda, Tambahan) {
   'use strict';
 
   /** Penggambar dari modul figural tambahan, menurut jenis gambar. */
@@ -52,8 +52,6 @@
       case 'serial': return Figural.svgSerial(m.sels, m.ukuran);
       case 'matriks': return Figural.svgMatriks(m.grid, m.mr, m.mc, m.ukuran);
       case 'sel': return Figural.svgSel(m.cell, m.ukuran || 120);
-      case 'serial-putar': return SerialPutar.svgSerial(m.deret, m.skala);
-      case 'figur': return SerialPutar.svgFigur(m.fig, m.skala, m.ukuran || 120);
       case 'latin': return MatriksLatin.svgMatriks(m.grid, m.lubang);
       case 'latin-opsi': return MatriksLatin.svgPotongan(m.isi);
       case 'isi': return MatriksIsi.svgMatriks(m.grid, m.lubang);
@@ -63,9 +61,6 @@
       case 'ganda': return SerialGanda.svgDeret(m.kotak);
       case 'ganda-opsi': return SerialGanda.svgAtas(m.atas);
       // gambar pembahasan figural (tahapan pola beserta penandanya); judul ikut digambar di atasnya
-      case 'putar-tahap': return SerialPutar.svgTahap(m, d.judul);
-      case 'putar-pojok': return SerialPutar.svgPojok(m, d.judul);
-      case 'putar-sudut': return SerialPutar.svgSudut(m, d.judul);
       case 'serial-tabel': return Figural.svgTabelSerial(m, d.judul);
       case 'matriks3-letak': return Figural.svgLetak3(m, d.judul);
       case 'matriks3-aturan': return Figural.svgAturan3(m, d.judul);
@@ -93,5 +88,8 @@
   /** Gambar yang hanya muncul di pembahasan (kondisi kunci butir interaktif). */
   function daftarPembahasan(butir) { return butir.gambarPembahasan || []; }
 
-  return { svg: svg, daftarSoal: daftarSoal, daftarPembahasan: daftarPembahasan };
+  // Gambar pada sel Logical Ranking, terpisah dari stimulus agar tidak muncul sebagai galeri soal.
+  function daftarLampiran(butir) { return butir.isian&&butir.isian.jenis==='peringkat'?butir.isian.gambar||[]:[]; }
+
+  return { svg: svg, daftarSoal: daftarSoal, daftarPembahasan: daftarPembahasan, daftarLampiran: daftarLampiran };
 });

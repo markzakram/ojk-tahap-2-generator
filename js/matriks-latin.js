@@ -391,7 +391,7 @@
       var g = persegiLatin(a);
       if (!g) continue;
       var l = pilihLubang(a, bentuk, g);
-      if (!l) continue;
+      if (!l || (opsi.riset && (l.h !== 2 || l.w !== 1))) continue;
       var kunci = potong(g, l);
       var peng = buatPengecoh(a, g, l, kunci);
       if (!peng) continue;

@@ -32,7 +32,7 @@
 })(typeof self !== 'undefined' ? self : this, function (Rng, Bank, Validator, Fmt) {
   'use strict';
 
-  var VERSI = 6;
+  var VERSI = 23;
   var MAKS_PAKET = 500;
   var LEVEL = ['mudah', 'sedang', 'sulit'];
   var PROPORSI_BAKU = { mudah: 3, sedang: 5, sulit: 2 };
@@ -69,16 +69,43 @@
       o.proporsi[l] = p;
     });
     if (o.proporsi.mudah + o.proporsi.sedang + o.proporsi.sulit <= 0) throw new Error('proporsi tingkat tidak boleh nol semua');
+    o.mode = opsi.mode || (opsi.materi != null ? 'materi' : 'tryout');
+    if (o.mode !== 'tryout' && o.mode !== 'materi') throw new Error('mode harus tryout atau materi');
+    if (o.mode === 'tryout' && opsi.materi != null) throw new Error('pilihan Chapter/Subchapter hanya berlaku pada mode materi');
+    o.materi = [];
     o.komposisi = {};
     ['ku', 'pn'].forEach(function (st) {
       var baku = Bank.SUBTES[st].komposisiBaku, k = {};
       Bank.URUTAN[st].forEach(function (kunci) {
-        var v = opsi.komposisi && opsi.komposisi[st] && opsi.komposisi[st][kunci] != null ? Number(opsi.komposisi[st][kunci]) : baku[kunci];
+        var v = o.mode === 'materi' ? 0 : opsi.komposisi && opsi.komposisi[st] && opsi.komposisi[st][kunci] != null ? Number(opsi.komposisi[st][kunci]) : baku[kunci];
+        // Komposisi kustom versi lama tidak otomatis mendapat dua soal tambahan.
+        if (kunci === 'peringkat' && opsi.komposisi && opsi.komposisi[st] && Object.keys(opsi.komposisi[st]).length && opsi.komposisi[st][kunci] == null) v = 0;
         if (!isFinite(v) || v % 1 !== 0 || v < 0 || v > 60) throw new Error('jumlah butir ' + st + '/' + kunci + ' tidak sah: ' + v);
         k[kunci] = v;
       });
       o.komposisi[st] = k;
     });
+    if (o.mode === 'materi') {
+      var katalog = Bank.katalogMateri();
+      if (!Array.isArray(opsi.materi) || !opsi.materi.length) throw new Error('pilih sedikitnya satu Chapter/Subchapter dan jumlah soalnya');
+      opsi.materi.forEach(function (pilih) {
+        var m = pilih && katalog.find(function (x) { return x.id === pilih.id; });
+        if (!m) throw new Error('materi tidak dikenal: ' + (pilih && pilih.id));
+        var n = Number(pilih.jumlah);
+        if (!isFinite(n) || n % 1 !== 0 || n < 1 || n > 60) throw new Error('jumlah soal ' + m.chapter + ' harus bilangan bulat 1 sampai 60');
+        if (o.materi.some(function (x) { return x.chapter === m.chapter && (x.subchapter === null || m.subchapter === null || x.subchapter === m.subchapter); })) {
+          throw new Error('pilihan tumpang tindih pada ' + m.chapter + ': pilih seluruh Chapter atau Subchapter tertentu');
+        }
+        if (o.tingkat !== 'campur' && m.tingkat.indexOf(o.tingkat) < 0 || o.tingkat === 'campur' && !m.tingkat.some(function (l) { return o.proporsi[l] > 0; })) {
+          throw new Error(m.chapter + (m.subchapter ? ' / ' + m.subchapter : '') + ' tersedia pada tingkat ' + m.tingkat.join(', ') + '; sesuaikan tingkat atau proporsinya');
+        }
+        o.materi.push(Object.assign({}, m, { jumlah: n }));
+        o.komposisi[m.subtes][m.kunci] += n;
+      });
+      // Urutan katalog tetap sama walaupun pengguna menambahkan pilihan dalam urutan berbeda.
+      o.materi.sort(function (a,b) { return katalog.findIndex(function (x) { return x.id === a.id; }) - katalog.findIndex(function (x) { return x.id === b.id; }); });
+      o.subtes = ['ku','pn'].filter(function (st) { return o.materi.some(function (m) { return m.subtes === st; }); });
+    }
     o.subtes.forEach(function (st) {
       var jml = Bank.URUTAN[st].reduce(function (s, k) { return s + o.komposisi[st][k]; }, 0);
       if (jml < 1) throw new Error('subtes ' + st + ' tidak memiliki butir: isi komposisinya');
@@ -124,6 +151,12 @@
    */
   function rencanaKeluarga(a, subtes, kunci, jumlah) {
     var keluarga = Bank.ambil(subtes, kunci).keluarga, semua = keluarga.map(function (_, i) { return i; });
+    // Dua soal matriks pada komposisi baku: satu 3x3/2x2 bersekat, satu 5x5/5x6.
+    if (subtes === 'ku' && kunci === 'matriks' && jumlah === 2) {
+      return [['matriks-3','matriks-sekat'],['matriks-latin','matriks-isi']].map(function(ids) {
+        return a.pilih(semua.filter(function(i) { return ids.indexOf(keluarga[i].id) >= 0; }));
+      });
+    }
     var sisa = [], hasil = [], terakhir = null;
     for (var i = 0; i < jumlah; i++) {
       if (!sisa.length) sisa = semua.slice();
@@ -134,6 +167,25 @@
       sisa = sisa.filter(function (j) { return keluarga[j].id !== terakhir; });
     }
     return hasil;
+  }
+
+  /** Kuota tiap pilihan dipenuhi langsung dari keluarga yang sesuai, tanpa mengambil Chapter lain. */
+  function rencanaMateri(a, st, o) {
+    var slot = [], level = [], terpakai = {};
+    o.materi.filter(function (m) { return m.subtes === st; }).forEach(function (m) {
+      var proporsi = {};
+      LEVEL.forEach(function (lv) { proporsi[lv] = m.tingkat.indexOf(lv) >= 0 ? o.proporsi[lv] : 0; });
+      var levels = bagiTingkat(a, m.jumlah, { tingkat: o.tingkat, proporsi: proporsi });
+      levels.forEach(function (lv) {
+        var calon = m.keluarga.filter(function (i) { return Bank.tingkatBoleh(st, m.kunci, i, lv); });
+        var hitung = function (i) { return terpakai[m.kunci + ':' + i] || 0; };
+        var min = Math.min.apply(null, calon.map(hitung));
+        var keluarga = a.pilih(calon.filter(function (i) { return hitung(i) === min; }));
+        terpakai[m.kunci + ':' + keluarga] = hitung(keluarga) + 1;
+        slot.push({ kunci: m.kunci, keluarga: keluarga, materi: m }); level.push(lv);
+      });
+    });
+    return { slot: slot, level: level };
   }
 
   /** Selaraskan isi dengan tingkat tanpa mengubah kuota mudah/sedang/sulit pengguna. */
@@ -208,16 +260,22 @@
     var sudah = 0;
 
     function buatSatu(no) {
-      var p = { no: no, id: 'P' + nomor(no, 3), benih: Rng.turunan(o.benih, no), subtes: [] };
+      var p = { no: no, id: 'P' + nomor(no, 3), benih: Rng.turunan(o.benih, no), mode: o.mode, subtes: [] };
       o.subtes.forEach(function (st) {
         var info = Bank.SUBTES[st], komp = o.komposisi[st], a = Rng.alat(Rng.turunan(o.benih, no, st, 'rencana'));
         var slot = [];
-        Bank.URUTAN[st].forEach(function (kunci) {
-          var c = komp[kunci] || 0;
-          rencanaKeluarga(a, st, kunci, c).forEach(function (fam) { slot.push({ kunci: kunci, keluarga: fam }); });
-        });
-        var level = bagiTingkat(a, slot.length, o), kunciRencana = rencanaKunci(a, slot.length);
-        selaraskanTingkat(slot, level, st);
+        var level;
+        if (o.mode === 'materi') {
+          var rencana = rencanaMateri(a, st, o); slot = rencana.slot; level = rencana.level;
+        } else {
+          Bank.URUTAN[st].forEach(function (kunci) {
+            var c = komp[kunci] || 0;
+            rencanaKeluarga(a, st, kunci, c).forEach(function (fam) { slot.push({ kunci: kunci, keluarga: fam }); });
+          });
+          level = bagiTingkat(a, slot.length, o);
+        }
+        var kunciRencana = rencanaKunci(a, slot.length);
+        if (o.mode !== 'materi') selaraskanTingkat(slot, level, st);
         // butir verbal hanya punya tiga pilihan: letak D/E yang jatuh padanya ditukar dengan butir lain
         slot.forEach(function (sl, i) {
           if (sl.kunci !== 'verbal' || kunciRencana[i] < 3) return;
@@ -236,6 +294,7 @@
             var b = null;
             try { b = Bank.buat(st, sl.kunci, fam, lv, seed, { target: target, polaDipakai: polaDipakai.slice() }); } catch (e) { b = null; }
             if (!b) { statistik.ditolakKosong++; continue; }
+            if (sl.materi && (b.klasifikasi.chapter !== sl.materi.chapter || sl.materi.subchapter !== null && b.klasifikasi.subchapter !== sl.materi.subchapter)) { statistik.ditolakValidator++; continue; }
             b.id = p.id + '-' + st.toUpperCase() + '-' + nomor(idx + 1, 2);
             b.no = idx + 1; b.paket = no;
             var r = Validator.periksaButir(b);
@@ -275,7 +334,7 @@
           butir.push(diterima.b);
         });
         p.subtes.push({
-          kode: st, nama: info.nama, jumlah: butir.length, menit: info.menit, komposisi: salinKomposisi(komp), butir: butir
+          kode: st, nama: info.nama, jumlah: butir.length, menit: o.mode === 'materi' ? null : info.menit, komposisi: salinKomposisi(komp), butir: butir
         });
       });
       return p;
@@ -294,7 +353,9 @@
         return p;
       },
       hasil: function () {
-        return { meta: { versi: VERSI, benih: o.benih, jumlahPaket: paket.length, subtes: o.subtes, tingkat: o.tingkat, proporsi: o.proporsi, komposisi: o.komposisi }, paket: paket, statistik: statistik };
+        return { meta: { versi: VERSI, benih: o.benih, jumlahPaket: paket.length, mode: o.mode, materi: o.materi.map(function (m) {
+          return { id: m.id, subtes: m.subtes, category: m.category, lesson: m.lesson, chapter: m.chapter, subchapter: m.subchapter, jumlah: m.jumlah };
+        }), subtes: o.subtes, tingkat: o.tingkat, proporsi: o.proporsi, komposisi: o.komposisi }, paket: paket, statistik: statistik };
       }
     };
   }

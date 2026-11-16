@@ -27,7 +27,7 @@
  *   bentuk   wadah: lingkaran, persegi, segitiga, belah ketupat
  *   isi      warna wadah: putih, abu-abu, hitam
  *   arah     panah di dalam wadah, delapan arah (kelipatan 45 derajat)
- *   titik    ada/tidaknya titik hitam di pangkal panah
+ *   titik    ada/tidaknya titik di tengah bidang
  *   jumlah   banyaknya kotak kecil di bawah wadah (0-5)
  *   penanda  satu kotak kecil di salah satu pojok
  *
@@ -62,7 +62,7 @@
     jumlah: ['0', '1', '2', '3', '4', '5'],
     penanda: ['kiri-atas', 'kanan-atas', 'kanan-bawah', 'kiri-bawah']
   };
-  var LABEL = { bentuk: 'bentuk wadah', isi: 'warna wadah', arah: 'arah panah', titik: 'titik di pangkal panah', jumlah: 'jumlah kotak kecil', penanda: 'letak kotak kecil di pojok' };
+  var LABEL = { bentuk: 'bentuk wadah', isi: 'warna wadah', arah: 'arah panah', titik: 'titik di tengah bidang', jumlah: 'jumlah kotak kecil', penanda: 'letak kotak kecil di pojok' };
 
   // --------------------------------------------------------------- menggambar
 
@@ -406,7 +406,7 @@
     else if (nama === 'jumlah') pilihan = level === 'mudah' ? ['tambah', 'siklus-2'] : ['tambah', 'siklus-3', 'siklus-2'];
     else if (nama === 'arah') pilihan = level === 'mudah' ? ['langkah', 'langkah', 'siklus-2'] : (level === 'sedang' ? ['langkah', 'siklus-3', 'siklus-4', 'langkah'] : ['langkah', 'siklus-3', 'siklus-4', 'langkah', 'siklus-3']);
     else if (nama === 'isi') pilihan = level === 'mudah' ? ['langkah', 'siklus-2'] : ['langkah', 'siklus-2', 'siklus-3'];
-    else pilihan = level === 'mudah' ? ['langkah', 'siklus-2'] : ['langkah', 'pantul', 'siklus-3', 'siklus-2'];     // penanda
+    else pilihan = level === 'mudah' ? ['langkah', 'siklus-2'] : ['langkah', 'siklus-3', 'siklus-2'];     // penanda
     var jenis = a.pilih(pilihan), hasil = { aturan: jenis };
     if (jenis.indexOf('siklus-') === 0) {
       p = parseInt(jenis.slice(7), 10);

@@ -41,6 +41,16 @@
     var ref = huruf(c) + r;
     if (v === null || v === undefined || v === '') return '<c r="' + ref + '" s="' + gaya + '"/>';
     if (typeof v === 'number' && isFinite(v)) return '<c r="' + ref + '" s="' + gaya + '"><v>' + v + '</v></c>';
+    if (v && Array.isArray(v.runs)) {
+      var sisa = MAKS_SEL;
+      var rich = v.runs.map(function(run){
+        var teks = String(run.teks || '').slice(0,sisa); sisa -= teks.length;
+        if(!teks) return '';
+        var pr = (run.tebal ? '<b/>' : '') + (/^[0-9a-f]{6}$/i.test(run.warna || '') ? '<color rgb="FF' + run.warna.toUpperCase() + '"/>' : '');
+        return '<r>' + (pr ? '<rPr>' + pr + '</rPr>' : '') + '<t xml:space="preserve">' + esc(teks) + '</t></r>';
+      }).join('');
+      return '<c r="' + ref + '" s="' + gaya + '" t="inlineStr"><is>' + rich + '</is></c>';
+    }
     var t = String(v);
     if (t.length > MAKS_SEL) t = t.slice(0, MAKS_SEL - 20) + '… [dipotong]';
     return '<c r="' + ref + '" s="' + gaya + '" t="inlineStr"><is><t xml:space="preserve">' + esc(t) + '</t></is></c>';

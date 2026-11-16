@@ -121,7 +121,7 @@
       }
       case 'rumus': {
         // persamaan Word (OMML) rata kiri dalam paragrafnya sendiri; SiAdu mengubahnya menjadi MathML
-        return '<w:p>' + ppr({ sesudah: 4, keepNext: o.keepNext, keepLines: o.keepLines }) + '<m:oMathPara><m:oMathParaPr><m:jc m:val="left"/></m:oMathParaPr>' + Rumus.omml(b.notasi) + '</m:oMathPara></w:p>';
+        return '<w:p>' + ppr({ sesudah: 4, keepNext: o.keepNext || b.keras, keepLines: o.keepLines }) + '<m:oMathPara><m:oMathParaPr><m:jc m:val="left"/></m:oMathParaPr>' + Rumus.omml(b.notasi) + '</m:oMathPara></w:p>';
       }
       case 'galeri': return self.galeri(b, o);
       case 'tabel': return self.tabel(b, o);
@@ -161,6 +161,7 @@
   };
 
   Penulis.prototype.tabel = function (b, o) {
+    var self = this;
     var jml = b.lebarKol.reduce(function (s, x) { return s + x; }, 0);
     var lebar = b.lebarKol.map(function (x) { return Math.floor(LEBAR_ISI * x / jml); });
     var total = lebar.reduce(function (s, x) { return s + x; }, 0);
@@ -172,11 +173,14 @@
       var minBaris = Math.max.apply(null, row.map(function (sel) { return sel.minBaris || 0; }));
       xml += '<w:tr><w:trPr><w:cantSplit/>' + (r === 0 && b.header ? '<w:tblHeader/>' : '') + (minBaris ? '<w:trHeight w:val="' + Math.round(minBaris * 13.5 * 20 + 120) + '" w:hRule="atLeast"/>' : '') + '</w:trPr>';
       row.forEach(function (sel, c) {
-        var lanjut = o.keepNext || r < b.baris.length - 1;
+        var lanjut = b.pecahBaris ? (r===0&&b.header) : (o.keepNext || r < b.baris.length - 1);
         xml += '<w:tc><w:tcPr><w:tcW w:w="' + lebar[c] + '" w:type="dxa"/>' + (sel.isi ? '<w:shd w:val="clear" w:color="auto" w:fill="' + sel.isi + '"/>' : '') + '</w:tcPr>';
         // sel kotak keterangan: judul tebal di atas isinya (keduanya boleh berwarna)
         if (sel.judul != null) xml += paragraf([{ teks: sel.judul, tebal: true, warna: sel.warnaTeks }], { ukuran: 10, rata: sel.rata, sesudah: 3, keepNext: true, keepLines: true });
-        xml += paragraf([{ teks: sel.teks == null ? '' : sel.teks, tebal: sel.tebal, warna: sel.warnaTeks }], { ukuran: 10, rata: sel.rata, sesudah: sel.judul != null ? 4 : 0, keepNext: lanjut, keepLines: true });
+        if(sel.img){
+          var pt=Math.min(sel.lebarPt||48,lebar[c]/20-8);
+          xml += '<w:p>'+ppr({rata:'tengah',sesudah:2,keepNext:lanjut,keepLines:true})+self.gambarInline(sel.img,batasPt(sel.img,pt,60))+'</w:p>';
+        }else xml += paragraf([{ teks: sel.teks == null ? '' : sel.teks, tebal: sel.tebal, warna: sel.warnaTeks }], { ukuran: 10, rata: sel.rata, sesudah: sel.judul != null ? 4 : 0, keepNext: lanjut, keepLines: true });
         xml += '</w:tc>';
       });
       xml += '</w:tr>';
@@ -224,8 +228,9 @@
   function buat(model) {
     var w = new Penulis(), isi = [];
     model.blok.forEach(function (b) { isi.push(w.blok(b, false, false)); });
-    // badan tidak boleh berakhir dengan tabel
-    isi.push('<w:p><w:pPr><w:spacing w:after="0"/></w:pPr></w:p>');
+    // Tambahkan paragraf penutup hanya bila perlu; paragraf kosong tambahan
+    // setelah kesimpulan dapat membuat halaman terakhir yang kosong di Word.
+    if(!isi.length||!/<\/w:p>$/.test(isi[isi.length-1]))isi.push('<w:p><w:pPr><w:spacing w:after="0" w:line="20" w:lineRule="exact"/></w:pPr></w:p>');
 
     var dokumen = KEPALA + '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" ' +
       'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" ' +

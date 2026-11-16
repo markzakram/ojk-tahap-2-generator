@@ -18,13 +18,13 @@
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
-    api = factory(require('./gambar.js'), require('./format.js'));
+    api = factory(require('./gambar.js'), require('./format.js'), require('./ikon-produk.js'), require('./foto-badges.js'),require('./bank-aset-badges.js'));
     module.exports = api;
   } else {
-    api = factory(root.Gambar, root.Fmt);
+    api = factory(root.Gambar, root.Fmt, root.IkonProduk, root.FotoBadges,root.BankAsetBadges);
     root.Coba = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Gambar, Fmt) {
+})(typeof self !== 'undefined' ? self : this, function (Gambar, Fmt, IkonProduk, FotoBadges,Aset) {
   'use strict';
 
   var NS = 'http://www.w3.org/2000/svg';
@@ -74,10 +74,14 @@
         if (st[i] == null) lengkap = false;
         rinci.push({ label: nama, benar: st[i] === k[i] });
       });
+    } else if (isian.jenis === 'peringkat') {
+      var rank = st && st.peringkat || [];
+      lengkap = rank.length === isian.nama.length && new Set(rank).size === isian.nama.length && rank.every(function(v) { return Number.isInteger(v) && v >= 1 && v <= isian.nama.length; });
+      isian.nama.forEach(function(n,i) { rinci.push({label:n,benar:rank[i] === k.peringkat[i]}); });
     } else {
       throw new Error('jenis isian tidak dikenal: ' + isian.jenis);
     }
-    return { benar: rinci.every(function (r) { return r.benar; }), lengkap: lengkap, rinci: rinci };
+    return { benar: lengkap && rinci.every(function (r) { return r.benar; }), lengkap: lengkap, rinci: rinci };
   }
 
   /** Kalimat umpan balik dari hasil `periksa`. */
@@ -418,6 +422,57 @@
 
   // ----------------------------------------------------------------------- pasang
 
+  function penyusunPeringkat(c) {
+    var is=c.isian,st=salin(is.awal),aktif=null,tombol=[],baris=[],pilihan=[];
+    var tray=el('div','badge-daftar'),daftar=el('div','peringkat-daftar');
+    var produk=is.entitas==='produk',sasaran=produk?'produk':'nama';
+    if(produk){
+      c.atas.appendChild(daftar);
+      c.kontrol.classList.add('produk-lencana');
+      c.kontrol.appendChild(el('strong',null,'Lencana'));c.kontrol.appendChild(tray);
+    }else{
+      c.atas.appendChild(el('strong',null,'Tanda urutan'));
+      c.atas.appendChild(tray);c.kontrol.appendChild(daftar);
+    }
+    c.petunjuk('Klik badge nomor lalu klik '+sasaran+', atau seret badge ke '+sasaran+'. Pilihan peringkat juga dapat diubah dengan keyboard. Nomor yang sudah terpakai akan ditukar.');
+    function pasang(i,r) {
+      var lama=st.peringkat[i],pemilik=r==null?-1:st.peringkat.indexOf(r);
+      if(pemilik>=0&&pemilik!==i)st.peringkat[pemilik]=lama;
+      st.peringkat[i]=r;aktif=null;c.berubah();c.render();
+    }
+    is.nama.forEach(function(n,i) {
+      var badge=el('button','badge-nomor',String(i+1));badge.type='button';badge.draggable=true;
+      badge.setAttribute('aria-label','Pilih badge '+(i+1));
+      badge.addEventListener('click',function(){aktif=aktif===i+1?null:i+1;c.render();});
+      badge.addEventListener('dragstart',function(e){aktif=i+1;e.dataTransfer.setData('text/plain',String(i+1));e.dataTransfer.effectAllowed='move';});
+      tray.appendChild(badge);tombol.push(badge);
+      var row=el('div','peringkat-baris'),target=el('button','peringkat-nama');target.type='button';
+      var ikon=el(produk&&!is.kategoriEntitas?'span':'img',produk&&!is.kategoriEntitas?'produk-ikon':'peringkat-foto');
+      if(is.kategoriEntitas){ikon.src=Aset.url(is.profil[i].id);ikon.alt=is.profil[i].nama;ikon.width=44;ikon.height=44;}
+      else if(produk)ikon.innerHTML=IkonProduk.svg(i);
+      else {ikon.src=FotoBadges.url(is.profil[i].id);ikon.alt='Foto tokoh fiktif '+n;ikon.width=44;ikon.height=44;}
+      target.appendChild(ikon);
+      target.appendChild(el('span',null,n));target.setAttribute('aria-label','Pasang badge pada '+n);
+      target.addEventListener('click',function(){if(aktif!=null)pasang(i,aktif);else pilihan[i].focus();});
+      row.appendChild(target);
+      var select=el('select','peringkat-pilih');select.setAttribute('aria-label','Peringkat '+n);
+      var kosong=el('option',null,produk?'#':'—');kosong.value='';select.appendChild(kosong);
+      is.nama.forEach(function(_,j){var op=el('option',null,String(j+1));op.value=String(j+1);select.appendChild(op);});
+      select.addEventListener('change',function(){pasang(i,select.value===''?null:Number(select.value));});
+      row.appendChild(select);pilihan.push(select);
+      row.addEventListener('dragover',function(e){e.preventDefault();e.dataTransfer.dropEffect='move';});
+      row.addEventListener('drop',function(e){e.preventDefault();var r=Number(e.dataTransfer.getData('text/plain'));if(Number.isInteger(r)&&r>=1&&r<=is.nama.length)pasang(i,r);});
+      daftar.appendChild(row);baris.push(row);
+    });
+    return {
+      ambil:function(){return st;},atur:function(s){st=salin(s);aktif=null;},
+      render:function(){
+        tombol.forEach(function(b,i){b.classList.toggle('aktif',aktif===i+1);b.classList.toggle('terpakai',st.peringkat.indexOf(i+1)>=0);b.setAttribute('aria-pressed',String(aktif===i+1));});
+        pilihan.forEach(function(s,i){s.value=st.peringkat[i]==null?'':String(st.peringkat[i]);baris[i].classList.toggle('terjawab',st.peringkat[i]!=null);});
+      }
+    };
+  }
+
   var cacahan = 0;
 
   /**
@@ -452,12 +507,14 @@
         lapis.setAttribute('viewBox', '0 0 ' + r.lebar + ' ' + r.tinggi);
         kanvas.style.maxWidth = r.lebar + 'px';
       },
-      render: function () { w.render(); }
+      render: function () { w.render(); },
+      berubah: function () { kabar.textContent = ''; kabar.className = 'coba-umpan'; }
     };
-    var penyusun = { 'bar-tumpuk': penyusunBar, garis: penyusunGaris, pie: penyusunPie, tabel: penyusunTabel }[is.jenis];
+    var penyusun = { 'bar-tumpuk': penyusunBar, garis: penyusunGaris, pie: penyusunPie, tabel: penyusunTabel, peringkat: penyusunPeringkat }[is.jenis];
     if (!penyusun) throw new Error('jenis isian tidak dikenal: ' + is.jenis);
     var w = penyusun(c);
     if (is.jenis === 'tabel') lapis.style.display = 'none';
+    if (is.jenis === 'peringkat') kanvas.style.display = 'none';
 
     function tombol(teks, kelas, aksiFn) {
       var b = el('button', kelas, teks);

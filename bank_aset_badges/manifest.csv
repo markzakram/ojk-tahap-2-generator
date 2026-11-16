@@ -1,0 +1,76 @@
+﻿kategori,nama,awalan,asset_id,file
+orang,Ali,A,orang_Ali,orang/Ali.png
+orang,Bagas,B,orang_Bagas,orang/Bagas.png
+orang,Cinta,C,orang_Cinta,orang/Cinta.png
+orang,Dika,D,orang_Dika,orang/Dika.png
+orang,Elvi,E,orang_Elvi,orang/Elvi.png
+orang,Farhan,F,orang_Farhan,orang/Farhan.png
+orang,Gilang,G,orang_Gilang,orang/Gilang.png
+orang,Haris,H,orang_Haris,orang/Haris.png
+orang,Intan,I,orang_Intan,orang/Intan.png
+orang,Joko,J,orang_Joko,orang/Joko.png
+orang,Kirana,K,orang_Kirana,orang/Kirana.png
+orang,Laras,L,orang_Laras,orang/Laras.png
+orang,Maya,M,orang_Maya,orang/Maya.png
+orang,Nanda,N,orang_Nanda,orang/Nanda.png
+orang,Oki,O,orang_Oki,orang/Oki.png
+orang,Putri,P,orang_Putri,orang/Putri.png
+orang,Qori,Q,orang_Qori,orang/Qori.png
+orang,Raka,R,orang_Raka,orang/Raka.png
+orang,Sinta,S,orang_Sinta,orang/Sinta.png
+orang,Tio,T,orang_Tio,orang/Tio.png
+orang,Umar,U,orang_Umar,orang/Umar.png
+orang,Vina,V,orang_Vina,orang/Vina.png
+orang,Wulan,W,orang_Wulan,orang/Wulan.png
+orang,Xena,X,orang_Xena,orang/Xena.png
+orang,Yusuf,Y,orang_Yusuf,orang/Yusuf.png
+orang,Zahwa,Z,orang_Zahwa,orang/Zahwa.png
+produk,Amplop,A,produk_Amplop,produk/Amplop.png
+produk,Bolpoin,B,produk_Bolpoin,produk/Bolpoin.png
+produk,Cat,C,produk_Cat,produk/Cat.png
+produk,Dompet,D,produk_Dompet,produk/Dompet.png
+produk,Ember,E,produk_Ember,produk/Ember.png
+produk,Flashdisk,F,produk_Flashdisk,produk/Flashdisk.png
+produk,Gelas,G,produk_Gelas,produk/Gelas.png
+produk,Headphone,H,produk_Headphone,produk/Headphone.png
+produk,Jam,J,produk_Jam,produk/Jam.png
+produk,Kalkulator,K,produk_Kalkulator,produk/Kalkulator.png
+produk,Lampu,L,produk_Lampu,produk/Lampu.png
+produk,Mouse,M,produk_Mouse,produk/Mouse.png
+produk,Notebook,N,produk_Notebook,produk/Notebook.png
+produk,Penggaris,P,produk_Penggaris,produk/Penggaris.png
+produk,Ransel,R,produk_Ransel,produk/Ransel.png
+produk,Stapler,S,produk_Stapler,produk/Stapler.png
+produk,Termos,T,produk_Termos,produk/Termos.png
+kendaraan,Ambulans,A,kendaraan_Ambulans,kendaraan/Ambulans.png
+kendaraan,Bus,B,kendaraan_Bus,kendaraan/Bus.png
+kendaraan,Ekskavator,E,kendaraan_Ekskavator,kendaraan/Ekskavator.png
+kendaraan,Helikopter,H,kendaraan_Helikopter,kendaraan/Helikopter.png
+kendaraan,Kapal,K,kendaraan_Kapal,kendaraan/Kapal.png
+kendaraan,Motor,M,kendaraan_Motor,kendaraan/Motor.png
+kendaraan,Pesawat,P,kendaraan_Pesawat,kendaraan/Pesawat.png
+kendaraan,Truk,T,kendaraan_Truk,kendaraan/Truk.png
+hewan,Anjing,A,hewan_Anjing,hewan/Anjing.png
+hewan,Bebek,B,hewan_Bebek,hewan/Bebek.png
+hewan,Domba,D,hewan_Domba,hewan/Domba.png
+hewan,Gajah,G,hewan_Gajah,hewan/Gajah.png
+hewan,Harimau,H,hewan_Harimau,hewan/Harimau.png
+hewan,Kelinci,K,hewan_Kelinci,hewan/Kelinci.png
+hewan,Panda,P,hewan_Panda,hewan/Panda.png
+hewan,Zebra,Z,hewan_Zebra,hewan/Zebra.png
+tumbuhan,Anggrek,A,tumbuhan_Anggrek,tumbuhan/Anggrek.png
+tumbuhan,Bambu,B,tumbuhan_Bambu,tumbuhan/Bambu.png
+tumbuhan,Cemara,C,tumbuhan_Cemara,tumbuhan/Cemara.png
+tumbuhan,Dahlia,D,tumbuhan_Dahlia,tumbuhan/Dahlia.png
+tumbuhan,Eukaliptus,E,tumbuhan_Eukaliptus,tumbuhan/Eukaliptus.png
+tumbuhan,Kaktus,K,tumbuhan_Kaktus,tumbuhan/Kaktus.png
+tumbuhan,Mawar,M,tumbuhan_Mawar,tumbuhan/Mawar.png
+tumbuhan,Tulip,T,tumbuhan_Tulip,tumbuhan/Tulip.png
+perusahaan,Perusahaan Abadi,A,perusahaan_Perusahaan_Abadi,perusahaan/Perusahaan Abadi.png
+perusahaan,Perusahaan Berkah,B,perusahaan_Perusahaan_Berkah,perusahaan/Perusahaan Berkah.png
+perusahaan,Perusahaan Cemerlang,C,perusahaan_Perusahaan_Cemerlang,perusahaan/Perusahaan Cemerlang.png
+perusahaan,Perusahaan Dinamika,D,perusahaan_Perusahaan_Dinamika,perusahaan/Perusahaan Dinamika.png
+perusahaan,Perusahaan Gemilang,G,perusahaan_Perusahaan_Gemilang,perusahaan/Perusahaan Gemilang.png
+perusahaan,Perusahaan Harmoni,H,perusahaan_Perusahaan_Harmoni,perusahaan/Perusahaan Harmoni.png
+perusahaan,Perusahaan Makmur,M,perusahaan_Perusahaan_Makmur,perusahaan/Perusahaan Makmur.png
+perusahaan,Perusahaan Sentosa,S,perusahaan_Perusahaan_Sentosa,perusahaan/Perusahaan Sentosa.png

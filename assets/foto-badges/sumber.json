@@ -1,0 +1,74 @@
+[
+  {
+    "id": "andi",
+    "nama": "Andi",
+    "gender": "laki-laki",
+    "buatanAI": true,
+    "metode": "image_gen bawaan",
+    "sumber": "C:\\Users\\NINDA\\.codex\\generated_images\\01a15cb0-57b0-7e62-a3ff-2a452e3c6041\\exec-53575ef4-9b97-47f0-afe5-9c40361f1b35.png",
+    "prompt": "Use case: photorealistic-natural. Asset type: one individual profile photograph for an Indonesian educational logical-ranking exercise. A fictional Indonesian man aged 28, short neat black hair, clean shaven, warm medium brown skin, navy collared shirt. Head and shoulders studio portrait, centered front-facing, gentle natural smile, distinct realistic face, eyes at camera, uncluttered light gray background, soft even lighting, natural skin texture, professional but approachable. Square composition with full head and comfortable margin. This is a synthetic fictional person, no reference to real people. Exactly ONE person and ONE photo, no collage, no text, no labels, no logos, no watermark. Output a square 512 by 512 image if possible."
+  },
+  {
+    "id": "budi",
+    "nama": "Budi",
+    "gender": "laki-laki",
+    "buatanAI": true,
+    "metode": "image_gen bawaan",
+    "sumber": "C:\\Users\\NINDA\\.codex\\generated_images\\01a15cb0-57b0-7e62-a3ff-2a452e3c6041\\exec-eb21e27f-481a-498b-acb6-fc52e8febb8b.png",
+    "prompt": "Use case: photorealistic-natural. Asset type: one individual profile photograph for an Indonesian educational logical-ranking exercise. A fictional Indonesian man aged 34, slightly wavy black hair, thin black rectangular glasses, warm medium tan skin, charcoal polo shirt. Head and shoulders studio portrait, centered front-facing, gentle natural smile, distinct realistic face, eyes at camera, uncluttered light gray background, soft even lighting, natural skin texture, professional but approachable. Square composition with full head and comfortable margin. This is a synthetic fictional person, no reference to real people. Exactly ONE person and ONE photo, no collage, no text, no labels, no logos, no watermark. Output a square 512 by 512 image if possible."
+  },
+  {
+    "id": "eko",
+    "nama": "Eko",
+    "gender": "laki-laki",
+    "buatanAI": true,
+    "metode": "image_gen bawaan",
+    "sumber": "C:\\Users\\NINDA\\.codex\\generated_images\\01a15cb0-57b0-7e62-a3ff-2a452e3c6041\\exec-04c32208-5fc9-4f43-9b8b-8be46b12aa5c.png",
+    "prompt": "Use case: photorealistic-natural. Asset type: one individual profile photograph for an Indonesian educational logical-ranking exercise. A fictional Indonesian man aged 31, short textured black hair, subtle neatly trimmed moustache, medium brown skin, olive green collared shirt. Head and shoulders studio portrait, centered front-facing, gentle natural smile, distinct realistic face, eyes at camera, uncluttered light gray background, soft even lighting, natural skin texture, professional but approachable. Square composition with full head and comfortable margin. This is a synthetic fictional person, no reference to real people. Exactly ONE person and ONE photo, no collage, no text, no labels, no logos, no watermark. Output a square 512 by 512 image if possible."
+  },
+  {
+    "id": "farhan",
+    "nama": "Farhan",
+    "gender": "laki-laki",
+    "buatanAI": true,
+    "metode": "image_gen bawaan",
+    "sumber": "C:\\Users\\NINDA\\.codex\\generated_images\\01a15cb0-57b0-7e62-a3ff-2a452e3c6041\\exec-e220e627-b9d2-4226-aa89-e2acd798a5f2.png",
+    "prompt": "Use case: photorealistic-natural. Asset type: one individual profile photograph for an Indonesian educational logical-ranking exercise. A fictional Indonesian man aged 26, swept side-part black hair, clean shaven, warm light brown skin, pale blue button-down shirt. Head and shoulders studio portrait, centered front-facing, gentle natural smile, distinct realistic face, eyes at camera, uncluttered light gray background, soft even lighting, natural skin texture, professional but approachable. Square composition with full head and comfortable margin. This is a synthetic fictional person, no reference to real people. Exactly ONE person and ONE photo, no collage, no text, no labels, no logos, no watermark. Output a square 512 by 512 image if possible."
+  },
+  {
+    "id": "citra",
+    "nama": "Citra",
+    "gender": "perempuan",
+    "buatanAI": true,
+    "metode": "image_gen bawaan",
+    "sumber": "C:\\Users\\NINDA\\.codex\\generated_images\\01a15cb0-57b0-7e62-a3ff-2a452e3c6041\\exec-afb9a651-f73d-4af3-ba47-bbf542f807ae.png",
+    "prompt": "Use case: photorealistic-natural. Asset type: one individual profile photograph for an Indonesian educational logical-ranking exercise. A fictional Indonesian woman aged 27, straight shoulder-length dark hair, warm medium tan skin, muted teal blouse. Head and shoulders studio portrait, centered front-facing, gentle natural smile, distinct realistic face, eyes at camera, uncluttered light gray background, soft even lighting, natural skin texture, professional but approachable. Square composition with full head and comfortable margin. This is a synthetic fictional person, no reference to real people. Exactly ONE person and ONE photo, no collage, no text, no labels, no logos, no watermark. Output a square 512 by 512 image if possible."
+  },
+  {
+    "id": "dewi",
+    "nama": "Dewi",
+    "gender": "perempuan",
+    "buatanAI": true,
+    "metode": "image_gen bawaan",
+    "sumber": "C:\\Users\\NINDA\\.codex\\generated_images\\01a15cb0-57b0-7e62-a3ff-2a452e3c6041\\exec-e9ed5afe-53f6-4ff3-a1ba-60050dff0742.png",
+    "prompt": "Use case: photorealistic-natural. Asset type: one individual profile photograph for an Indonesian educational logical-ranking exercise. A fictional Indonesian woman aged 33, dark hair neatly tied back, thin round glasses, medium brown skin, cream blouse. Head and shoulders studio portrait, centered front-facing, gentle natural smile, distinct realistic face, eyes at camera, uncluttered light gray background, soft even lighting, natural skin texture, professional but approachable. Square composition with full head and comfortable margin. This is a synthetic fictional person, no reference to real people. Exactly ONE person and ONE photo, no collage, no text, no labels, no logos, no watermark. Output a square 512 by 512 image if possible."
+  },
+  {
+    "id": "lili",
+    "nama": "Lili",
+    "gender": "perempuan",
+    "buatanAI": true,
+    "metode": "image_gen bawaan",
+    "sumber": "C:\\Users\\NINDA\\.codex\\generated_images\\01a15cb0-57b0-7e62-a3ff-2a452e3c6041\\exec-ce60e1f3-6a34-4168-a305-c3f6901040ee.png",
+    "prompt": "Use case: photorealistic-natural. Asset type: one individual profile photograph for an Indonesian educational logical-ranking exercise. A fictional Indonesian woman aged 29 wearing a neat dusty mauve hijab and light gray blouse, warm light brown skin. Head and shoulders studio portrait, centered front-facing, gentle natural smile, distinct realistic face, eyes at camera, uncluttered light gray background, soft even lighting, natural skin texture, professional but approachable. Square composition with full head and comfortable margin. This is a synthetic fictional person, no reference to real people. Exactly ONE person and ONE photo, no collage, no text, no labels, no logos, no watermark. Output a square 512 by 512 image if possible."
+  },
+  {
+    "id": "tiara",
+    "nama": "Tiara",
+    "gender": "perempuan",
+    "buatanAI": true,
+    "metode": "image_gen bawaan",
+    "sumber": "C:\\Users\\NINDA\\.codex\\generated_images\\01a15cb0-57b0-7e62-a3ff-2a452e3c6041\\exec-b90fed5a-2e7f-43d5-b10d-5b83615ed5e2.png",
+    "prompt": "Use case: photorealistic-natural. Asset type: one individual profile photograph for an Indonesian educational logical-ranking exercise. A fictional Indonesian woman aged 25 wearing a neat navy hijab and sage green blouse, medium brown skin. Head and shoulders studio portrait, centered front-facing, gentle natural smile, distinct realistic face, eyes at camera, uncluttered light gray background, soft even lighting, natural skin texture, professional but approachable. Square composition with full head and comfortable margin. This is a synthetic fictional person, no reference to real people. Exactly ONE person and ONE photo, no collage, no text, no labels, no logos, no watermark. Output a square 512 by 512 image if possible."
+  }
+]

@@ -26,8 +26,8 @@ var Berkas = require('./berkas.js');
 
 var AKAR = path.resolve(__dirname, '..');
 var GLOBAL_WAJIB = ['Rng', 'Metrik', 'Fmt', 'Hitung', 'Svg', 'SvgRaster', 'Kempis', 'Png', 'Raster', 'Chart', 'Kamus', 'Pilihan', 'Butir', 'Cerita', 'TabelKu',
-  'GrafikKu', 'Verbal', 'TopikVerbalTambahan', 'Variasi', 'Inferensi', 'Figural', 'SerialPutar', 'Bentuk', 'SerialGanda', 'MatriksLatin', 'MatriksIsi', 'MatriksSekat', 'PnBar', 'PnTabel', 'PnGaris', 'PnPie', 'Gambar', 'Bank', 'Validator', 'Paket', 'Dokumen',
-  'Zip', 'Docx', 'Pdf', 'Xlsx', 'Ekspor', 'Coba', 'AppOjk'];
+  'GrafikKu', 'Verbal', 'VerbalBahas', 'TopikVerbalTambahan', 'Variasi', 'Inferensi', 'Figural', 'Bentuk', 'Corak', 'SerialGanda', 'MatriksLatin', 'MatriksIsi', 'MatriksSekat', 'PnBar', 'PnTabel', 'PnGaris', 'PnPie', 'Gambar', 'Bank', 'Validator', 'Paket', 'Dokumen',
+  'Zip', 'Docx', 'Pdf', 'Xlsx', 'Ekspor', 'Coba', 'AppOjk', 'PnPeringkat', 'PeringkatData', 'CekPeringkat'];
 
 /** Fungsi yang dijalankan DI DALAM halaman: cari butir menurut id. */
 function cariButir(id) {
@@ -115,6 +115,15 @@ async function jalankan(ctx) {
       return { sebelum: sebelum, sesudah: getComputedStyle(k.querySelector('.kunci-blok')).display, chip: getComputedStyle(k.querySelector('.kunci-chip')).display };
     });
     cek(kunciTampil.sebelum === 'none' && kunciTampil.sesudah === 'block' && kunciTampil.chip !== 'none', 'peramban: kunci dan pembahasan tersembunyi lalu tampil lewat kotak centang', JSON.stringify(kunciTampil));
+    var verbalBukti = await dalam(function(){
+      var b=cariButir('P001-KU-01'),ps=Array.from(document.querySelectorAll('#soal-P001-KU-01 .pembahasan p'));
+      return b.pembahasanVerbal.kalimat.every(function(k){
+        var p=ps.find(function(x){return x.textContent==='('+k.nomor+') '+k.teks;});
+        return p && (!k.warna || Array.from(p.querySelectorAll('strong')).some(function(s){return s.style.color;}));
+      }) && ps.some(function(p){return p.textContent==='Penjelasan singkat';}) && ps.some(function(p){return p.textContent.indexOf('Cara Cepat: ')===0;});
+    });
+    cek(verbalBukti,'peramban: bacaan pembahasan bernomor, kalimat bukti berwarna, penjelasan dan cara cepat tampil');
+    await foto('#soal-P001-KU-01', 'ku-verbal-pembahasan');
     await foto('#soal-P001-KU-05', 'ku-tabel');
     await foto('#soal-P001-KU-09', 'ku-figural');
 
@@ -128,7 +137,7 @@ async function jalankan(ctx) {
       AppOjk.state.hasil.paket[1].subtes.filter(function (s) { return s.kode === 'pn'; })[0].butir.forEach(function (b) { if (!out[b.isian.jenis]) out[b.isian.jenis] = b.id; });
       return out;
     });
-    cek(Object.keys(jenisId).length === 4, 'peramban: keempat jenis soal interaktif ada di paket 2', JSON.stringify(jenisId));
+    cek(Object.keys(jenisId).length === 5, 'peramban: kelima jenis soal interaktif ada di paket 2', JSON.stringify(jenisId));
 
     async function buka(id) {
       await dalam(function (id) { document.getElementById('soal-' + id).querySelector('.coba-buka').click(); return 1; }, id);
@@ -137,6 +146,42 @@ async function jalankan(ctx) {
     async function periksa(id) { return dalam(function (id) { return document.querySelector('#soal-' + id + ' .wadah-coba').kendaliCoba.periksa(); }, id); }
     async function ambil(id) { return dalam(function (id) { return document.querySelector('#soal-' + id + ' .wadah-coba').kendaliCoba.ambil(); }, id); }
     async function aksi(id, nama) { return dalam(function (a) { document.querySelector('#soal-' + a.id + ' .wadah-coba').kendaliCoba[a.nama](); return 1; }, { id: id, nama: nama }); }
+
+    // --- Badges: klik, keyboard, drag/drop, pertukaran, reset, kartu petunjuk.
+    var rankId=jenisId.peringkat;
+    await buka(rankId);
+    var badgeAwal=await dalam(function(id){
+      var card=document.getElementById('soal-'+id),w=card.querySelector('.wadah-coba');
+      card.querySelectorAll('.peringkat-data summary').forEach(function(s){s.click();});
+      return {kosong:w.kendaliCoba.ambil().peringkat.every(function(x){return x===null;}),terbuka:card.querySelectorAll('.peringkat-data[open], .produk-data .produk-item, .badges-baris').length,n:cariButir(id).isian.nama.length};
+    },rankId);
+    cek(badgeAwal.kosong&&badgeAwal.terbuka===badgeAwal.n,'Badges: data seluruh kartu terlihat dan jawaban awal kosong');
+    for(var bi=0;bi<badgeAwal.n;bi++){
+      var points=await dalam(function(a){
+        var w=document.querySelector('#soal-'+a.id+' .wadah-coba'),key=cariButir(a.id).isian.kunci.peringkat[a.i];w.scrollIntoView({block:'center'});
+        function pt(e){var r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};}
+        return {badge:pt(w.querySelectorAll('.badge-nomor')[key-1]),nama:pt(w.querySelectorAll('.peringkat-nama')[a.i])};
+      },{id:rankId,i:bi});
+      await p.klik(points.badge.x,points.badge.y);await p.klik(points.nama.x,points.nama.y);
+    }
+    cek((await periksa(rankId)).benar,'Badges: klik nomor dan nama dengan mouse menghasilkan jawaban benar');
+    await foto('#soal-'+rankId,'badges-kunci');
+    var tukar=await dalam(function(id){
+      var w=document.querySelector('#soal-'+id+' .wadah-coba'),sel=w.querySelectorAll('.peringkat-pilih'),awal=w.kendaliCoba.ambil().peringkat;
+      sel[0].value=String(awal[1]);sel[0].dispatchEvent(new Event('change',{bubbles:true}));
+      var baru=w.kendaliCoba.ambil().peringkat;return baru[0]===awal[1]&&baru[1]===awal[0]&&new Set(baru).size===baru.length&&!w.kendaliCoba.periksa().benar;
+    },rankId);
+    cek(tukar,'Badges: pilihan nomor terpakai bertukar tanpa menduplikasi peringkat');
+    await aksi(rankId,'ulang');
+    var drop=await dalam(function(id){
+      var w=document.querySelector('#soal-'+id+' .wadah-coba'),dt=new DataTransfer();
+      w.querySelector('.badge-nomor').dispatchEvent(new DragEvent('dragstart',{dataTransfer:dt,bubbles:true}));
+      w.querySelectorAll('.peringkat-baris')[1].dispatchEvent(new DragEvent('drop',{dataTransfer:dt,bubbles:true,cancelable:true}));
+      return w.kendaliCoba.ambil().peringkat[1]===1;
+    },rankId);
+    cek(drop,'Badges: drag/drop memasangkan nomor badge ke nama');
+    await aksi(rankId,'kunci');cek((await periksa(rankId)).benar,'Badges: Lihat kunci sesuai hasil hitungan');
+    await aksi(rankId,'ulang');cek(!(await periksa(rankId)).lengkap,'Badges: Ulang mengosongkan seluruh nomor');
 
     // --- bar tumpuk
     var id = jenisId['bar-tumpuk'];
@@ -269,7 +314,7 @@ async function jalankan(ctx) {
         // jumlah gambar = gambar soal, opsi, dan pembahasan yang tercatat di JSON dalam ZIP itu
         var jsZip = JSON.parse(z.filter(function (x) { return x.nama === 'soal-ojk-tahap1.json'; })[0].data.toString('utf8')), harapPng = {};
         jsZip.paket.forEach(function (pk) { pk.subtes.forEach(function (st) { st.butir.forEach(function (b) {
-          (b.stimulus.gambar || []).concat(b.gambarPembahasan || [], b.opsi.map(function (o) { return o.gambar; }).filter(Boolean)).forEach(function (g) { harapPng[g.berkas] = true; });
+          (b.stimulus.gambar || []).concat(b.gambarPembahasan || [], b.gambarIsian || [], b.opsi.map(function (o) { return o.gambar; }).filter(Boolean)).forEach(function (g) { harapPng[g.berkas] = true; });
         }); }); });
         var jmlPng = Object.keys(harapPng).length;
         cek(nama.indexOf('soal-ojk-tahap1.xlsx') >= 0 && nama.indexOf('soal-ojk-tahap1.json') >= 0 && nama.indexOf('paket-002/paket-002.pdf') >= 0 && png.length === jmlPng && nama.indexOf('ringkasan.txt') >= 0,
@@ -305,12 +350,59 @@ async function jalankan(ctx) {
       'var t = document.getElementById("tingkat"); t.value = "sulit"; t.dispatchEvent(new Event("change")); ' +
       'document.getElementById("jumlah").value = 2; document.getElementById("benih").value = 5; await AppOjk.generate(); ' +
       'var h = AppOjk.state.hasil; return { subtes: h.paket[0].subtes.map(function (s) { return s.kode + ":" + s.jumlah; }), tab: document.querySelectorAll("#tab-subtes button").length, level: h.paket[0].subtes[0].butir.map(function (b) { return b.level; }).filter(function (x, i, a) { return a.indexOf(x) === i; }), verbal: h.paket[0].subtes[0].butir.filter(function (b) { return b.submateriKomposisi === "verbal"; }).length, cerita: h.paket[0].subtes[0].butir.filter(function (b) { return b.submateriKomposisi === "cerita"; }).length, cli: document.getElementById("perintah-cli").value }; })()');
-    cek(tunggalKu.subtes.join() === 'ku:13' && tunggalKu.tab === 1 && tunggalKu.level.join() === 'sulit' && tunggalKu.verbal === 5 && tunggalKu.cerita === 0, 'peramban: subtes hanya Kemampuan Umum, verbal 5, soal cerita 0, tingkat sulit dipatuhi', JSON.stringify(tunggalKu));
+    cek(tunggalKu.subtes.join() === 'ku:12' && tunggalKu.tab === 1 && tunggalKu.level.join() === 'sulit' && tunggalKu.verbal === 5 && tunggalKu.cerita === 0, 'peramban: subtes hanya Kemampuan Umum, verbal 5, soal cerita 0, tingkat sulit dipatuhi', JSON.stringify(tunggalKu));
     cek(/--subtes ku/.test(tunggalKu.cli) && /--tingkat sulit/.test(tunggalKu.cli) && /--komposisi-ku verbal=5,cerita=0/.test(tunggalKu.cli) && /--benih 5/.test(tunggalKu.cli), 'peramban: perintah CLI setara mengikuti pengaturan', tunggalKu.cli);
     var tunggalPn = await p.evaluasi('(async function () { Array.from(document.querySelectorAll("#pilih-subtes button")).filter(function (b) { return b.dataset.subtes === "pn"; })[0].click(); document.getElementById("btn-baku").click(); ' +
       'var t = document.getElementById("tingkat"); t.value = "campur"; t.dispatchEvent(new Event("change")); document.getElementById("jumlah").value = 2; await AppOjk.generate(); var h = AppOjk.state.hasil; ' +
       'return { subtes: h.paket[0].subtes.map(function (s) { return s.kode + ":" + s.jumlah; }), kartu: document.querySelectorAll(".soal").length, lulus: AppOjk.state.validasi.lulus }; })()');
     cek(tunggalPn.subtes.join() === 'pn:10' && tunggalPn.kartu === 10 && tunggalPn.lulus === true, 'peramban: subtes hanya Penalaran Numerik menampilkan 10 soal interaktif', JSON.stringify(tunggalPn));
+
+    // ------------------------------------------------------------ Chapter/Subchapter lewat kontrol pengguna
+    var kosongMateri = await dalam(async function () {
+      var e=document.getElementById('mode-generate');e.value='materi';e.dispatchEvent(new Event('change'));
+      await AppOjk.generate();return !AppOjk.state.hasil && /pilih sedikitnya satu Chapter/.test(document.getElementById('status').textContent);
+    });
+    cek(kosongMateri,'peramban: mode materi menolak generate sebelum materi dipilih');
+    var daftarMateri=await dalam(function(){
+      function isi(id,v){var e=document.getElementById(id);e.value=v;e.dispatchEvent(new Event('change'));}
+      function tambah(kat,lesson,chapter,sub,jumlah){isi('materi-category',kat);isi('materi-lesson',lesson);isi('materi-chapter',chapter);isi('materi-subchapter',sub||chapter);document.getElementById('materi-jumlah').value=jumlah;document.getElementById('btn-tambah-materi').click();}
+      tambah('Penalaran Spasial','Bangun Datar','ku-serial',null,5);
+      tambah('Numerik/ Kuantitatif','Soal Cerita [BS]','ku-cerita','ku-cerita/aljabar-dasar',3);
+      tambah('Numerik/ Kuantitatif','Soal Cerita [BS]','ku-cerita',null,2);
+      var overlap=AppOjk.state.materi.length===2 && /tumpang tindih/.test(document.getElementById('status-materi').textContent);
+      tambah('Numerik/ Kuantitatif','SHL Interaktif','pn-pie-penuh',null,2);
+      var input=document.querySelector('[data-materi="ku-serial"] input');input.value=4;input.dispatchEvent(new Event('change'));
+      return {overlap:overlap,items:AppOjk.state.materi,cli:document.getElementById('perintah-cli').value,disabled:document.getElementById('materi-subchapter').disabled};
+    });
+    cek(daftarMateri.overlap && daftarMateri.disabled && daftarMateri.items.map(function(m){return m.jumlah;}).join()==='4,3,2','peramban: pilih beberapa materi, tolak tumpang tindih, edit jumlah dan Chapter tanpa Subchapter');
+    cek(/--materi ku-serial=4,ku-cerita\/aljabar-dasar=3,pn-pie-penuh=2/.test(daftarMateri.cli) && !/--subtes|--komposisi/.test(daftarMateri.cli),'peramban: perintah CLI materi mengikuti pilihan');
+    var hasilMateri=await dalam(async function(){
+      var j=document.getElementById('jumlah');j.value=2;j.dispatchEvent(new Event('change'));
+      document.getElementById('btn-generate').click();
+      for(var i=0;i<1000&&AppOjk.state.sibuk;i++)await new Promise(function(r){setTimeout(r,20);});
+      return {validasi:AppOjk.state.validasi,hasil:AppOjk.state.hasil,info:document.getElementById('info-paket').textContent};
+    });
+    cek(hasilMateri.validasi && hasilMateri.validasi.lulus && hasilMateri.validasi.butir===18 && hasilMateri.hasil.meta.mode==='materi' && !/menit/.test(hasilMateri.info),'peramban: tombol Generate soal membuat dua set materi sesuai kuota tanpa durasi tryout');
+    await foto('#panel-atur','pilihan-chapter-subchapter');
+    f=await tekan('btn-json');var jm=JSON.parse(f.data.toString('utf8'));
+    cek(jm.meta.materi.length===3 && jm.paket.every(function(p){var bs=p.subtes.flatMap(function(s){return s.butir;});return bs.filter(function(b){return b.keluarga==='serial';}).length===4 && bs.filter(function(b){return b.keluarga==='aljabar-berat';}).length===3 && bs.filter(function(b){return b.keluarga==='pie-penuh';}).length===2;}),'peramban: JSON mode materi hanya berisi Chapter/Subchapter yang dipilih');
+    f=await tekan('btn-xlsx');var xm=Berkas.periksaXlsx(f.data).Soal;
+    cek(xm.length===19 && xm.slice(1).every(function(r){return ['Figural Serial - The Next Box','SHL_Soal Cerita','Pie Chart - Informasi Penuh'].includes(r[xm[0].indexOf('chapter')]);}),'peramban: Excel mode materi berisi 18 soal dengan Chapter yang sesuai');
+    await dalam(function(){document.querySelector('[data-materi="pn-pie-penuh"] button').click();});
+    var selesaiMuat=p.muatSelesai();await p.kirim('Page.reload');await selesaiMuat;
+    var tersimpan=await dalam(function(){return {mode:AppOjk.state.mode,materi:AppOjk.state.materi,jumlah:document.getElementById('jumlah').value,terlihat:!document.getElementById('pengaturan-materi').hidden};});
+    cek(tersimpan.mode==='materi' && tersimpan.materi.length===2 && tersimpan.materi[0].jumlah===4 && tersimpan.jumlah==='2' && tersimpan.terlihat,'peramban: hapus materi dan muat ulang mempertahankan mode, pilihan serta jumlah set');
+    await p.ukuran(390,844);
+    var muatKecil=await dalam(function(){return document.documentElement.scrollWidth<=window.innerWidth;});
+    cek(muatKecil,'peramban: pilihan materi muat pada layar 390 px tanpa gulir horizontal');
+    await foto('#panel-atur','pilihan-materi-mobile');
+    await p.ukuran(1500,1800);
+    var kembali=await dalam(async function(){
+      var e=document.getElementById('mode-generate');e.value='tryout';e.dispatchEvent(new Event('change'));
+      document.getElementById('jumlah').value=1;await AppOjk.generate();
+      return AppOjk.state.hasil.meta.mode==='tryout' && AppOjk.state.validasi.lulus && AppOjk.state.validasi.butir===10 && AppOjk.state.hasil.paket[0].subtes[0].menit===18;
+    });
+    cek(kembali,'peramban: kembali ke tryout memakai komposisi dan durasi tryout');
 
     cek(p.konsol.length === 0, 'peramban: tidak ada galat konsol selama seluruh uji', p.konsol.join(' | '));
   } finally {

@@ -14,37 +14,34 @@
   var api;
   if (typeof module === 'object' && module.exports) {
     api = factory(require('./verbal.js'), require('./cerita.js'), require('./tabelku.js'), require('./grafikku.js'),
-      require('./figural.js'), require('./serial-putar.js'), require('./serial-ganda.js'),
-      require('./matriks-latin.js'), require('./matriks-isi.js'), require('./matriks-sekat.js'),
-      require('./pn-bar.js'), require('./pn-tabel.js'), require('./pn-garis.js'), require('./pn-pie.js'), require('./variasi.js'), require('./kerangka.js'),
-      [require('./transformasi.js'), require('./transformasi-analogi.js'), require('./lipat-kertas.js'), require('./serial-petak.js'),
-        require('./matriks-tumpuk.js'), require('./matriks-bentuk.js')]);
+      require('./pn-bar.js'), require('./pn-tabel.js'), require('./pn-garis.js'), require('./pn-pie.js'),
+      require('./variasi.js'), require('./kerangka.js'), require('./riset-figural.js'), require('./pn-peringkat.js'));
     module.exports = api;
   } else {
-    api = factory(root.Verbal, root.Cerita, root.TabelKu, root.GrafikKu, root.Figural, root.SerialPutar, root.SerialGanda,
-      root.MatriksLatin, root.MatriksIsi, root.MatriksSekat, root.PnBar, root.PnTabel, root.PnGaris, root.PnPie, root.Variasi, root.Kerangka,
-      [root.Transformasi, root.TransformasiAnalogi, root.LipatKertas, root.SerialPetak, root.MatriksTumpuk, root.MatriksBentuk]);
+    api = factory(root.Verbal, root.Cerita, root.TabelKu, root.GrafikKu,
+      root.PnBar, root.PnTabel, root.PnGaris, root.PnPie, root.Variasi, root.Kerangka, root.RisetFigural, root.PnPeringkat);
     root.Bank = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Verbal, Cerita, TabelKu, GrafikKu, Figural, SerialPutar, SerialGanda,
-  MatriksLatin, MatriksIsi, MatriksSekat, PnBar, PnTabel, PnGaris, PnPie, Variasi, Kerangka, FiguralTambahan) {
+})(typeof self !== 'undefined' ? self : this, function (Verbal, Cerita, TabelKu, GrafikKu,
+  PnBar, PnTabel, PnGaris, PnPie, Variasi, Kerangka, RisetFigural, PnPeringkat) {
   'use strict';
 
   function dari(mod, kel) {
     // Menggabungkan laba beberapa produk/garansi atau dua kondisi produksi membutuhkan
     // beberapa langkah. Keluarga ini tidak diberi label mudah hanya karena angkanya kecil.
     var tingkat = ['laba-persen', 'tak-diketahui', 'garis-majemuk'].indexOf(kel.id) >= 0 ? ['sedang', 'sulit'] : ['mudah', 'sedang', 'sulit'];
+    if (kel.tingkat) tingkat = kel.tingkat.slice();
     return { id: kel.id, nama: kel.nama, topik: kel.topik || '', tingkat: tingkat, buat: function (level, benih, opsi) { return mod.buat(kel.id, level, benih, opsi); } };
   }
 
   var SUBTES = {
     ku: {
       kode: 'ku', nama: 'Kemampuan Umum', soal: 12, menit: 10,
-      komposisiBaku: { verbal: 2, cerita: 2, tabel: 3, grafik: 1, serial: 2, matriks: 2 }
+      komposisiBaku: { verbal: 3, cerita: 2, tabel: 2, grafik: 1, serial: 2, matriks: 2 }
     },
     pn: {
       kode: 'pn', nama: 'Penalaran Numerik', soal: 10, menit: 18,
-      komposisiBaku: { bar: 3, tabel: 3, garis: 2, pie: 2 }
+      komposisiBaku: { bar: 2, tabel: 2, garis: 2, pie: 2, peringkat: 2 }
     }
   };
 
@@ -54,21 +51,13 @@
     cerita: { subtes: 'ku', submateri: 'cerita', nama: 'Numerik - Soal Cerita', label: 'Numerik: Soal Cerita', keluarga: Cerita.KELUARGA.map(function (k) { return dari(Cerita, k); }) },
     tabel: { subtes: 'ku', submateri: 'tabel', nama: 'Numerik - Tabel', label: 'Numerik: Tabel', keluarga: TabelKu.KELUARGA.map(function (k) { return dari(TabelKu, k); }) },
     grafik: { subtes: 'ku', submateri: 'grafik', nama: 'Numerik - Grafik Batang', label: 'Numerik: Grafik Batang', keluarga: GrafikKu.KELUARGA.map(function (k) { return dari(GrafikKu, k); }) },
-    serial: {
-      subtes: 'ku', submateri: 'figural', nama: 'Figural - Serial', label: 'Figural: Serial',
-      keluarga: [dari(Figural, Figural.KELUARGA[0]), dari(SerialPutar, SerialPutar.KELUARGA[0]), dari(SerialGanda, SerialGanda.KELUARGA[0])]
-    },
-    // empat bentuk mengikuti contoh riset (3x3 simbol dan sambungan, 5x5, 5x6, 2x2 bersekat) dan satu
-    // pengayaan (3x3 atribut), masing-masing berbobot satu; matriks 2x2 biasa tidak dipakai lagi
-    matriks: {
-      subtes: 'ku', submateri: 'figural', nama: 'Figural - Matriks', label: 'Figural: Matriks',
-      keluarga: [dari(Figural, Figural.KELUARGA[2]), dari(MatriksLatin, MatriksLatin.KELUARGA[0]), dari(MatriksIsi, MatriksIsi.KELUARGA[0]),
-        dari(MatriksSekat, MatriksSekat.KELUARGA[0]), dari(Figural, Figural.KELUARGA[1])]
-    },
+    serial: { subtes: 'ku', submateri: 'figural', nama: 'Figural - Serial', label: 'Figural: Serial', keluarga: [] },
+    matriks: { subtes: 'ku', submateri: 'figural', nama: 'Figural - Matriks', label: 'Figural: Matriks', keluarga: [] },
     bar: { subtes: 'pn', submateri: 'bar', nama: 'Bar Chart', label: 'Bar Chart', keluarga: PnBar.KELUARGA.map(function (k) { return dari(PnBar, k); }) },
     'tabel-pn': { subtes: 'pn', submateri: 'tabel', nama: 'Table', label: 'Table', keluarga: PnTabel.KELUARGA.map(function (k) { return dari(PnTabel, k); }) },
     garis: { subtes: 'pn', submateri: 'garis', nama: 'Line Graph', label: 'Line Graph', keluarga: PnGaris.KELUARGA.map(function (k) { return dari(PnGaris, k); }) },
-    pie: { subtes: 'pn', submateri: 'pie', nama: 'Pie Chart', label: 'Pie Chart', keluarga: PnPie.KELUARGA.map(function (k) { return dari(PnPie, k); }) }
+    pie: { subtes: 'pn', submateri: 'pie', nama: 'Pie Chart', label: 'Pie Chart', keluarga: PnPie.KELUARGA.map(function (k) { return dari(PnPie, k); }) },
+    peringkat: { subtes: 'pn', submateri: 'peringkat', nama: 'Badges', label: 'Badges', keluarga: PnPeringkat.KELUARGA.map(function(k) { return dari(PnPeringkat, k); }) }
   };
 
   /** Kunci komposisi pada opsi -> kunci SUBMATERI (tabel Kemampuan Umum dan tabel interaktif berbeda). */
@@ -77,10 +66,11 @@
     return kunci;
   }
 
-  // keluarga figural tambahan (pengayaan) ikut diundi pada slot serial atau matriks menurut `kolam`-nya,
-  // jadi komposisi paket tidak berubah
-  FiguralTambahan.forEach(function (mod) {
-    mod.KELUARGA.forEach(function (kel) { SUBMATERI[kel.kolam].keluarga.push(dari(mod, kel)); });
+  // Enam bentuk saja. Variasi dipilih di dalam bentuk, sehingga menambah pola
+  // tidak mengubah bobot The Next Box/Double Box atau empat ukuran matriks.
+  ['serial', 'matriks'].forEach(function (kolam) {
+    SUBMATERI[kolam].keluarga = RisetFigural.KELUARGA.filter(function (k) { return k.kolam === kolam; })
+      .map(function (k) { return dari(RisetFigural, k); });
   });
 
   Variasi.KELUARGA.forEach(function (kel) {
@@ -95,7 +85,7 @@
   /** Urutan tampil submateri dalam satu subtes. */
   var URUTAN = {
     ku: ['verbal', 'cerita', 'tabel', 'grafik', 'serial', 'matriks'],
-    pn: ['bar', 'tabel', 'garis', 'pie']
+    pn: ['bar', 'tabel', 'peringkat', 'garis', 'pie']
   };
 
   function ambil(subtes, kunci) {
@@ -140,5 +130,48 @@
     return out;
   }
 
-  return { SUBTES: SUBTES, URUTAN: URUTAN, buat: buat, jumlahKeluarga: jumlahKeluarga, tingkatBoleh: tingkatBoleh, katalog: katalog, ambil: ambil };
+  /** Chapter utuh dan setiap Subchapter, dengan daftar keluarga yang benar-benar sesuai. */
+  function katalogMateri() {
+    var chapters = [];
+    Object.keys(URUTAN).forEach(function (st) {
+      URUTAN[st].forEach(function (kunci) {
+        var s = ambil(st, kunci);
+        s.keluarga.forEach(function (kel, indeks) {
+          var k = Kerangka.dariKeluarga(st, s.submateri, kel.id);
+          var c = chapters.find(function (x) { return x.subtes === st && x.chapter === k.chapter; });
+          if (!c) {
+            var khusus = s.submateri === 'figural' || st === 'pn' && (kunci === 'tabel' || kunci === 'pie');
+            c = { id: st + '-' + (khusus ? kel.id : kunci), subtes: st, kunci: kunci,
+              category: k.category, lesson: k.lesson, chapter: k.chapter, subchapter: null, keluarga: [], anak: [] };
+            chapters.push(c);
+          }
+          c.keluarga.push(indeks);
+          if (k.subchapter !== null) {
+            var anak = c.anak.find(function (x) { return x.subchapter === k.subchapter; });
+            if (!anak) {
+              anak = { id: c.id + '/' + k.subchapter.toLowerCase().replace(/[^a-z0-9]+/g, '-'), subtes: st, kunci: kunci,
+                category: k.category, lesson: k.lesson, chapter: k.chapter, subchapter: k.subchapter, keluarga: [] };
+              c.anak.push(anak);
+            }
+            anak.keluarga.push(indeks);
+          }
+        });
+      });
+    });
+    var out = [];
+    chapters.forEach(function (c) {
+      c.anak.sort(function (a,b) { return Kerangka.BAB[c.chapter].indexOf(a.subchapter) - Kerangka.BAB[c.chapter].indexOf(b.subchapter); });
+      var anak = c.anak; delete c.anak;
+      c.subchapterIds = anak.map(function (x) { return x.id; });
+      out.push(c); anak.forEach(function (x) { out.push(x); });
+    });
+    out.forEach(function (x) {
+      x.tingkat = ['mudah', 'sedang', 'sulit'].filter(function (lv) {
+        return x.keluarga.some(function (i) { return tingkatBoleh(x.subtes, x.kunci, i, lv); });
+      });
+    });
+    return out;
+  }
+
+  return { SUBTES: SUBTES, URUTAN: URUTAN, buat: buat, jumlahKeluarga: jumlahKeluarga, tingkatBoleh: tingkatBoleh, katalog: katalog, katalogMateri: katalogMateri, ambil: ambil };
 });

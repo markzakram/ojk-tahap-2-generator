@@ -144,8 +144,9 @@ function bacaLembar(xml) {
       for (var i = 0; i < r[1].length; i++) kol = kol * 26 + (r[1].charCodeAt(i) - 64);
       var nilai = '';
       if (dalam) {
-        var t = /<t\b[^>]*>([\s\S]*?)<\/t>/.exec(dalam), v = /<v>([\s\S]*?)<\/v>/.exec(dalam);
-        nilai = t ? lepasEntitas(t[1]) : (v ? v[1] : '');
+        var teks = [], v = /<v>([\s\S]*?)<\/v>/.exec(dalam);
+        dalam.replace(/<t\b[^>]*>([\s\S]*?)<\/t>/g, function(___,t){teks.push(lepasEntitas(t));return ___;});
+        nilai = teks.length ? teks.join('') : (v ? v[1] : '');
       }
       sel[kol - 1] = nilai;
       return __;

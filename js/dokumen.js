@@ -21,13 +21,13 @@
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
-    api = factory(require('./gambar.js'), require('./format.js'), require('./rumus.js'));
+    api = factory(require('./gambar.js'), require('./format.js'), require('./rumus.js'), require('./verbal-bahas.js'));
     module.exports = api;
   } else {
-    api = factory(root.Gambar, root.Fmt, root.Rumus);
+    api = factory(root.Gambar, root.Fmt, root.Rumus, root.VerbalBahas);
     root.Dokumen = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Gambar, Fmt, Rumus) {
+})(typeof self !== 'undefined' ? self : this, function (Gambar, Fmt, Rumus, VerbalBahas) {
   'use strict';
 
   var HURUF = ['A', 'B', 'C', 'D', 'E'];
@@ -38,6 +38,7 @@
 
   /** Bentuk isian butir interaktif, dalam kalimat (untuk naskah dan Excel). */
   function bentukIsian(b) {
+    if (b.isian && b.isian.jenis === 'peringkat') return 'Badges (Logical Ranking): pasangkan nomor 1 sampai ' + b.isian.nama.length + ' ke setiap ' + (b.isian.entitas==='produk'?'produk':'nama') + '. Setiap nomor digunakan sekali.';
     var is = b.isian;
     if (!is) return '';
     if (is.jenis === 'bar-tumpuk') {
@@ -144,7 +145,9 @@
       out.push(par(b.pertanyaan, { sesudah: 4 }));
     } else if (b.jenis === 'isian') {
       if (b.stimulus.judul) out.push(par(b.stimulus.judul, { tebal: true, sesudah: 4 }));
-      (b.stimulus.teks || []).forEach(function (t) { out.push(barisTeks(t)); });
+      if(b.isian.entitas==='produk'){
+        b.isian.pengantar.forEach(function(t){out.push(barisTeks(t));});out.push(dataProduk(b));
+      }else (b.stimulus.teks || []).forEach(function (t) { out.push(barisTeks(t)); });
       if (b.stimulus.kartu) out.push(blokKartu(b.stimulus.kartu));
       out.push(par(b.pertanyaan, { sesudah: 4 }));
       out.push(par(bentukIsian(b), { miring: true, ukuran: 9.5, warna: '667089', sesudah: 6 }));
@@ -184,12 +187,19 @@
       }
     } else {
       out.push(lembarJawab(b));
+      if(b.isian.entitas==='produk')out.push(par('Lencana:   1     2     3     4     5     6',{tebal:true,sesudah:6}));
     }
     // Nomor melekat pada awal stimulus, termasuk bila stimulus dimulai dengan gambar.
     if (!out.length || out[0].t !== 'p') out.unshift(par('Perhatikan informasi berikut.', { sesudah: 4 }));
     out[0].runs.unshift({ teks: b.no + '. ' });
     out[0].keras = true;
     return { t: 'grup', anak: out };
+  }
+
+  function dataProduk(b){
+    var baris=[],kartu=b.isian.kartu;
+    for(var i=0;i<kartu.length;i+=2)baris.push(kartu.slice(i,i+2).map(function(k){return {teks:k.nama+': '+k.petunjuk[0]};}));
+    return {t:'tabel',lebarKol:[1,1],baris:baris,header:false};
   }
 
   /** Kotak keterangan berwarna (pie chart) dua-dua seperti contoh riset; kotak tanpa isi tetap tampil. */
@@ -209,6 +219,15 @@
   function lembarJawab(b) {
     var is = b.isian, baris = [], kosong = '.....................';
     var kep = function (t, rata) { return { teks: t, tebal: true, rata: rata || 'kiri', isi: 'E9EEF7' }; };
+    if (is.jenis === 'peringkat') {
+      if(is.entitas==='produk'){
+        for(var p=0;p<is.nama.length;p+=2)baris.push([{teks:is.nama[p]},{teks:'#',rata:'tengah'},{teks:is.nama[p+1]},{teks:'#',rata:'tengah'}]);
+        return {t:'tabel',lebarKol:[3,1,3,1],baris:baris,header:false};
+      }
+      baris.push([kep('Nama'), kep('Nomor badge / peringkat', 'tengah')]);
+      is.nama.forEach(function(n) { baris.push([{teks:n},{teks:kosong,rata:'tengah'}]); });
+      return { t:'tabel', lebarKol:[2,3], baris:baris, header:true };
+    }
     if (is.jenis === 'bar-tumpuk') {
       baris.push([kep('Batang'), kep('Total', 'tengah'), kep('% ' + is.seri[0], 'tengah'), kep('% ' + is.seri[1], 'tengah')]);
       is.kategori.forEach(function (k) { baris.push([{ teks: k }, { teks: kosong, rata: 'tengah' }, { teks: kosong, rata: 'tengah' }, { teks: kosong, rata: 'tengah' }]); });
@@ -231,10 +250,26 @@
   }
 
   /** Satu baris pembahasan untuk PDF: persamaan sebagai teks menjorok, judul bagian (Diketahui, ...) tebal. */
-  function barisPembahasanPdf(t) {
+  function runsPembahasan(b, t) {
+    return b.submateri === 'verbal' && b.pembahasanVerbal ? VerbalBahas.runs(b.pembahasanVerbal, t) : null;
+  }
+
+  function paragrafVerbal(b, t, ukuran) {
+    var nomor = /^\(\d+\) /.test(t);
+    var p = parRuns(runsPembahasan(b,t), { ukuran: ukuran, indent: nomor ? 14 : 0, gantung: nomor ? 14 : 0, sesudah: t === 'Penjelasan singkat' ? 3 : 5 });
+    if (t === 'Penjelasan singkat') p.keras = true;
+    return p;
+  }
+
+  function barisPembahasanPdf(t, b) {
+    if (runsPembahasan(b,t)) return paragrafVerbal(b,t,10);
     if (Rumus.adalah(t)) return { t: 'rumus', notasi: Rumus.isi(t), teks: Rumus.barisTeks(t, true) };
     if (Rumus.judulBagian(t)) return par(t, { ukuran: 10, tebal: true, sesudah: 2 });
     return barisTeks(t, { ukuran: 10 });
+  }
+
+  function judulOrang(b,t) {
+    return b.isian && b.isian.jenis === 'peringkat' && b.isian.nama.some(function(n) { return t === n + ':'; });
   }
 
   function blokPembahasan(b, img) {
@@ -242,15 +277,34 @@
     var jawaban = jawabanLengkap(b);
     out.push(parRuns([{ teks: 'Jawaban: ', tebal: true }, { teks: jawaban }], { sesudah: 5 }));
     var uraian = pembahasanBadan(b).filter(function (t) { return !/^Jenis soal: /.test(t); });
-    var pertama = uraian.length && !Rumus.adalah(uraian[0]) && !Rumus.judulBagian(uraian[0]) ? uraian.shift() : '';
+    var pertama = b.submateri !== 'verbal' && uraian.length && !Rumus.adalah(uraian[0]) && !Rumus.judulBagian(uraian[0]) ? uraian.shift() : '';
     out.push(parRuns([{ teks: 'Pembahasan: ', tebal: true }, { teks: pertama }], { ukuran: 10, sesudah: 5 }));
     // gambar kondisi kunci (butir interaktif)
-    (b.gambarPembahasan || []).forEach(function (g) {
+    (b.gambarPembahasan || []).filter(function(g){return !g.setelah;}).forEach(function (g) {
       var im = img(b, g);
       if (!im) return;
       out.push({ t: 'gambar', img: im, lebarPt: Math.min(im.lebar / (im.skala || 2) * 0.75, 360), rata: 'tengah', sesudah: 6 });
     });
-    uraian.forEach(function (t) { out.push(barisPembahasanPdf(t)); });
+    for (var i = 0; i < uraian.length; i++) {
+      var t = uraian[i];
+      var langkah=(b.gambarPembahasan||[]).filter(function(g){return (g.mulai||g.setelah)===t;});
+      if(langkah.length){
+        var akhirLangkah=i;
+        langkah.forEach(function(g){akhirLangkah=Math.max(akhirLangkah,uraian.indexOf(g.setelah,i));});
+        var panel=uraian.slice(i,akhirLangkah+1).map(function(s){return barisPembahasanPdf(s,b);});i=akhirLangkah;
+        langkah.forEach(function(g){var im=img(b,g);if(im)panel.push({t:'gambar',img:im,lebarPt:g.model.tahap==='orang'?400:440,rata:'tengah',sesudah:10});});
+        out.push({t:'grup',anak:panel});
+      } else if (judulOrang(b,t)) {
+        var bagian = [par(t, {ukuran:10,tebal:true,sesudah:2})];
+        while (i + 1 < uraian.length && !judulOrang(b,uraian[i+1]) && !Rumus.judulBagian(uraian[i+1])) {
+          var berikut = uraian[++i]; bagian.push(barisPembahasanPdf(berikut,b));
+          if (/^Hasil /.test(berikut)) break;
+        }
+        out.push({t:'grup',anak:bagian});
+      } else if ((b.pembahasanVerbal && t === 'Penjelasan singkat' || Rumus.judulBagian(t)) && i + 1 < uraian.length && !(b.gambarPembahasan||[]).some(function(g){return (g.mulai||g.setelah)===uraian[i+1];})) {
+        out.push({ t: 'grup', anak: [barisPembahasanPdf(t,b), barisPembahasanPdf(uraian[++i],b)] });
+      } else out.push(barisPembahasanPdf(t,b));
+    }
     // butir figural tidak lagi memuat galeri "Kunci: X": gambar pembahasannya sudah menampilkan jawaban
     out.push({ t: 'jarak', tinggi: 8 });
     return out;
@@ -265,14 +319,16 @@
   function dariPaket(paket, img, opsi) {
     opsi = opsi || {};
     var blok = [];
-    var judul = opsi.judul || 'Tes Potensi Dasar OJK PCAM · Tahap 1';
+    var khususBadges=paket.subtes.every(function(st){return st.butir.every(function(b){return b.submateri==='peringkat';});});
+    var judul = opsi.judul || (khususBadges?'Bank Latihan Badges · Penalaran Numerik':paket.mode === 'materi' ? 'Latihan per Materi OJK PCAM · Tahap 1' : 'Tes Potensi Dasar OJK PCAM · Tahap 1');
     blok.push({ t: 'h1', teks: judul });
-    blok.push(par('Paket ' + paket.id + ' · benih utama ' + (opsi.benih != null ? opsi.benih : '-') + ' · ' + paket.subtes.map(function (s) { return s.nama + ' ' + s.jumlah + ' soal / ' + s.menit + ' menit'; }).join(' · '), { ukuran: 9.5, warna: '667089', sesudah: 10 }));
+    if(khususBadges)blok.push(par('Bank latihan hasil pengembangan sesuai riset/QC akademik; bukan pernyataan format resmi seluruh tes.',{ukuran:9.5,sesudah:6}));
+    blok.push(par('Paket ' + paket.id + ' · benih utama ' + (opsi.benih != null ? opsi.benih : '-') + ' · ' + paket.subtes.map(function (s) { return s.nama + ' ' + s.jumlah + ' soal' + (s.menit == null ? '' : ' / ' + s.menit + ' menit'); }).join(' · '), { ukuran: 9.5, warna: '667089', sesudah: 10 }));
     // subtes berikutnya mulai di halaman baru supaya judulnya tidak tertinggal di dasar halaman
     paket.subtes.forEach(function (st, i) {
       if (i > 0) blok.push({ t: 'jeda' });
       blok.push({ t: 'h2', teks: 'Subtes ' + (i + 1) + ' — ' + st.nama });
-      blok.push(par(st.jumlah + ' soal · ' + st.menit + ' menit' + (st.kode === 'pn' ? ' · tes interaktif: jawaban berupa kondisi akhir tampilan (batang, tab, titik, atau irisan)' : ' · pilihan ganda'), { ukuran: 9.5, warna: '667089', sesudah: 8 }));
+      blok.push(par(st.jumlah + ' soal' + (st.menit == null ? '' : ' · ' + st.menit + ' menit') + (st.kode === 'pn' ? ' · tes interaktif: atur batang, keputusan tabel, badge peringkat, titik, atau irisan sesuai soal' : ' · pilihan ganda'), { ukuran: 9.5, warna: '667089', sesudah: 8 }));
       st.butir.forEach(function (b) {
         var soal = blokSoal(b, img, opsi);
         if (!opsi.tanpaPembahasan) {
@@ -306,7 +362,7 @@
    * jadi tiap subtes ditulis ke berkas Word tersendiri (tanpa judul subtes di antara soal).
    */
   var TINGKAT_SIADU = { mudah: 'Mudah', sedang: 'Sedang', sulit: 'Sulit' };
-  var BENTUK_SIADU = { 'bar-tumpuk': 'Bar Chart', garis: 'Line Chart', pie: 'Pie Chart', tabel: 'Table Decision' };
+  var BENTUK_SIADU = { 'bar-tumpuk': 'Bar Chart', garis: 'Line Chart', pie: 'Pie Chart', tabel: 'Table Decision', peringkat: 'Logical Ranking' };
 
   function bentukSiadu(b) { return b.jenis === 'pg' ? 'Option New' : BENTUK_SIADU[b.isian.jenis]; }
   function polos(t) { return String(t).replace(/^• /, '- '); }
@@ -345,10 +401,25 @@
     out.push(par('Jawaban: ' + HURUF[b.kunci]));
   }
 
-  function soalIsianSiadu(b, out) {
+  function soalIsianSiadu(b, out, img) {
     var is = b.isian, jenis = is.jenis, a = function (v) { return Fmt.angka(v); };
     out.push(par(judulPolos(b)));
-    if (jenis === 'pie') {
+    if(jenis==='peringkat'){
+      is.pengantar.forEach(function(t){out.push(par(t));});
+      out.push(par(b.pertanyaan));
+      var rows=[['Nama','Deskripsi','Gambar','Posisi Urut'].map(selKepala)];
+      is.kartu.forEach(function(k,i){
+        var im=img(b,is.gambar[i]);
+        if(!im)throw new Error('Gambar Logical Ranking belum disiapkan: '+k.nama);
+        var deskripsi=k.petunjuk.join(' ');
+        rows.push([{teks:k.nama},{teks:deskripsi},{img:im,lebarPt:48},{teks:String(is.kunci.peringkat[i]),rata:'tengah'}]);
+      });
+      out.push({t:'tabel',lebarKol:[1.1,4.6,1.1,1.2],baris:rows,header:true,pecahBaris:true});
+      out.push(par('Jawaban:'));return;
+    }
+    if (is.entitas === 'produk') {
+      is.pengantar.forEach(function(t){out.push(par(t));});out.push(dataProduk(b));
+    } else if (jenis === 'pie') {
       // SiAdu memberi warna irisan sendiri, jadi nama warna tidak disebut di soal
       (b.stimulus.teks || []).forEach(function (t) { out.push(par(t.replace(/ \((biru|hijau|jingga|merah)\)/g, ''))); });
       var kartu = (b.stimulus.kartu || []).map(function (k) { return k.judul + ':' + (k.teks ? ' ' + huruf1Kecil(k.teks) : ''); });
@@ -405,16 +476,34 @@
     out.push(par('Bentuk Soal: ' + bentukSiadu(b)));
     out.push(par(''));
     if (b.jenis === 'pg') soalPgSiadu(b, img, out);
-    else soalIsianSiadu(b, out);
-    out.push(par('Pembahasan:'));
+    else soalIsianSiadu(b, out, img);
+    if(b.isian&&b.isian.jenis==='peringkat'){
+      // Identitas soal dan pengantar mengikuti kepala tabel + baris pertama di Word.
+      for(var j=0;j<out.length&&out[j].t!=='tabel';j++)if(out[j].t==='p')out[j].keras=true;
+    }
+    var judulPembahasan=par('Pembahasan:');judulPembahasan.keras=true;out.push(judulPembahasan);
     // gambar tahapan pola (figural) masuk ke kolom pembahasan SiAdu; soal grafik tidak memakai gambar
-    if (b.jenis === 'pg') (b.gambarPembahasan || []).forEach(function (g) {
+    if (b.jenis === 'pg') (b.gambarPembahasan || []).filter(function(g){return !g.setelah;}).forEach(function (g) {
       var im = img(b, g);
       if (im) out.push({ t: 'gambar', img: im, lebarPt: Math.min(im.lebar / (im.skala || 2) * 0.75, 440), sesudah: 6 });
     });
+    var kemasLangkah=false;
     pembahasanSiadu(b).forEach(function (t) {
-      if (Rumus.adalah(t)) out.push(modeRumus === 'equation' ? { t: 'rumus', notasi: Rumus.isi(t) } : par(Rumus.barisLatex(t)));
-      else out.push(par(t, Rumus.judulBagian(t) ? { tebal: true } : {}));
+      if((b.gambarPembahasan||[]).some(function(g){return g.mulai&&polos(g.mulai)===t;}))kemasLangkah=true;
+      if (runsPembahasan(b,t)) out.push(paragrafVerbal(b,t));
+      else if (Rumus.adalah(t)) out.push(modeRumus === 'equation' ? { t: 'rumus', notasi: Rumus.isi(t) } : par(Rumus.barisLatex(t)));
+      else {
+        var baris = par(t, Rumus.judulBagian(t) || judulOrang(b,t) ? { tebal: true } : {});
+        if (Rumus.judulBagian(t) || judulOrang(b,t)) baris.keras = true;
+        out.push(baris);
+      }
+      if(kemasLangkah)out[out.length-1].keras=true;
+      (b.gambarPembahasan||[]).filter(function(g){return g.setelah&&polos(g.setelah)===t;}).forEach(function(g){
+        var im=img(b,g);if(!im)return;
+        out[out.length-1].keras=true;
+        out.push({t:'gambar',img:im,lebarPt:g.model.tahap==='orang'?400:440,sesudah:10});
+        kemasLangkah=false;
+      });
     });
     return out;
   }
@@ -425,16 +514,18 @@
    */
   function siaduPaket(paket, img, opsi) {
     opsi = opsi || {};
-    var judul = opsi.judul || 'Tes Potensi Dasar OJK PCAM · Tahap 1';
+    var khususBadges=paket.subtes.every(function(st){return st.butir.every(function(b){return b.submateri==='peringkat';});});
+    var judul = opsi.judul || (khususBadges?'Bank Latihan Badges · Penalaran Numerik':paket.mode === 'materi' ? 'Latihan per Materi OJK PCAM · Tahap 1' : 'Tes Potensi Dasar OJK PCAM · Tahap 1');
     return paket.subtes.map(function (st) {
       var blok = [];
       // pengantar sebelum "Soal 1" diabaikan importir, seperti pengantar pada template SiAdu
+      if(khususBadges)blok.push(par('Bank latihan hasil pengembangan sesuai riset/QC akademik; bukan pernyataan format resmi seluruh tes.',{ukuran:9.5,sesudah:6}));
       blok.push({ t: 'p', runs: [{ teks: judul + ' — Paket ' + paket.id + ' · ' + st.nama, tebal: true }], ukuran: 16, sesudah: 4 });
-      blok.push(par('Format input Word SiAdu · ' + st.jumlah + ' soal · ' + st.menit + ' menit · benih utama ' + (opsi.benih != null ? opsi.benih : '-') +
+      blok.push(par('Format input Word SiAdu · ' + st.jumlah + ' soal' + (st.menit == null ? '' : ' · ' + st.menit + ' menit') + ' · benih utama ' + (opsi.benih != null ? opsi.benih : '-') +
         (st.kode === 'pn' ? '. Grafik dibuat SiAdu dari tabel berkolom "Kunci Nilai"; Table Decision memakai tabel tiap tab.' : '. Pilihan ganda (Option New).'), { miring: true, warna: '888888', sesudah: 10 }));
-      st.butir.forEach(function (b) {
+      st.butir.forEach(function (b, i) {
         blokSiadu(b, img, opsi.rumus).forEach(function (x) { blok.push(x); });
-        blok.push(par(''));
+        if(i<st.butir.length-1)blok.push(par(''));
       });
       return { subtes: st.kode, judul: judul + ' — Paket ' + paket.id + ' · ' + st.nama, blok: blok, kaki: 'Paket ' + paket.id + ' · ' + st.nama };
     });
@@ -442,6 +533,6 @@
 
   return {
     HURUF: HURUF, dariPaket: dariPaket, siaduPaket: siaduPaket, bentukSiadu: bentukSiadu, teksSoal: teksSoal, teksOpsi: teksOpsi, jawabanBenar: jawabanBenar,
-    bentukIsian: bentukIsian, jawabanLengkap: jawabanLengkap, naskahLengkap: naskahLengkap, pembahasanBadan: pembahasanBadan, daftarSoal: Gambar.daftarSoal, daftarPembahasan: Gambar.daftarPembahasan
+    bentukIsian: bentukIsian, jawabanLengkap: jawabanLengkap, naskahLengkap: naskahLengkap, pembahasanBadan: pembahasanBadan, runsPembahasan: runsPembahasan, daftarSoal: Gambar.daftarSoal, daftarPembahasan: Gambar.daftarPembahasan, daftarLampiran: Gambar.daftarLampiran
   };
 });

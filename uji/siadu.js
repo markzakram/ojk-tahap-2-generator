@@ -4,8 +4,8 @@
  * Pembaca ini sengaja hanya mengenal aturan template (bukan kode penyusun naskah):
  *
  *   - setiap soal diawali paragraf "Soal N" (N berurutan dari 1); semua yang ada sebelum "Soal 1" diabaikan
- *   - identitas Kerangka Course tepat setelah "Soal N", dicetak tebal: "Category: Tes Potensi Dasar", "Lesson: ...",
- *     "Chapter: ...", lalu "Subchapter: ..." (tidak ada untuk Penalaran Numerik); kemudian baris wajib SiAdu
+ *   - identitas mapping tepat setelah "Soal N", dicetak tebal: "Category: ...", "Lesson: ...",
+ *     "Chapter: ...", lalu "Subchapter: ..." (hanya numerik KU); kemudian baris wajib SiAdu
  *     "Tingkat Kesulitan: Mudah|Sedang|Sulit|Hots" dan "Bentuk Soal: ...", satu baris kosong, baru teks soal
  *   - baris wajib lain: "Jawaban:", "Pembahasan:"; persamaan pembahasan berupa Equation Word (m:oMath) yang terbaca
  *   - Option New: pilihan "A." ... sebelum "Jawaban: <huruf>"; pilihan bergambar berisi gambar sebaris
@@ -26,7 +26,7 @@ var Berkas = require('./berkas.js');
 var JS = path.join(__dirname, '..', 'js');
 
 var TINGKAT = ['Mudah', 'Sedang', 'Sulit', 'Hots'];
-var BENTUK = ['Option New', 'Multiple Choice', 'Short Answer', 'Table', 'Bar Chart', 'Line Chart', 'Pie Chart', 'Table Decision'];
+var BENTUK = ['Option New', 'Multiple Choice', 'Short Answer', 'Table', 'Bar Chart', 'Line Chart', 'Pie Chart', 'Table Decision', 'Logical Ranking'];
 
 function teksRun(xml) {
   var t = '';
@@ -43,13 +43,13 @@ function bacaBadan(docx) {
   while ((m = re.exec(badan))) {
     var x = m[0];
     if (x.indexOf('<w:tbl>') === 0) {
-      var baris = [];
+      var baris = [], gambarSel = [];
       x.replace(/<w:tr>[\s\S]*?<\/w:tr>/g, function (tr) {
-        var sel = [];
-        tr.replace(/<w:tc>[\s\S]*?<\/w:tc>/g, function (tc) { sel.push(teksRun(tc).trim()); return tc; });
-        baris.push(sel); return tr;
+        var sel = [], foto = [];
+        tr.replace(/<w:tc>[\s\S]*?<\/w:tc>/g, function (tc) { sel.push(teksRun(tc).trim());foto.push((tc.match(/<w:drawing>/g)||[]).length);return tc; });
+        baris.push(sel);gambarSel.push(foto);return tr;
       });
-      out.push({ tabel: baris });
+      out.push({ tabel: baris, gambarSel: gambarSel });
     } else out.push({ p: teksRun(x), gambar: (x.match(/<w:drawing>/g) || []).length, rumus: (x.match(/<m:oMath>/g) || []).length, tebal: /^<w:p[ >][\s\S]*?<w:r><w:rPr><w:b\/>/.test(x) });
   }
   return out;
@@ -108,6 +108,11 @@ function periksa(docx, butir, modeRumus) {
     if (jumlahRumus !== harusRumus) masalah.push(nama + ': ' + jumlahRumus + ' persamaan (' + (modeRumus || 'latex') + ') di pembahasan, seharusnya ' + harusRumus);
     if (bagianPem.some(function (x) { return x.p != null && /Pilihan lain yang menjebak/.test(x.p); })) masalah.push(nama + ': pembahasan masih mengulas pilihan yang salah');
     if (b.jenis === 'pg' && (b.gambarPembahasan || []).length !== bagianPem.reduce(function (n, x) { return n + (x.gambar || 0); }, 0)) masalah.push(nama + ': gambar pembahasan tidak lengkap');
+    var langkah=(b.gambarPembahasan||[]).filter(function(g){return g.setelah;});
+    if(langkah.length){
+      if(langkah.length!==bagianPem.reduce(function(n,x){return n+(x.gambar||0);},0))masalah.push(nama+': visual langkah tidak lengkap');
+      langkah.forEach(function(g){var at=bagianPem.findIndex(function(x){return x.p===g.setelah;});if(at<0||!bagianPem[at+1]||bagianPem[at+1].gambar!==1)masalah.push(nama+': gambar tidak tepat setelah langkah '+g.id);});
+    }
     var tabel = soalIsi.filter(function (x) { return x.tabel; }).map(function (x) { return x.tabel; });
     var paraSoal = soalIsi.filter(function (x) { return x.p != null; }).map(function (x) { return x.p.trim(); });
     var pembahasan = s.isi.slice(iPem + 1).filter(function (x) { return x.p != null && x.p.trim(); });
@@ -133,7 +138,7 @@ function periksa(docx, butir, modeRumus) {
     if (b.jenis !== 'isian') { masalah.push(nama + ': butir pilihan ganda ditulis sebagai ' + bentuk); return; }
     var is = b.isian;
     if (soalIsi.some(function (x) { return x.gambar; })) masalah.push(nama + ': soal grafik tidak boleh memuat gambar');
-    if (paraSoal.indexOf('Pertanyaan') < 0) masalah.push(nama + ': baris "Pertanyaan" tidak ada');
+    if (bentuk!=='Logical Ranking'&&paraSoal.indexOf('Pertanyaan') < 0) masalah.push(nama + ': baris "Pertanyaan" tidak ada');
     var peng = paraSoal.filter(function (t) { return /^Pengaturan: /.test(t); })[0] || '';
     var bagianP = {};
     peng.replace(/^Pengaturan: /, '').split(';').forEach(function (x) {
@@ -145,6 +150,7 @@ function periksa(docx, butir, modeRumus) {
     if (bentuk === 'Bar Chart') {
       if (is.jenis !== 'bar-tumpuk') { masalah.push(nama + ': bentuk Bar Chart untuk isian ' + is.jenis); return; }
       if (bagianP.min !== 0 || !(bagianP.maks > 0) || !bagianP['Garis bantu'] || !bagianP['Kelipatan nilai'] || !bagianP['Kelipatan persen']) masalah.push(nama + ': baris Pengaturan bar tidak lengkap: ' + peng);
+      if (bagianP['Kelipatan persen'] !== 1) masalah.push(nama + ': kelipatan persen harus 1');
       var vb = paraSoal.filter(function (t) { return /^Variabel: /.test(t); })[0];
       var vars = vb ? vb.slice(10).split(';').map(function (x) { var m = /^(.*) (\d+)%$/.exec(x.trim()); return m ? { nama: m[1], p: Number(m[2]) } : null; }) : [];
       if (vars.length !== 2 || vars.some(function (v) { return !v; }) || vars[0].p + vars[1].p !== 100) masalah.push(nama + ': baris Variabel tidak sah: ' + vb);
@@ -175,6 +181,7 @@ function periksa(docx, butir, modeRumus) {
       tp.slice(1).forEach(function (r, k) { jAwal += angka(r[1]); jKunci += angka(r[2]); if (angka(r[2]) !== is.kunci.persen[k]) masalah.push(nama + ': bagian ' + r[0] + ' tidak sama dengan kunci'); });
       if (jAwal !== 100 || jKunci !== 100) masalah.push(nama + ': nilai pie tidak berjumlah 100');
       if (!bagianP['Kelipatan nilai'] || !bagianP['Nilai minimum']) masalah.push(nama + ': baris Pengaturan pie tidak lengkap');
+      if (bagianP['Kelipatan nilai'] !== 1) masalah.push(nama + ': kelipatan persen pie harus 1');
       var info = tabel.filter(function (t) { return t !== tp; })[0];
       if (!info || [].concat.apply([], info).length !== 4) masalah.push(nama + ': keterangan pie harus berupa tabel empat kotak');
       if (paraSoal.concat(info ? [].concat.apply([], info) : []).some(function (t) { return /\((biru|hijau|jingga|merah)\)|tidak disebutkan/.test(t); })) masalah.push(nama + ': nama warna atau kalimat "tidak disebutkan" masih ada');
@@ -190,6 +197,17 @@ function periksa(docx, butir, modeRumus) {
       if (tabNama.join('|') !== is.tab.join('|')) masalah.push(nama + ': daftar tab berbeda');
       var harap = is.tab.map(function (t, k) { return t + ': ' + 'ABCDE'[is.kunci[k]]; }).join('; ');
       if (jawaban !== harap) masalah.push(nama + ': Jawaban "' + jawaban + '", seharusnya "' + harap + '"');
+    } else if (bentuk === 'Logical Ranking') {
+      if (is.jenis !== 'peringkat') { masalah.push(nama + ': Logical Ranking untuk isian ' + is.jenis); return; }
+      var blok=soalIsi.filter(function(x){return x.tabel;})[0],tr=blok&&blok.tabel;
+      if(tabel.length!==1||!tr||tr[0].join('|')!=='Nama|Deskripsi|Gambar|Posisi Urut'||tr.length!==is.nama.length+1){masalah.push(nama+': tabel Logical Ranking harus Nama/Deskripsi/Gambar/Posisi Urut');return;}
+        if(tr.slice(1).filter(function(r){return !r[1].trim();}).length>2)masalah.push(nama+': maksimal dua deskripsi kosong');
+        tr.slice(1).forEach(function(r,j){
+          if(r.length!==4||r[0]!==is.nama[j]||r[1]!==is.kartu[j].petunjuk.join(' ')||r[2]!==''||Number(r[3])!==is.kunci.peringkat[j])masalah.push(nama+': data atau kunci baris '+(j+1)+' berbeda');
+        if(blok.gambarSel[j+1].join()!=='0,0,1,0')masalah.push(nama+': gambar wajib tertanam hanya di kolom Gambar');
+      });
+      if(jawaban!=='')masalah.push(nama+': Jawaban seharusnya kosong; kunci ada di Posisi Urut');
+      is.pengantar.concat([b.pertanyaan]).forEach(function(t){if(paraSoal.indexOf(t)<0)masalah.push(nama+': pengantar/pertanyaan badge hilang');});
     } else masalah.push(nama + ': bentuk ' + bentuk + ' tidak dipakai generator');
   });
   return masalah;

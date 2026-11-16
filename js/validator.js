@@ -27,16 +27,16 @@
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
-    api = factory(require('./hitung.js'), require('./svgraster.js'), require('./inferensi.js'), require('./figure.js'), require('./gambar.js'),
-      [require('./cek-transformasi.js'), require('./cek-transformasi-analogi.js'), require('./cek-lipat-kertas.js'), require('./cek-serial-petak.js'),
-        require('./cek-matriks-tumpuk.js'), require('./cek-matriks-bentuk.js')]);
+    api = factory(require('./hitung.js'), require('./svgraster.js'), require('./inferensi.js'), require('./gambar.js'), require('./riset-figural.js'), require('./kerangka.js'),
+      [require('./cek-pola-riset.js'), require('./cek-lipat-kertas.js'), require('./cek-serial-petak.js'), require('./cek-matriks-bentuk.js'), require('./cek-transformasi-corak.js'),
+        require('./cek-analogi-corak.js'), require('./cek-serial-corak.js'), require('./cek-matriks-corak.js')], require('./cek-peringkat.js'));
     module.exports = api;
   } else {
-    api = factory(root.Hitung, root.SvgRaster, root.Inferensi, root.Figure, root.Gambar,
-      [root.CekTransformasi, root.CekTransformasiAnalogi, root.CekLipatKertas, root.CekSerialPetak, root.CekMatriksTumpuk, root.CekMatriksBentuk]);
+    api = factory(root.Hitung, root.SvgRaster, root.Inferensi, root.Gambar, root.RisetFigural, root.Kerangka,
+      [root.CekPolaRiset, root.CekLipatKertas, root.CekSerialPetak, root.CekMatriksBentuk, root.CekTransformasiCorak, root.CekAnalogiCorak, root.CekSerialCorak, root.CekMatriksCorak], root.CekPeringkat);
     root.Validator = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (H, SvgRaster, Inf, Fig, Gambar, Pemeriksa) {
+})(typeof self !== 'undefined' ? self : this, function (H, SvgRaster, Inf, Gambar, RisetFigural, Kerangka, Pemeriksa, CekPeringkat) {
   'use strict';
 
   /**
@@ -1146,6 +1146,32 @@
       });
     }
     cekKonsistenVerbal(mod.fakta, m);
+    periksaPembahasanVerbal(b, urut, turunan, m);
+  }
+
+  /** Nomor, warna, isi kutipan, dan kesimpulan pembahasan harus cocok dengan bacaan. */
+  function periksaPembahasanVerbal(b, kalimat, turunan, m) {
+    var v=b.pembahasanVerbal;
+    if(!v || v.versi!==1 || !Array.isArray(v.kalimat) || !Array.isArray(v.bukti) || !v.bukti.length){m.push('pembahasan verbal belum memuat bacaan bernomor dan bukti');return;}
+    if(v.kalimat.length!==kalimat.length)m.push('jumlah kalimat pembahasan verbal berbeda dari bacaan');
+    if(v.bukti.some(function(n,i){return !Number.isInteger(n)||n<1||n>kalimat.length||(i>0&&n<=v.bukti[i-1]);}))m.push('nomor bukti verbal tidak sah atau tidak berurutan');
+    var warna=['0057B8','007B56'];
+    v.kalimat.forEach(function(k,i){
+      var idx=v.bukti.indexOf(i+1),harus=idx<0?null:warna[idx%2];
+      if(k.nomor!==i+1||k.teks!==kalimat[i])m.push('kalimat bernomor pada pembahasan berbeda dari bacaan');
+      if(k.warna!==harus)m.push('warna bukti verbal tidak sesuai nomor rujukan');
+    });
+    if(typeof v.penjelasan!=='string'||typeof v.caraCepat!=='string'||!v.caraCepat.trim()){m.push('penjelasan singkat atau cara cepat verbal kosong');return;}
+    var rujuk=[];
+    (v.penjelasan+' '+v.caraCepat).replace(/\((\d+)\)/g,function(_,n){rujuk.push(Number(n));return _;});
+    if(rujuk.some(function(n){return v.bukti.indexOf(n)<0;})||v.bukti.some(function(n){return v.penjelasan.indexOf('('+n+')')<0;}))m.push('rujukan penjelasan verbal tidak cocok dengan kalimat berwarna');
+    var jawaban={B:'Benar',S:'Salah',TD:'Tidak Diketahui'}[turunan];
+    if(v.penjelasan.slice(-('Jadi, jawabannya '+jawaban+'.').length)!=='Jadi, jawabannya '+jawaban+'.')m.push('kesimpulan pembahasan verbal berbeda dari hasil penalaran');
+    var faktaBukti=b.model.fakta.filter(function(f){return v.bukti.some(function(n){return kalimat[n-1]===f.teks;});});
+    if(turunkanVerbal(faktaBukti,b.model.klaim)!==turunan)m.push('kalimat yang disorot belum cukup mendukung kesimpulan verbal');
+    var baris=v.kalimat.map(function(k){return '('+k.nomor+') '+k.teks;}).concat(['Penjelasan singkat',v.penjelasan,'Cara Cepat: '+v.caraCepat]);
+    var teks=b.pembahasan.filter(function(t){return !/^Jenis soal: |^Jawaban: /.test(t);});
+    if(JSON.stringify(teks)!==JSON.stringify(baris))m.push('teks pembahasan verbal tidak sama dengan bacaan bernomor dan penjelasannya');
   }
 
   // ------------------------------------------------------------------ figural
@@ -1198,93 +1224,6 @@
       try { var s = Gambar.svg(o.gambar).svg; if (gb[s] !== undefined) m.push('gambar opsi ' + HURUF[gb[s]] + ' dan ' + HURUF[i] + ' identik'); gb[s] = i; } catch (e) { m.push('gambar opsi ' + HURUF[i] + ' gagal'); }
     });
   }
-
-  function tanpaPenanda(fig) {
-    return { unsur: fig.unsur.filter(function (u) { return u.nama !== 'penanda deret'; }), keluarga: fig.keluarga, benih: fig.benih };
-  }
-
-  function penandaFig(fig) { return fig.unsur.filter(function (u) { return u.nama === 'penanda deret'; }); }
-
-  function periksaSerialPutar(b, m) {
-    if (!periksaPilihan(b, m, 5)) return;
-    var mod = b.model;
-    // yang diperiksa adalah gambar yang BENAR-BENAR tampil (deret dan opsi), bukan salinan data penyusun
-    var gd = (b.stimulus.gambar || [])[0];
-    var deret = gd && gd.jenis === 'serial-putar' && gd.model ? gd.model.deret : null;
-    var pilihan = b.opsi.map(function (o) { return o.gambar && o.gambar.jenis === 'figur' && o.gambar.model ? o.gambar.model.fig : null; });
-    if (!deret) { m.push('gambar deret kotak tidak ada'); return; }
-    if (pilihan.some(function (f) { return !f; })) { m.push('ada opsi tanpa gambar bentuk'); return; }
-    if (JSON.stringify(deret) !== JSON.stringify(mod.deret)) m.push('deret yang tergambar berbeda dari data model');
-    if (JSON.stringify(pilihan) !== JSON.stringify(mod.pilihan)) m.push('opsi yang tergambar berbeda dari data model');
-    if (deret.length !== 4) { m.push('deret harus berisi empat kotak'); return; }
-    // (1) arah: putaran antarkotak tetap (boleh nol bila gambar hanya berpindah tempat)
-    var dasar = deret.map(function (f) { return Fig.pusatkan(tanpaPenanda(f)); }), delta = null;
-    for (var i = 0; i < 3; i++) {
-      var d = Fig.sudutPutarKe(dasar[i], dasar[i + 1]);
-      if (d === null) { m.push('kotak ' + (i + 1) + ' dan ' + (i + 2) + ' tidak terhubung oleh putaran'); return; }
-      var dn = sudutBertanda(d);
-      if (delta === null) delta = dn; else if (Math.abs(dn - delta) > 1e-3) { m.push('langkah putar antar kotak tidak konsisten (' + delta + ' lalu ' + dn + ')'); return; }
-    }
-    // (2) letak: titik berat gambar tetap, atau mengelilingi pusat kotak dengan langkah sudut tetap
-    var pos = deret.map(titikBerat), posTetap = pos.every(function (p) { return letakSama(p, pos[0]); }), posKunci = pos[3];
-    if (!posTetap) {
-      var jari = pos.map(function (p) { return Math.hypot(p[0], p[1]); }), langkah = null;
-      if (jari[0] < 1e-3 || jari.some(function (r) { return Math.abs(r - jari[0]) > 1e-3; })) { m.push('letak gambar antarkotak tidak membentuk pola (jaraknya ke pusat kotak berubah)'); return; }
-      for (i = 0; i < 3; i++) {
-        var ds = sudutBertanda((Math.atan2(pos[i + 1][1], pos[i + 1][0]) - Math.atan2(pos[i][1], pos[i][0])) * 180 / Math.PI);
-        if (langkah === null) langkah = ds; else if (Math.abs(ds - langkah) > 1e-3) { m.push('perpindahan letak gambar antarkotak tidak tetap'); return; }
-      }
-      var rad = langkah * Math.PI / 180;
-      posKunci = [pos[3][0] * Math.cos(rad) - pos[3][1] * Math.sin(rad), pos[3][0] * Math.sin(rad) + pos[3][1] * Math.cos(rad)];
-    }
-    // (3) titik penanda: jumlahnya deret aritmetika; isinya berselang-seling di dalam kotak (bila
-    //     jumlahnya bertambah), atau tetap / berulang tiap dua kotak (bila jumlahnya tetap)
-    var jml = deret.map(function (f) { return penandaFig(f).length; });
-    var beda = jml[1] - jml[0];
-    if (jml[2] - jml[1] !== beda || jml[3] - jml[2] !== beda) { m.push('jumlah titik penanda tidak membentuk deret aritmetika: ' + jml.join(',')); return; }
-    var isiK = deret.map(function (f) { return penandaFig(f).map(function (u) { return u.isi ? 1 : 0; }).join(''); });
-    var isiTetap = isiK.every(function (s) { return s === isiK[0]; });
-    var prediksiJml = jml[3] + beda, prediksiIsi;
-    if (beda !== 0) {
-      var isi4 = isiK[3].split('').map(Number);
-      var bergantian = isi4.length >= 2 && isi4.every(function (x, j) { return j === 0 || x !== isi4[j - 1]; });
-      prediksiIsi = isi4.slice();
-      for (var j = isi4.length; j < prediksiJml; j++) prediksiIsi.push(bergantian ? 1 - prediksiIsi[j - 1] : (prediksiIsi.length ? prediksiIsi[j - 1] : 1));
-      prediksiIsi = prediksiIsi.join('');
-    } else if (isiTetap) prediksiIsi = isiK[3];
-    else if (isiK[0] === isiK[2] && isiK[1] === isiK[3]) prediksiIsi = isiK[2];
-    else { m.push('isi titik penanda antarkotak tidak membentuk pola: ' + isiK.join(' / ')); return; }
-    if (Math.abs(delta) < 1e-6 && posTetap && beda === 0 && isiTetap) { m.push('deret tidak berubah dari kotak ke kotak'); return; }
-    var cocok = [];
-    pilihan.forEach(function (f, idx) {
-      var base = Fig.pusatkan(tanpaPenanda(f));
-      var d2 = Fig.sudutPutarKe(dasar[3], base);
-      if (d2 === null || Math.abs(sudutBertanda(d2 - delta)) > 1e-3) return;
-      if (!letakSama(titikBerat(f), posKunci)) return;
-      var pn = penandaFig(f);
-      if (pn.length !== prediksiJml) return;
-      if (pn.map(function (u) { return u.isi ? 1 : 0; }).join('') !== prediksiIsi) return;
-      cocok.push(idx);
-    });
-    if (cocok.length !== 1) m.push('opsi yang memenuhi pola deret ada ' + cocok.length + ', seharusnya tepat satu');
-    else if (cocok[0] !== b.kunci) m.push('opsi yang memenuhi pola adalah ' + HURUF[cocok[0]] + ', kunci tercetak ' + HURUF[b.kunci]);
-    var gb = {};
-    b.opsi.forEach(function (o, k) {
-      try { var s = Gambar.svg(o.gambar).svg; if (gb[s] !== undefined) m.push('gambar opsi ' + HURUF[gb[s]] + ' dan ' + HURUF[k] + ' identik'); gb[s] = k; } catch (e) { m.push('gambar opsi ' + HURUF[k] + ' gagal'); }
-    });
-  }
-
-  /** Sudut dalam rentang (-180, 180]. */
-  function sudutBertanda(d) { d = ((d % 360) + 360) % 360; return d > 180 ? d - 360 : d; }
-
-  /** Titik berat gambar tanpa titik penanda (cuplikan rapat sepanjang garis), terhadap pusat kotak. */
-  function titikBerat(fig) {
-    var s = Fig.sampel(tanpaPenanda(fig), 1.5), x = 0, y = 0;
-    s.forEach(function (p) { x += p[0]; y += p[1]; });
-    return s.length ? [x / s.length, y / s.length] : [0, 0];
-  }
-
-  function letakSama(p, q) { return Math.abs(p[0] - q[0]) < 1e-3 && Math.abs(p[1] - q[1]) < 1e-3; }
 
   // ------------------------------------------------- figural bentuk riset (5x5, 5x6, bersekat, kotak ganda)
 
@@ -1729,8 +1668,9 @@
       } else if (/[×÷]/.test(t)) m.push('hitungan ditulis di luar baris persamaan: "' + t.slice(0, 60) + '"');
     });
     var rumusKerja = p.slice(pos[2] + 1, pos[3]).filter(barisRumus);
-    if (!rumusKerja.length) m.push('bagian Pengerjaan tidak memuat persamaan');
-    else if (rumusKerja[0].indexOf('\\text{') < 0 || rumusKerja[0].indexOf('=') < 0) m.push('Pengerjaan tidak diawali rumus umum berupa persamaan');
+    var perbandingan = b.isian.jenis === 'peringkat' && (b.model.tipe === 'perbandingan'||b.model.ragam==='shl');
+    if (!rumusKerja.length && !perbandingan) m.push('bagian Pengerjaan tidak memuat persamaan');
+    else if (rumusKerja.length && (rumusKerja[0].indexOf('\\text{') < 0 || rumusKerja[0].indexOf('=') < 0)) m.push('Pengerjaan tidak diawali rumus umum berupa persamaan');
     if (p.slice(pos[0] + 1, pos[2]).some(barisRumus)) m.push('persamaan ditulis sebelum bagian Pengerjaan');
     // Kesimpulan menyebut pengaturan akhir setiap kontrol (nilai kunci yang dihitung ulang di atas)
     var simpul = p.slice(pos[3] + 1, jawab).filter(function (t) { return !barisRumus(t); }).join(' ');
@@ -1761,6 +1701,7 @@
     else if (j === 'garis') periksaPnGaris(b, m);
     else if (j === 'pie') periksaPnPie(b, m);
     else if (j === 'tabel') periksaPnTabel(b, m);
+    else if (j === 'peringkat') CekPeringkat.periksa(b, m);
     else { m.push('jenis isian tidak dikenal: ' + j); return; }
     periksaMataUang(b, m);
     periksaPembahasanPn(b, m);
@@ -1778,9 +1719,9 @@
       if (b.jenis === 'isian') periksaIsian(b, m);
       else if (b.submateri === 'verbal') periksaVerbal(b, m);
       else if (b.submateri === 'figural') {
+        if (b.riset) m = m.concat(RisetFigural.periksa(b));
         var tipe = b.model.tipe;
         if (CEK[tipe]) CEK[tipe].periksa(b, m, ALAT);
-        else if (tipe === 'serial-putar') periksaSerialPutar(b, m);
         else if (tipe === 'matriks-latin') periksaLatin(b, m);
         else if (tipe === 'matriks-isi') periksaIsi(b, m);
         else if (tipe === 'matriks-sekat') periksaSekat(b, m);
@@ -1829,10 +1770,6 @@
     var m = b.model, kunci = m.pilihan ? m.pilihan[m.kunciIndex] : null;
     if (CEK[m.tipe]) return CEK[m.tipe].sidik(b);
     if (m.tipe === 'serial') return m.sels.map(sidikSel);
-    if (m.tipe === 'serial-putar') {
-      // bentuk dasar (benihnya) dan seluruh pola perubahan (putar, pindah, jumlah, isi)
-      return [m.keluarga + '#' + m.deret[0].benih + '#' + JSON.stringify(m.pola)];
-    }
     if (m.tipe === 'matriks-sambung') {
       return [].concat.apply([], m.grid.map(function (row) { return row.map(function (x) { return sidikSel(x === null ? kunci : x); }); }));
     }
@@ -1866,7 +1803,7 @@
 
   /** Alat bersama untuk pemeriksa figural tambahan (CEK). */
   var ALAT = {
-    HURUF: HURUF, sj: sj, Gambar: Gambar, Fig: Fig,
+    HURUF: HURUF, sj: sj, Gambar: Gambar,
     periksaPilihan: periksaPilihan, bacaTampilan: bacaTampilan, tepatSatu: tepatSatu
   };
 
@@ -1980,6 +1917,32 @@
     return { lulus: m.length === 0, masalah: m, butir: semua };
   }
 
+  function periksaMateri(paket, meta) {
+    if (meta.mode !== 'materi' && paket.mode !== 'materi') return [];
+    var masalah = [], pilihan = meta.materi, butir = [];
+    if (meta.mode !== 'materi' || paket.mode !== 'materi') masalah.push('Mode materi pada paket dan metadata harus sama.');
+    if (!Array.isArray(pilihan) || !pilihan.length) return masalah.concat(['Daftar Chapter/Subchapter pilihan kosong.']);
+    paket.subtes.forEach(function (st) {
+      if (st.menit !== null) masalah.push('Latihan per materi tidak memakai durasi tryout.');
+      butir = butir.concat(st.butir);
+    });
+    function cocok(b, x) {
+      var k = b.klasifikasi || {};
+      return x && b.subtes === x.subtes && k.category === x.category && k.lesson === x.lesson && k.chapter === x.chapter && (x.subchapter === null || k.subchapter === x.subchapter);
+    }
+    pilihan.forEach(function (x) {
+      if (!x || !Kerangka.BAB[x.chapter] || x.subchapter !== null && Kerangka.BAB[x.chapter].indexOf(x.subchapter) < 0 || !Number.isInteger(x.jumlah) || x.jumlah < 1 || x.jumlah > 60) {
+        masalah.push('Pilihan Chapter/Subchapter atau jumlah soal tidak sah.'); return;
+      }
+      var n = butir.filter(function (b) { return cocok(b,x); }).length;
+      if (n !== x.jumlah) masalah.push('Materi ' + x.chapter + (x.subchapter ? ' / '+x.subchapter : '') + ': diminta '+x.jumlah+', terisi '+n+'.');
+    });
+    butir.forEach(function (b) {
+      if (pilihan.filter(function (x) { return cocok(b,x); }).length !== 1) masalah.push('Butir '+b.id+' berada di luar materi pilihan atau pilihannya tumpang tindih.');
+    });
+    return masalah;
+  }
+
   /**
    * Periksa seluruh hasil generate. @returns ringkasan lengkap; `lulus` hanya bila
    * setiap butir lulus, setiap paket konsisten, dan tidak ada butir kembar.
@@ -1991,11 +1954,18 @@
     hasil.paket.forEach(function (p) { p.subtes.forEach(function (st) { total += st.butir.length; }); });
     for (var pi = 0; pi < hasil.paket.length; pi++) {
       var p = hasil.paket[pi], rp = periksaPaket(p);
+      rp.masalah = rp.masalah.concat(periksaMateri(p,hasil.meta || {})); rp.lulus = rp.masalah.length === 0;
       if (!rp.lulus) paketGagal.push({ paket: p.no, masalah: rp.masalah });
       for (var bi = 0; bi < rp.butir.length; bi++) {
         var b = rp.butir[bi];
         butir.push(b);
         var r = periksaButir(b);
+        r.masalah = r.masalah.concat(Kerangka.periksa(b));
+        r.lulus = r.masalah.length === 0;
+        if (b.submateri === 'figural') {
+          r.masalah = r.masalah.concat(RisetFigural.periksa(b));
+          r.lulus = r.masalah.length === 0;
+        }
         if (!r.lulus) gagal.push({ id: b.id, masalah: r.masalah });
         var kunci = b.subtes + '/' + b.submateri;
         perSub[kunci] = (perSub[kunci] || 0) + 1;

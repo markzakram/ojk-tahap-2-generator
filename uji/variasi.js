@@ -193,9 +193,9 @@ function jalankan(cek) {
       });
     });
   });
-  uji('64 keluarga aktif, 20 tema, seluruh keluarga tambahan terambil dan pasangan keluarga beragam', function () {
+  uji('56 keluarga aktif, 20 tema, seluruh keluarga tambahan terambil dan pasangan keluarga beragam', function () {
     var katalog = Bank.katalog(), jumlah = sum(katalog.map(function (s) { return new Set(s.keluarga.map(function (k) { return k.id; })).size; }));
-    assert.strictEqual(jumlah, 64); assert.strictEqual(Verbal.TOPIK.length, 20);
+    assert.strictEqual(jumlah, 56); assert.strictEqual(Verbal.TOPIK.length, 20);
     var p = Paket.buat({ jumlahPaket: 80, benih: 2026 }); assert(p.validasi.lulus, JSON.stringify(p.validasi));
     var ketemu = new Set(), pasangan = new Set();
     p.hasil.paket.forEach(function (paket) { paket.subtes.forEach(function (st) {
@@ -211,7 +211,7 @@ function jalankan(cek) {
     assert(pasangan.size > 20, 'pasangan keluarga cerita terlalu seragam');
     var pendek = Paket.buat({ jumlahPaket: 5, benih: 2026 });
     assert.deepStrictEqual(p.hasil.paket.slice(0, 5), pendek.hasil.paket, 'hasil bergantung pada jumlah paket');
-    assert.strictEqual(p.hasil.meta.versi, 6);
+    assert.strictEqual(p.hasil.meta.versi, 23);
   });
   return { butir: total, mutasi: mutasi };
 }

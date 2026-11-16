@@ -40,13 +40,13 @@
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
-    api = factory(require('./rng.js'), require('./format.js'), require('./butir.js'), require('./verbal-topik.js'));
+    api = factory(require('./rng.js'), require('./format.js'), require('./butir.js'), require('./verbal-topik.js'), require('./verbal-bahas.js'));
     module.exports = api;
   } else {
-    api = factory(root.Rng, root.Fmt, root.Butir, root.TopikVerbalTambahan);
+    api = factory(root.Rng, root.Fmt, root.Butir, root.TopikVerbalTambahan, root.VerbalBahas);
     root.Verbal = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Rng, Fmt, Butir, TopikTambahan) {
+})(typeof self !== 'undefined' ? self : this, function (Rng, Fmt, Butir, TopikTambahan, VerbalBahas) {
   'use strict';
 
   var OPSI = ['Benar', 'Salah', 'Tidak Diketahui'];
@@ -1403,7 +1403,13 @@
   }
   function menyebut(B, slots) {
     var teks = [];
-    slots.forEach(function (sl) { kalSlot(B, sl).forEach(function (t) { teks.push(kutip(t)); }); });
+    B.bukti = B.bukti || [];
+    slots.forEach(function (sl) { kalSlot(B, sl).forEach(function (t) {
+      var no = B.kalimat.indexOf(t) + 1;
+      if (!no) throw new Error('Kalimat bukti tidak ada dalam bacaan.');
+      if (B.bukti.indexOf(no) < 0) B.bukti.push(no);
+      teks.push(kutip(t));
+    }); });
     return 'Bacaan menyebut: ' + teks.join(' dan ') + '.';
   }
   function sebut(a, tp, id, boleh) { var p = boleh === false ? null : parafrasa(tp, id); return p && a.untung(0.6) ? p : nama(tp, id); }
@@ -1573,7 +1579,7 @@
     var inf = infoSlot(B, sl);
     return { tipe: 'kuantor', kelompok: inf.kelompok, sifat: sl.id + ':' + inf.q, q: kq, nama: { kelompok: nama(tp, inf.kelompok) }, teks: isi(a.pilih(sl.klaim[inf.q][kq]), {}) };
   }
-  function kutipKuantor(B, sl) { var kal = B.info[sl.id].kal; return 'Bacaan menyebut: ' + kutip(kal[kal.length - 1].teks) + '.'; }
+  function kutipKuantor(B, sl) { return menyebut(B, [sl]); }
   function JK(id, level, truth, q, kq, alasan) {
     J(id, level, truth, 'kuantor', slotKuantor(q, kq), modeKuantor(q), function (a, tp, sl, B) { return { klaim: klaimKuantor(a, tp, sl, B, kq), bahas: [kutipKuantor(B, sl), alasan] }; });
   }
@@ -1738,6 +1744,25 @@
 
   // ------------------------------------------------------------------ buat
 
+  /** Petunjuk mencari bukti, disesuaikan dengan hubungan yang diuji. */
+  function caraCepat(j, k, B, sl) {
+    var r = 'kalimat ' + VerbalBahas.rujukan(B.bukti.slice().sort(function(a,b){return a-b;}));
+    if (j.pola === 'daftar-terbuka') return 'Cari hal yang ditanyakan di seluruh bacaan. Daftar contoh pada ' + r + ' belum menutup kemungkinan adanya hal lain; pastikan ada informasi yang benar-benar menegaskan atau membantahnya.';
+    if (j.pola === 'daftar-tertutup') return 'Periksa penanda daftar lengkap pada ' + r + ', lalu cocokkan apakah hal yang ditanyakan ada di dalam daftar itu.';
+    if (k.tipe === 'tunggal') return 'Periksa banyaknya hal yang disebut pada ' + r + ' sebelum menerima kata "satu-satunya" dalam pernyataan.';
+    if (j.pola === 'daftar' || j.pola === 'cakupan') return 'Cari "' + k.nama.x + '" atau padanan katanya pada ' + r + ', lalu cocokkan apakah hal itu termasuk atau dikecualikan.';
+    if (j.pola === 'golongan') return 'Ikuti hubungan anggota, golongan, dan kelompok induk pada ' + r + '. Dua golongan yang terpisah tidak boleh dipertukarkan.';
+    if (j.pola === 'sebab-akibat') return 'Telusuri arah pengaruh dari "' + k.nama.dari + '" ke "' + k.nama.ke + '" pada ' + r + '. Jika ada dua hubungan, sambungkan urutannya; hubungan yang berbalik arah perlu bukti tersendiri.';
+    if (j.pola === 'kuantor') return 'Bandingkan cakupan kata pada ' + r + ' dengan pernyataan: "sebagian", "sebagian besar", "semua", dan "tidak semua" menyatakan hal yang berbeda.';
+    if (j.pola === 'teori-bukti') return 'Cocokkan status pada ' + r + ': kemungkinan secara teori, sudah terbukti, atau dinyatakan belum terbukti. Status yang tidak disebut tidak boleh ditambahkan.';
+    if (j.pola === 'syarat') return 'Bandingkan nilai kasus ' + angka(k.v) + ' dengan batas ' + angka(infoSlot(B,sl).t) + ' pada ' + r + '. Periksa apakah batas itu hanya syarat wajib atau sudah menjamin hasil.';
+    if (j.pola === 'batas-waktu') return 'Samakan kegiatan dan titik awal penghitungan waktu pada ' + r + ' dengan pernyataan, lalu bandingkan lama waktunya. Angka yang sama dapat berlaku untuk kegiatan yang berbeda.';
+    if (j.pola === 'temuan' || j.pola === 'generalisasi') return 'Cocokkan hasil serta lokasi atau kelompok yang diamati pada ' + r + '. Hasil di tempat tertentu belum memastikan hasil di semua tempat.';
+    if (j.pola === 'urutan') return 'Cari tempat atau tahap yang disebut lebih dahulu pada ' + r + ', lalu cocokkan urutannya. Hal yang tidak disebut perlu diperiksa di seluruh bacaan.';
+    if (j.pola === 'banding') return j.id === 'banding-cabang' ? 'Susun hubungan perbandingan pada ' + r + '. Dua hal yang sama-sama dibandingkan dengan hal ketiga belum tentu dapat dibandingkan satu sama lain.' : 'Susun urutan perbandingan pada ' + r + ', lalu cocokkan posisi "' + k.nama.a + '" dan "' + k.nama.b + '" dengan arah perbandingan dalam pernyataan.';
+    throw new Error('Cara cepat verbal belum dipetakan: ' + j.id);
+  }
+
   /** Apakah istilah `id` disebut oleh salah satu fakta bacaan? */
   function disebutFakta(fakta, id) {
     return fakta.some(function (f) {
@@ -1785,8 +1810,8 @@
       if (kecil.indexOf(klaim.teks.replace(/\.$/, '').toLowerCase()) >= 0) continue;
       if (klaim.x && !disebutFakta(B.fakta, klaim.x) &&
         (kecil.indexOf(klaim.nama.x.toLowerCase()) >= 0 || kecil.indexOf(nama(tp, klaim.x).toLowerCase()) >= 0)) continue;
-      var kunciKata = truth === 'B' ? 'BENAR' : (truth === 'S' ? 'SALAH' : 'TIDAK DIKETAHUI');
-      var pem = h.bahas.concat(['Jadi pernyataan tersebut ' + kunciKata + '.']);
+      var bahasVerbal = VerbalBahas.buat(B.kalimat, B.bukti, h.bahas.slice(1), OPSI[target], caraCepat(c.j,klaim,B,c.sl));
+      var pem = VerbalBahas.baris(bahasVerbal);
       var fk = B.fakta.map(function (x, i) { var o = { id: 'f' + (i + 1) }; for (var k in x) o[k] = x[k]; return o; });
       var ctx = { subtes: 'ku', submateri: 'verbal', keluarga: id, level: level, benih: benih, a: a };
       var pilih = { opsi: OPSI.map(function (t, i) { return { teks: t, nilai: i, alasan: null, kunci: i === target }; }), kunciIndex: target };
@@ -1800,6 +1825,7 @@
         sidik: { inti: 'verbal|' + tp.id + '|' + c.j.id + '|' + B.paragraf + '|' + klaim.teks, param: [], entitas: tp.id }
       });
       if (butir) {
+        butir.pembahasanVerbal = bahasVerbal;
         butir.pola = c.j.pola;
         // semua pola untuk tingkat dan kunci ini sudah dipakai paket: pengulangan tak terhindarkan
         if (!segar.length && hindari.length) butir.polaTerpaksa = true;

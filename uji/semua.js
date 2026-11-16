@@ -12,8 +12,8 @@
  *      komposisi, tingkat, dan proporsi kustom dipatuhi.
  *   2c. Regresi revisi QC paket P001 (uji/qc.js): tanpa label/petunjuk verbal, pertanyaan tidak tebal,
  *      tanpa "juta"/"ribu", line graph dapat digeser tepat, kotak pie, tanpa matriks 2x2 biasa, pengecoh nyata.
- *   2d. Keluarga figural tambahan (uji/figural-baru.js): transformasi, lipat kertas, petak/jarum, matriks
- *      tumpuk/bentuk/jumlah pada ketiga tingkat; validator, mutasi kunci, gambar, teks, dan butir kembar.
+ *   2d. Batas riset figural: enam bentuk, pola, kunci, dan larangan bentuk tambahan. Keluarga figural
+ *      tambahan yang tidak aktif diuji terpisah dengan uji/figural-baru.js.
  *   3. Validator NEGATIF: butir yang sengaja dirusak harus ditolak (uji/negatif.js).
  *   4. Logika mode coba interaktif: kunci lolos, tampilan awal tidak.
  *   5. Ekspor: Word, PDF, PNG, Excel, JSON, ZIP diperiksa isinya (uji/berkas.js); Word format input SiAdu
@@ -56,7 +56,6 @@ var Ekspor = require(path.join(JS, 'ekspor.js'));
 var Zip = require(path.join(JS, 'zip.js'));
 var Dokumen = require(path.join(JS, 'dokumen.js'));
 var Coba = require(path.join(JS, 'coba.js'));
-var Buka = require(path.join(AKAR, 'cli', 'buka.js'));
 var Berkas = require('./berkas.js');
 var Siadu = require('./siadu.js');
 var Negatif = require('./negatif.js');
@@ -200,6 +199,7 @@ function ujiCoba() {
     if (is.jenis === 'bar-tumpuk') s.total[0] += is.kontrol[0].langkah;
     else if (is.jenis === 'garis') s.nilai[1] += is.kontrol[0].langkah;
     else if (is.jenis === 'pie') { s.persen[0] += 1; s.persen[2] -= 1; }
+    else if (is.jenis === 'peringkat') s.peringkat[0] = s.peringkat[1];
     else s[2] = (s[2] + 1) % is.pilihan.length;
     if (L.periksa(is, s).benar) ubahBenar++;
   });
@@ -249,7 +249,7 @@ async function ujiEkspor() {
   cek(bar.length > 0 && barSalah.length === 0, 'Bar chart: pembahasan menyebut tampilan awal apa adanya, total yang sudah sesuai ditandai (' + bar.length + ' butir)', barSalah.map(function (b) { return b.id; }).join(' '));
   try { var p = Berkas.periksaPdf(pdf.data); cek(p.halaman >= 20, 'PDF: tabel xref konsisten, ' + p.halaman + ' halaman, ' + p.objek + ' objek'); } catch (e) { cek(false, 'PDF utuh', e.message); }
   var gambarDiharapkan = 0;
-  hasil.hasil.paket[0].subtes.forEach(function (st) { st.butir.forEach(function (b) { gambarDiharapkan += Dokumen.daftarSoal(b).length + Dokumen.daftarPembahasan(b).length; }); });
+  hasil.hasil.paket[0].subtes.forEach(function (st) { st.butir.forEach(function (b) { gambarDiharapkan += Dokumen.daftarSoal(b).length + Dokumen.daftarPembahasan(b).length + Dokumen.daftarLampiran(b).length; }); });
   var pngSalah = 0;
   png.forEach(function (g) { try { Berkas.periksaPng(g.data); } catch (e) { pngSalah++; } });
   cek(png.length === gambarDiharapkan && pngSalah === 0, 'PNG: ' + png.length + ' gambar paket 1 (sama dengan jumlah gambar soal dan pembahasan), semuanya utuh (CRC dan ukuran data cocok)', pngSalah ? pngSalah + ' rusak' : '');
@@ -305,7 +305,7 @@ function berkasGambarJson(js, noPaket) {
   js.paket.forEach(function (p) {
     if (noPaket != null && p.no !== noPaket) return;
     p.subtes.forEach(function (st) { st.butir.forEach(function (b) {
-      (b.stimulus.gambar || []).concat(b.gambarPembahasan || [], b.opsi.map(function (o) { return o.gambar; }).filter(Boolean)).forEach(function (g) { nama[g.berkas] = true; });
+      (b.stimulus.gambar || []).concat(b.gambarPembahasan || [], b.gambarIsian || [], b.opsi.map(function (o) { return o.gambar; }).filter(Boolean)).forEach(function (g) { nama[g.berkas] = true; });
     }); });
   });
   return Object.keys(nama);
@@ -436,13 +436,17 @@ function ujiAgentOffice(tmp) {
       // dibiarkan menyala sampai dimatikan; satu-satunya batasnya 60 detik untuk mencetak alamat (startApp).
       // Jadi batas_menit tidak diwajibkan, supaya tidak ada angka kecil yang menyesatkan.
       cek(j.batas_menit === undefined && !j.lanjutan, tag + 'aplikasi: tanpa batas_menit (server menyala sampai dimatikan) dan tanpa lanjutan');
-      var contohBaris = Buka.JUDUL + ' berjalan di http://localhost:' + Buka.PORT_BAKU, cocokAlamat = null;
+      // server aplikasi (cli/buka.js, atau cli/portal.js yang meneruskan ke ../Portal/buka.js) dimuat sebagai modul:
+      // JUDUL, PORT_BAKU, dan urai() miliknya yang menjadi acuan
+      var Apl = require(jalurSkrip);
+      if (!Apl || typeof Apl.urai !== 'function') { cek(false, tag + 'aplikasi: ' + skrip + ' dapat dimuat sebagai modul (JUDUL, PORT_BAKU, urai)'); return; }
+      var contohBaris = Apl.JUDUL + ' berjalan di http://localhost:' + Apl.PORT_BAKU, cocokAlamat = null;
       try { cocokAlamat = new RegExp(j.alamat).exec(contohBaris); } catch (e) { /* dinilai di bawah */ }
-      cek(typeof j.alamat === 'string' && !!cocokAlamat && cocokAlamat[1] === 'http://localhost:' + Buka.PORT_BAKU, tag + 'alamat: regex yang kelompok pertamanya menangkap alamat yang dicetak cli/buka.js ("' + contohBaris + '")', String(j.alamat));
-      // opsi di perintah harus dipahami cli/buka.js, dan port yang tertulis (di perintah dan catatan) harus port bakunya
+      cek(typeof j.alamat === 'string' && !!cocokAlamat && cocokAlamat[1] === 'http://localhost:' + Apl.PORT_BAKU, tag + 'alamat: regex yang kelompok pertamanya menangkap alamat yang dicetak ' + skrip + ' ("' + contohBaris + '")', String(j.alamat));
+      // opsi di perintah harus dipahami servernya, dan port yang tertulis (di perintah dan catatan) harus port bakunya
       var portPerintah;
-      try { portPerintah = Buka.urai(token).port; } catch (e) { portPerintah = e.message; }
-      cek(portPerintah === Buka.PORT_BAKU && (j.catatan || []).join(' ').indexOf('localhost:' + Buka.PORT_BAKU) >= 0, tag + 'perintah dibaca cli/buka.js tanpa galat, memakai port baku ' + Buka.PORT_BAKU + ', dan catatan menyebut alamat itu', String(portPerintah));
+      try { portPerintah = Apl.urai(token).port; } catch (e) { portPerintah = e.message; }
+      cek(portPerintah === Apl.PORT_BAKU && (j.catatan || []).join(' ').indexOf('localhost:' + Apl.PORT_BAKU) >= 0, tag + 'perintah dibaca ' + skrip + ' tanpa galat, memakai port baku ' + Apl.PORT_BAKU + ', dan catatan menyebut alamat itu', String(portPerintah));
     } else cek(Number(j.batas_menit) >= 1 && Number(j.batas_menit) <= 60, tag + 'batas_menit 1 sampai 60');
   });
 
@@ -517,8 +521,22 @@ async function utama() {
     require('./variasi.js').jalankan(cek);
     judul('2c. Revisi QC paket P001: format naskah, nominal, line graph, pie, figural, pengecoh');
     require('./qc.js').jalankan(cek);
-    judul('2d. Keluarga figural tambahan: transformasi, lipat kertas, petak, matriks tumpuk/bentuk');
-    require('./figural-baru.js').jalankan(cek, { n: cepat ? 15 : 40, raster: 1 });
+    judul('2d. Batas riset figural: enam bentuk, pola, kunci, dan larangan bentuk tambahan');
+    require('./riset-figural.js').jalankan(cek, { n: cepat ? 20 : 70 });
+    judul('2e. Mapping akademik terbaru dan kesesuaian ekspor Word/Excel/JSON');
+    await require('./mapping.js').jalankan(cek);
+    judul('2f. Pembahasan verbal bernomor, bukti berwarna, penjelasan dan cara cepat');
+    await require('./verbal-bahas.js').jalankan(cek);
+    judul('2g. Pilihan Chapter/Subchapter dan redaksi titik figural');
+    await require('./materi.js').jalankan(cek);
+    await require('./peringkat.js').jalankan(cek);
+    await require('./peringkat-langkah.js').jalankan(cek);
+    await require('./badges-langkah.js').jalankan(cek);
+    await require('./qc-badges-003.js').jalankan(cek);
+    await require('./qc-badges-kosong.js').jalankan(cek);
+    await require('./qc-badges-ringkas.js').jalankan(cek);
+    await require('./badges-produk.js').jalankan(cek);
+    await require('./siadu-badges.js').jalankan(cek);
     ujiNegatif();
     ujiCoba();
     await ujiEkspor();

@@ -24,11 +24,14 @@
   };
   var NAMA_SUBTES = { ku: 'Kemampuan Umum', pn: 'Penalaran Numerik' };
   var HURUF = ['A', 'B', 'C', 'D', 'E'];
+  var KATALOG_MATERI = Bank.katalogMateri();
 
   var $ = function (id) { return document.getElementById(id); };
   var enc = new TextEncoder();
 
   var state = {
+    mode: 'tryout',
+    materi: [],
     subtes: 'semua',
     komposisi: { ku: {}, pn: {} },
     tingkat: 'campur',
@@ -58,7 +61,7 @@
   function simpan() {
     try {
       localStorage.setItem(SIMPAN, JSON.stringify({
-        subtes: state.subtes, komposisi: state.komposisi, tingkat: state.tingkat, proporsi: state.proporsi,
+        mode: state.mode, materi: state.materi, subtes: state.subtes, komposisi: state.komposisi, tingkat: state.tingkat, proporsi: state.proporsi,
         jumlah: state.jumlah, benih: $('benih').value
       }));
     } catch (e) { /* mode penyamaran: abaikan */ }
@@ -70,7 +73,19 @@
     });
     try {
       var d = JSON.parse(localStorage.getItem(SIMPAN) || '{}');
+      if (d.mode === 'materi') state.mode = d.mode;
+      if (Array.isArray(d.materi)) state.materi = d.materi.filter(function (m) {
+        return m && KATALOG_MATERI.some(function (x) { return x.id === m.id; }) && Number.isInteger(m.jumlah) && m.jumlah >= 1 && m.jumlah <= 60;
+      }).map(function (m) { return { id: m.id, jumlah: m.jumlah }; });
       if (['ku', 'pn', 'semua'].indexOf(d.subtes) >= 0) state.subtes = d.subtes;
+      // Migrasi komposisi baku lama; pertahankan komposisi kustom pengguna.
+      if (d.komposisi && d.komposisi.pn && d.komposisi.pn.peringkat == null) {
+        var oldPn=d.komposisi.pn;
+        d.komposisi.pn = oldPn.bar===3 && oldPn.tabel===3 && oldPn.garis===2 && oldPn.pie===2
+          ? Object.assign({},Bank.SUBTES.pn.komposisiBaku) : Object.assign({peringkat:0},oldPn);
+        var oldKu=d.komposisi.ku;
+        if(oldKu && oldKu.verbal===2 && oldKu.cerita===2 && oldKu.tabel===3 && oldKu.grafik===1 && oldKu.serial===2 && oldKu.matriks===2) d.komposisi.ku=Object.assign({},Bank.SUBTES.ku.komposisiBaku);
+      }
       ['ku', 'pn'].forEach(function (st) {
         Bank.URUTAN[st].forEach(function (k) {
           var v = d.komposisi && d.komposisi[st] && d.komposisi[st][k];
@@ -87,6 +102,74 @@
   }
 
   // ---------------------------------------------------------------- pengaturan
+
+  function isiPemilih(id, daftar) {
+    var e = $(id), lama = e.value; e.innerHTML = '';
+    daftar.forEach(function (x) { var op = el('option', null, x.teks); op.value = x.nilai; e.appendChild(op); });
+    if (daftar.some(function (x) { return x.nilai === lama; })) e.value = lama;
+  }
+
+  function bangunPilihanMateri() {
+    var akar = KATALOG_MATERI.filter(function (m) { return m.subchapter === null; });
+    function unik(daftar, key) { return daftar.map(function (x) { return x[key]; }).filter(function (x,i,a) { return a.indexOf(x) === i; }).map(function (x) { return { nilai:x, teks:x }; }); }
+    isiPemilih('materi-category', unik(akar,'category'));
+    var kategori = akar.filter(function (x) { return x.category === $('materi-category').value; });
+    isiPemilih('materi-lesson', unik(kategori,'lesson'));
+    var lessons = kategori.filter(function (x) { return x.lesson === $('materi-lesson').value; });
+    isiPemilih('materi-chapter', lessons.map(function (x) { return { nilai:x.id, teks:x.chapter }; }));
+    var c = KATALOG_MATERI.find(function (x) { return x.id === $('materi-chapter').value; });
+    var anak = KATALOG_MATERI.filter(function (x) { return c.subchapterIds.indexOf(x.id) >= 0; });
+    isiPemilih('materi-subchapter', [{ nilai:c.id, teks:anak.length ? 'Semua Subchapter' : 'Tanpa Subchapter' }].concat(anak.map(function (x) { return { nilai:x.id, teks:x.subchapter }; })));
+    $('materi-subchapter').disabled = !anak.length;
+    var m = KATALOG_MATERI.find(function (x) { return x.id === $('materi-subchapter').value; });
+    $('materi-info').textContent = NAMA_SUBTES[m.subtes] + ' · ' + m.chapter + (m.subchapter ? ' / ' + m.subchapter : '') + '. Tingkat tersedia: ' + m.tingkat.join(', ') + '.';
+  }
+
+  function bangunDaftarMateri() {
+    var w = $('daftar-materi'); w.innerHTML = '';
+    if (!state.materi.length) w.appendChild(el('p','hint','Belum ada materi. Pilih Chapter/Subchapter, lalu tekan Tambahkan.'));
+    state.materi.forEach(function (pilih) {
+      var m = KATALOG_MATERI.find(function (x) { return x.id === pilih.id; });
+      var card = el('div','materi-item'); card.dataset.materi = m.id;
+      card.appendChild(el('strong',null,m.chapter));
+      if (m.subchapter) card.appendChild(el('div',null,m.subchapter));
+      else if (m.subchapterIds.length) card.appendChild(el('div',null,'Semua Subchapter'));
+      card.appendChild(el('p','hint',NAMA_SUBTES[m.subtes] + ' · ' + m.lesson));
+      if (m.tingkat.length < 3) card.appendChild(el('p','hint','Tersedia: ' + m.tingkat.join(', ') + '. Pada mode campur, proporsi dibagi di tingkat tersebut.'));
+      var row = el('div','row gap-s'), label = el('label','row gap-s','Soal per set');
+      var inp = el('input'); inp.type='number'; inp.min=1; inp.max=60; inp.step=1; inp.value=pilih.jumlah;
+      inp.setAttribute('aria-label','Jumlah soal ' + m.chapter + (m.subchapter ? ' / '+m.subchapter : ''));
+      inp.addEventListener('change',function () { pilih.jumlah=Number(inp.value); perbaruiTotalMateri(); perbaruiPerintah(); simpan(); });
+      label.appendChild(inp); row.appendChild(label);
+      var hapus = el('button','ghost mini','Hapus'); hapus.type='button'; hapus.setAttribute('aria-label','Hapus '+m.chapter+(m.subchapter ? ' / '+m.subchapter : ''));
+      hapus.addEventListener('click',function () { state.materi=state.materi.filter(function (x) { return x!==pilih; }); bangunDaftarMateri(); perbaruiPerintah(); simpan(); });
+      row.appendChild(hapus); card.appendChild(row); w.appendChild(card);
+    });
+    perbaruiTotalMateri();
+  }
+
+  function perbaruiTotalMateri() {
+    var total = state.materi.reduce(function (n,m) { return n+(m.jumlah||0); },0);
+    $('total-materi').textContent = total + ' soal per set · tanpa batas waktu tryout';
+  }
+
+  function tambahMateri() {
+    var id = $('materi-subchapter').value, jumlah = Number($('materi-jumlah').value);
+    var calon = state.materi.concat([{id:id,jumlah:jumlah}]);
+    try { Paket.normalisasi({ mode:'materi', materi:calon }); }
+    catch (e) { setStatus('status-materi',e.message,'error'); return; }
+    state.materi = calon; setStatus('status-materi','Materi ditambahkan.','ok');
+    bangunDaftarMateri(); perbaruiPerintah(); simpan();
+  }
+
+  function perbaruiMode() {
+    var materi = state.mode === 'materi';
+    $('mode-generate').value=state.mode;
+    $('pengaturan-tryout').hidden=materi; $('pengaturan-materi').hidden=!materi;
+    $('btn-generate').textContent=materi?'Generate soal':'Generate paket';
+    $('judul-jumlah').textContent=materi?'Jumlah set & benih':'Jumlah paket & benih';
+    $('label-jumlah').textContent=materi?'Set soal':'Paket';
+  }
 
   function subtesAktif() { return state.subtes === 'semua' ? ['ku', 'pn'] : [state.subtes]; }
 
@@ -174,14 +257,17 @@
     };
     Object.keys(proporsi).forEach(function (l) { if (!isFinite(proporsi[l]) || proporsi[l] < 0) throw new Error('proporsi tingkat ' + l + ' tidak sah'); });
     if (state.tingkat === 'campur' && proporsi.mudah + proporsi.sedang + proporsi.sulit <= 0) throw new Error('proporsi tingkat tidak boleh nol semua');
-    return { benih: benih, jumlahPaket: jumlah, subtes: state.subtes, tingkat: state.tingkat, proporsi: proporsi, komposisi: state.komposisi };
+    var opsi = { benih: benih, jumlahPaket: jumlah, mode: state.mode, subtes: state.subtes, tingkat: state.tingkat, proporsi: proporsi, komposisi: state.komposisi };
+    if (state.mode === 'materi') opsi.materi = state.materi.map(function (m) { return {id:m.id,jumlah:m.jumlah}; });
+    return opsi;
   }
 
   function perintahCli() {
     var a = ['node cli/generate.js'];
     var j = Number($('jumlah').value);
     a.push('--paket ' + (isFinite(j) && j >= 1 ? Math.round(j) : 1));
-    a.push('--subtes ' + state.subtes);
+    if (state.mode === 'materi') a.push('--materi ' + (state.materi.length ? state.materi.map(function (m) { return m.id+'='+m.jumlah; }).join(',') : '""'));
+    else a.push('--subtes ' + state.subtes);
     var b = $('benih').value.trim();
     if (b !== '' && /^\d+$/.test(b)) a.push('--benih ' + b);
     a.push('--format docx,pdf,xlsx,json');
@@ -190,7 +276,7 @@
       var p = state.proporsi;
       if (p.mudah !== 3 || p.sedang !== 5 || p.sulit !== 2) a.push('--proporsi ' + p.mudah + ':' + p.sedang + ':' + p.sulit);
     }
-    subtesAktif().forEach(function (st) {
+    (state.mode === 'materi' ? [] : subtesAktif()).forEach(function (st) {
       var beda = Bank.URUTAN[st].filter(function (k) { return state.komposisi[st][k] !== Bank.SUBTES[st].komposisiBaku[k]; });
       if (beda.length) a.push('--komposisi-' + st + ' ' + Bank.URUTAN[st].map(function (k) { return k + '=' + state.komposisi[st][k]; }).join(','));
     });
@@ -230,7 +316,8 @@
     setSibuk(true);
     state.hasil = null; state.validasi = null;
     tampilkanKosong(true);
-    setStatus('status', 'Membuat paket ...');
+    var namaSet = opsi.mode === 'materi' ? 'set soal' : 'paket';
+    setStatus('status', 'Membuat ' + namaSet + ' ...');
     var mulai = Date.now();
     try {
       var pembangun = Paket.mulai(opsi);
@@ -238,7 +325,7 @@
       var irisan = Date.now();
       while (pembangun.berikut()) {
         setKemajuan('kemajuan', pembangun.selesai(), opsi.jumlahPaket);
-        if (Date.now() - irisan > 40) { setStatus('status', 'Membuat paket ' + pembangun.selesai() + ' dari ' + opsi.jumlahPaket + ' ...'); await tunggu(0); irisan = Date.now(); }
+        if (Date.now() - irisan > 40) { setStatus('status', 'Membuat ' + namaSet + ' ' + pembangun.selesai() + ' dari ' + opsi.jumlahPaket + ' ...'); await tunggu(0); irisan = Date.now(); }
       }
       var hasil = pembangun.hasil();
       setStatus('status', 'Memeriksa dengan validator (hitung ulang dari nol) ...');
@@ -259,7 +346,7 @@
       }
       state.hasil = hasil; state.validasi = validasi; state.paket = 1;
       state.tab = hasil.meta.subtes[0];
-      setStatus('status', hasil.paket.length + ' paket, ' + validasi.butir + ' butir, lulus validator (' + ((Date.now() - mulai) / 1000).toFixed(1).replace('.', ',') + ' dtk).', 'ok');
+      setStatus('status', hasil.paket.length + ' ' + namaSet + ', ' + validasi.butir + ' butir, lulus validator (' + ((Date.now() - mulai) / 1000).toFixed(1).replace('.', ',') + ' dtk).', 'ok');
     } catch (e) {
       setKemajuan('kemajuan', null);
       setStatus('status', 'Gagal: ' + e.message, 'error');
@@ -279,7 +366,7 @@
     w.appendChild(lencana);
     var dl = el('dl', 'ukur');
     function baris(k, nilai) { dl.appendChild(el('dt', null, k)); dl.appendChild(el('dd', null, nilai)); }
-    baris('Paket', String(h.paket.length));
+    baris(h.meta.mode === 'materi' ? 'Set soal' : 'Paket', String(h.paket.length));
     baris('Butir', v.butirLulus + ' dari ' + v.butir + ' lulus');
     baris('Butir kembar', String(v.kembar.length));
     baris('Benih', String(h.meta.benih));
@@ -306,7 +393,7 @@
   }
 
   function labelSubmateri(k) {
-    return { verbal: 'Verbal', cerita: 'Soal cerita', tabel: 'Tabel', grafik: 'Grafik', figural: 'Figural', bar: 'Bar chart', garis: 'Line graph', pie: 'Pie chart' }[k] || k;
+    return { verbal: 'Verbal', cerita: 'Soal cerita', tabel: 'Tabel', grafik: 'Grafik', figural: 'Figural', bar: 'Bar chart', garis: 'Line graph', pie: 'Pie chart', peringkat: 'Badges' }[k] || k;
   }
 
   // ---------------------------------------------------------------- pratinjau
@@ -342,7 +429,7 @@
   function infoPaket(p, st) {
     var lv = { mudah: 0, sedang: 0, sulit: 0 }, kn = {};
     st.butir.forEach(function (b) { lv[b.level]++; if (b.jenis === 'pg') { var h = HURUF[b.kunci]; kn[h] = (kn[h] || 0) + 1; } });
-    var t = p.id + ' · ' + st.nama + ' · ' + st.jumlah + ' soal · ' + st.menit + ' menit · mudah ' + lv.mudah + ', sedang ' + lv.sedang + ', sulit ' + lv.sulit;
+    var t = p.id + ' · ' + (p.mode === 'materi' ? 'Latihan per materi · ' : '') + st.nama + ' · ' + st.jumlah + ' soal' + (st.menit == null ? '' : ' · ' + st.menit + ' menit') + ' · mudah ' + lv.mudah + ', sedang ' + lv.sedang + ', sulit ' + lv.sulit;
     if (Object.keys(kn).length) t += ' · kunci ' + HURUF.map(function (x) { return x + ' ' + (kn[x] || 0); }).join(' ');
     return t;
   }
@@ -431,7 +518,35 @@
       badan.appendChild(el('p', 'pernyataan', b.pertanyaan));
     } else if (b.jenis === 'isian') {
       if (b.stimulus.judul) badan.appendChild(el('h4', null, b.stimulus.judul));
-      isiTeks(badan, b.stimulus.teks);
+      if (b.isian.jenis === 'peringkat') {
+        isiTeks(badan,b.isian.pengantar);
+        var produk=b.isian.entitas==='produk';
+        if(b.isian.kategoriEntitas){
+          var viewport=el('div','badges-viewport'),daftar=el('div','badges-kartu-ringkas');
+          b.isian.kartu.forEach(function(kt,i){
+            var row=el('div','badges-baris peringkat-data'),im=el('img','peringkat-foto');im.src=BankAsetBadges.url(b.isian.profil[i].id);im.alt=kt.nama;im.width=44;im.height=44;
+            row.appendChild(im);row.appendChild(el('strong','badges-nama',kt.nama));row.appendChild(el('span','badges-deskripsi',kt.petunjuk[0]));daftar.appendChild(row);
+          });viewport.appendChild(daftar);badan.appendChild(viewport);
+        }else{
+        if(!produk)badan.appendChild(el('p','petunjuk','Klik setiap nama untuk membaca data pendukung. Semua kartu dapat dibuka bersamaan.'));
+        var kartuPeringkat=el('div',produk?'produk-data':'peringkat-kartu');
+        b.isian.kartu.forEach(function(kt,i) {
+          if(produk){
+            var sel=el('div','produk-item'),ikon=el('span','produk-ikon'),data=el('span');
+            ikon.innerHTML=IkonProduk.svg(i);sel.appendChild(ikon);
+            data.appendChild(el('strong',null,kt.nama+': '));data.appendChild(document.createTextNode(kt.petunjuk[0]));
+            sel.appendChild(data);kartuPeringkat.appendChild(sel);return;
+          }
+          var detail=el('details','peringkat-data'),ringkas=el('summary');
+          var foto=el('img','peringkat-foto');foto.src=FotoBadges.url(b.isian.profil[i].id);foto.alt='Foto tokoh fiktif '+kt.nama;foto.width=44;foto.height=44;
+          ringkas.appendChild(foto);
+          ringkas.appendChild(el('strong',null,kt.nama));detail.appendChild(ringkas);
+          isiTeks(detail,kt.petunjuk.length?kt.petunjuk:['Informasi tentang '+kt.nama+' terdapat pada kartu nama lainnya.']);
+          kartuPeringkat.appendChild(detail);
+        });
+        badan.appendChild(kartuPeringkat);
+        }
+      } else isiTeks(badan, b.stimulus.teks);
       if (b.stimulus.kartu) {
         var kotak = el('div', 'kartu-daftar');
         b.stimulus.kartu.forEach(function (kt) {
@@ -486,9 +601,26 @@
     jawab.appendChild(el('b', null, 'Jawaban: '));
     jawab.appendChild(document.createTextNode(b.jenis === 'pg' ? HURUF[b.kunci] + (b.opsi[b.kunci].gambar ? '' : ' (' + b.opsi[b.kunci].teks + ')') : b.kunciTeks));
     kunci.appendChild(jawab);
-    (b.gambarPembahasan || []).forEach(function (d) { var wg = el('div', 'gambar-daftar'); wg.appendChild(gambarEl(d, p, b)); kunci.appendChild(wg); });
+    (b.gambarPembahasan || []).filter(function(d){return !d.setelah;}).forEach(function (d) { var wg = el('div', 'gambar-daftar'); wg.appendChild(gambarEl(d, p, b)); kunci.appendChild(wg); });
     var bahas = el('div', 'pembahasan');
-    isiTeks(bahas, Dokumen.pembahasanBadan(b));
+    if (b.submateri === 'verbal' && b.pembahasanVerbal) {
+      Dokumen.pembahasanBadan(b).filter(function(t){return !/^Jenis soal: /.test(t);}).forEach(function(t){
+        var pr = el('p', t === 'Penjelasan singkat' ? 'judul-bagian' : null);
+        if (/^\(\d+\) /.test(t)) { pr.style.marginLeft = '18px'; pr.style.textIndent = '-18px'; }
+        Dokumen.runsPembahasan(b,t).forEach(function(r){
+          var span = el(r.tebal ? 'strong' : 'span', null, r.teks);
+          if (r.warna) span.style.color = '#' + r.warna;
+          pr.appendChild(span);
+        });
+        bahas.appendChild(pr);
+      });
+    } else if((b.gambarPembahasan||[]).some(function(d){return d.setelah;})) Dokumen.pembahasanBadan(b).forEach(function(t){
+      isiTeks(bahas,[t]);
+      (b.gambarPembahasan||[]).filter(function(d){return d.setelah===t;}).forEach(function(d){
+        var wg=el('div','gambar-daftar langkah-peringkat');wg.appendChild(gambarEl(d,p,b));bahas.appendChild(wg);
+      });
+    });
+    else isiTeks(bahas,Dokumen.pembahasanBadan(b));
     kunci.appendChild(bahas);
     k.appendChild(kunci);
     return k;
@@ -624,6 +756,15 @@
   // ---------------------------------------------------------------- awal
 
   function pasangPeristiwa() {
+    $('mode-generate').addEventListener('change',function () {
+      state.mode=$('mode-generate').value;
+      if (state.mode==='materi'&&!state.materi.length) { state.jumlah=1; $('jumlah').value=1; }
+      perbaruiMode(); perbaruiPerintah(); simpan();
+    });
+    ['category','lesson','chapter','subchapter'].forEach(function (k) {
+      $('materi-'+k).addEventListener('change',bangunPilihanMateri);
+    });
+    $('btn-tambah-materi').addEventListener('click',tambahMateri);
     $('btn-help').addEventListener('click', function () { $('help').hidden = !$('help').hidden; });
     $('btn-baku').addEventListener('click', komposisiBaku);
     $('tingkat').addEventListener('change', function () { state.tingkat = $('tingkat').value; perbaruiTingkat(); perbaruiPerintah(); simpan(); });
@@ -651,6 +792,7 @@
     perbaruiTingkat();
     bangunPemilihSubtes();
     bangunKomposisi();
+    bangunPilihanMateri(); bangunDaftarMateri(); perbaruiMode();
     perbaruiPerintah();
     pasangPeristiwa();
     tampilkanKosong(true);

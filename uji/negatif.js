@@ -71,14 +71,6 @@ function barisHasil(b) {
   return null;
 }
 
-/** Petakan setiap titik sebuah bentuk figural (deret berputar) dengan f([x, y]) -> [x, y]. */
-function petakanFig(fig, f) {
-  fig.unsur.forEach(function (u) {
-    if (u.jenis === 'bulat') u.pusat = f(u.pusat);
-    else u.titik = u.titik.map(f);
-  });
-}
-
 /** Tambah `d` pada bilangan pertama dalam teks ("$1.234,50" -> "$1.241,50"); null bila tak ada bilangan. */
 function geserAngkaPertama(teks, d) {
   var ada = false;
@@ -288,6 +280,7 @@ var MUTASI = [
       if (is.jenis === 'bar-tumpuk') { k.total[0] += is.kontrol[0].langkah; b.gambarPembahasan[0].state.total[0] = k.total[0]; }
       else if (is.jenis === 'garis') { k.nilai[0] += is.kontrol[0].langkah; b.gambarPembahasan[0].state.nilai[0] = k.nilai[0]; }
       else if (is.jenis === 'pie') { k.persen[0] += 1; k.persen[1] -= 1; b.gambarPembahasan[0].state.persen = k.persen.slice(); }
+      else if (is.jenis === 'peringkat') k.peringkat[0] = k.peringkat[1];
       else k[0] = (k[0] + 1) % is.pilihan.length;
     }
   },
@@ -503,49 +496,17 @@ var MUTASI = [
     }
   },
   {
-    // satu kotak tampak dibuat melanggar hubungan yang diujikan (sambungan jenis yang dihitung ditambah/dikurangi)
-    nama: 'matriks simbol-sambungan: hubungan pada satu kotak tampak dirusak', pasti: true,
-    berlaku: function (b) { return b.submateri === 'figural' && b.model.tipe === 'matriks-sambung'; },
-    terapkan: function (b) {
-      var aturan = String(b.model.aturan).split(',')[0], tegak = /=tegak$/.test(aturan);
-      [b.stimulus.gambar[0].model.grid, b.model.grid].forEach(function (g) {
-        var x = g[b.model.mr === 0 ? 1 : 0][b.model.mc], arr = tegak ? x.v : x.h, i = arr.indexOf(tegak ? 0 : 1);
-        if (i < 0) i = arr.indexOf(tegak ? 1 : 0);
-        arr[i] = 1 - arr[i];
-      });
-    }
+    nama: 'figural riset: mapping diganti ke bentuk di luar riset', pasti: true,
+    berlaku: function (b) { return b.submateri === 'figural' && !!b.riset; },
+    terapkan: function (b) { b.riset.pemetaan.chapter = 'Lipat Kertas'; }
   },
   {
-    nama: 'matriks simbol-sambungan: satu sambungan kotak kunci ditambah atau dibuang', pasti: true,
-    berlaku: function (b) { return b.submateri === 'figural' && b.model.tipe === 'matriks-sambung'; },
+    nama: 'figural riset: opsi kunci diganti gambar pengecoh', pasti: true,
+    berlaku: function (b) { return b.submateri === 'figural' && b.model.tipe === 'pola-riset'; },
     terapkan: function (b) {
-      var aturan = String(b.model.aturan).split(',')[0], x = b.model.pilihan[b.kunci], arr = /=tegak$/.test(aturan) ? x.v : x.h;
-      var i = arr.indexOf(0) >= 0 ? arr.indexOf(0) : arr.indexOf(1);
-      arr[i] = 1 - arr[i];
-      b.opsi[b.kunci].gambar.model.cell = salin(x);
-    }
-  },
-  {
-    nama: 'deret berputar: kotak keempat diputar 90 derajat lagi', pasti: true,
-    berlaku: function (b) { return b.submateri === 'figural' && b.model.tipe === 'serial-putar'; },
-    terapkan: function (b) {
-      [b.stimulus.gambar[0].model.deret, b.model.deret].forEach(function (d) { petakanFig(d[3], function (p) { return [-p[1], p[0]]; }); });
-    }
-  },
-  {
-    nama: 'deret berputar: letak gambar kotak keempat digeser', pasti: true,
-    berlaku: function (b) { return b.submateri === 'figural' && b.model.tipe === 'serial-putar'; },
-    terapkan: function (b) {
-      [b.stimulus.gambar[0].model.deret, b.model.deret].forEach(function (d) { petakanFig(d[3], function (p) { return [p[0] + 7, p[1] + 3]; }); });
-    }
-  },
-  {
-    nama: 'deret berputar: isi titik penanda kotak keempat dibalik', pasti: true,
-    berlaku: function (b) { return b.submateri === 'figural' && b.model.tipe === 'serial-putar' && b.model.deret[3].unsur.some(function (u) { return u.nama === 'penanda deret'; }); },
-    terapkan: function (b) {
-      [b.stimulus.gambar[0].model.deret, b.model.deret].forEach(function (d) {
-        d[3].unsur.forEach(function (u) { if (u.nama === 'penanda deret') u.isi = u.isi ? null : '#111'; });
-      });
+      var lain = (b.kunci + 1) % 5;
+      b.model.pilihan[b.kunci] = salin(b.model.pilihan[lain]);
+      b.opsi[b.kunci].gambar.model.fig = salin(b.opsi[lain].gambar.model.fig);
     }
   },
   {

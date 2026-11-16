@@ -15,13 +15,13 @@
   var api;
   if (typeof module === 'object' && module.exports) {
     api = factory(require('./gambar.js'), require('./dokumen.js'), require('./docx.js'), require('./pdf.js'),
-      require('./xlsx.js'), require('./zip.js'), require('./raster.js'), require('./png.js'), require('./rumus.js'));
+      require('./xlsx.js'), require('./zip.js'), require('./raster.js'), require('./png.js'), require('./rumus.js'), require('./foto-badges.js'), require('./ikon-produk.js'),require('./bank-aset-badges.js'));
     module.exports = api;
   } else {
-    api = factory(root.Gambar, root.Dokumen, root.Docx, root.Pdf, root.Xlsx, root.Zip, root.Raster, root.Png, root.Rumus);
+    api = factory(root.Gambar, root.Dokumen, root.Docx, root.Pdf, root.Xlsx, root.Zip, root.Raster, root.Png, root.Rumus, root.FotoBadges, root.IkonProduk,root.BankAsetBadges);
     root.Ekspor = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Gambar, Dokumen, Docx, Pdf, Xlsx, Zip, Raster, Png, Rumus) {
+})(typeof self !== 'undefined' ? self : this, function (Gambar, Dokumen, Docx, Pdf, Xlsx, Zip, Raster, Png, Rumus, FotoBadges, IkonProduk,Aset) {
   'use strict';
 
   var enc = new TextEncoder();
@@ -43,7 +43,9 @@
 
   /** SVG -> { lebar, tinggi, kanal, raw, png, skala }. Hasil disimpan di `cache` menurut teks SVG. */
   function rasterGambar(desc, skala, cache) {
-    var svg = Gambar.svg(desc).svg;
+    if(desc.jenis==='aset-badges')return Promise.resolve(Aset.gambar(desc.model.id));
+    if(desc.jenis==='foto-badges')return Promise.resolve(FotoBadges.gambar(desc.model.id));
+    var svg = desc.jenis==='ikon-produk'?IkonProduk.svg(desc.model.indeks):Gambar.svg(desc).svg;
     var ada = cache && cache.get(svg);
     if (ada) return ada;
     var janji = Raster.svgKePiksel(svg, skala).then(function (raw) {
@@ -63,7 +65,7 @@
     var peta = new Map(), tugas = [];
     paket.subtes.forEach(function (st) {
       st.butir.forEach(function (b) {
-        Gambar.daftarSoal(b).concat(Gambar.daftarPembahasan(b)).forEach(function (d) { tugas.push({ b: b, d: d }); });
+        Gambar.daftarSoal(b).concat(Gambar.daftarPembahasan(b),Gambar.daftarLampiran(b)).forEach(function (d) { tugas.push({ b: b, d: d }); });
       });
     });
     var rantai = Promise.resolve(), selesai = 0;
@@ -109,7 +111,7 @@
         if (opsi.gambar) {
           paket.subtes.forEach(function (st) {
             st.butir.forEach(function (b) {
-              Gambar.daftarSoal(b).concat(Gambar.daftarPembahasan(b)).forEach(function (d) {
+              Gambar.daftarSoal(b).concat(Gambar.daftarPembahasan(b),Gambar.daftarLampiran(b)).forEach(function (d) {
                 var im = img(b, d);
                 if (im) hasil.push({ nama: namaGambar(paket, b, d), data: im.png, jenis: 'png' });
               });
@@ -130,23 +132,33 @@
     ['jawaban_benar', 22], ['pembahasan', 86], ['berkas_gambar', 44],
     ['id', 14], ['benih', 12], ['keluarga', 20], ['bentuk_isian', 48], ['kunci_isian', 40], ['berkas_gambar_pembahasan', 40],
     ['pola', 22], ['kategori_riset', 14], ['catatan_riset', 60],
-    ['category', 18], ['lesson', 18], ['chapter', 16], ['subchapter', 34], ['naskah_lengkap', 100]
+    ['category', 24], ['lesson', 26], ['chapter', 48], ['subchapter', 38], ['naskah_lengkap', 100], ['acuan_figural', 48], ['mapping_figural', 90], ['bentuk_soal', 22]
   ];
 
   function barisExcel(paket, st, b) {
-    var gSoal = Gambar.daftarSoal(b).map(function (d) { return namaGambar(paket, b, d); });
+    var gSoal = Gambar.daftarSoal(b).concat(Gambar.daftarLampiran(b)).map(function (d) { return namaGambar(paket, b, d); });
     var gPem = Gambar.daftarPembahasan(b).map(function (d) { return namaGambar(paket, b, d); });
     var opsi = [];
     for (var i = 0; i < 5; i++) {
       opsi.push(b.opsi[i] ? Dokumen.teksOpsi(b, i, function (d) { return namaGambar(paket, b, d); }) : '');
     }
+    var pembahasan = b.pembahasan.map(function (t) { return Rumus.barisLatex(t); }).join('\n');
+    if (b.submateri === 'verbal' && b.pembahasanVerbal) {
+      var runs = [];
+      b.pembahasan.forEach(function(t,j){
+        if(j) runs.push({teks:'\n'});
+        runs = runs.concat(Dokumen.runsPembahasan(b,t));
+      });
+      pembahasan = { runs: runs };
+    }
     return [
       b.no, paket.id, st.nama, b.submateriLabel || b.submateri, b.tingkatNama || b.level,
       Dokumen.teksSoal(b), opsi[0], opsi[1], opsi[2], opsi[3], opsi[4],
-      Dokumen.jawabanBenar(b), b.pembahasan.map(function (t) { return Rumus.barisLatex(t); }).join('\n'), gSoal.join('; '),
+      Dokumen.jawabanBenar(b), pembahasan, gSoal.join('; '),
       b.id, b.benih, b.keluarga, Dokumen.bentukIsian(b), b.jenis === 'isian' ? JSON.stringify(b.isian.kunci) : '', gPem.join('; '),
       b.pola || '', b.kategoriRiset || '', b.catatanRiset || '',
-      (b.klasifikasi || {}).category || '', (b.klasifikasi || {}).lesson || '', (b.klasifikasi || {}).chapter || '', (b.klasifikasi || {}).subchapter || '', Dokumen.naskahLengkap(b)
+      (b.klasifikasi || {}).category || '', (b.klasifikasi || {}).lesson || '', (b.klasifikasi || {}).chapter || '', (b.klasifikasi || {}).subchapter || '', Dokumen.naskahLengkap(b),
+      b.riset ? b.riset.acuan + ' (halaman ' + b.riset.halaman.join(', ') + ')' : '', b.riset ? JSON.stringify(b.riset.pemetaan) : '', Dokumen.bentukSiadu(b)
     ];
   }
 
@@ -189,7 +201,9 @@
     function desk(paket, b, d) {
       var o = { id: d.id, jenis: d.jenis, judul: d.judul || null, berkas: namaGambar(paket, b, d), model: d.model };
       if (d.state) o.state = d.state;
-      if (opsi.svg) o.svg = Gambar.svg(d).svg;
+      if (d.setelah) o.setelah = d.setelah;
+      if (d.mulai) o.mulai = d.mulai;
+      if (opsi.svg) o.svg = d.jenis==='foto-badges'?'<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><image width="256" height="256" href="'+FotoBadges.url(d.model.id)+'"/></svg>':d.jenis==='ikon-produk'?IkonProduk.svg(d.model.indeks):Gambar.svg(d).svg;
       return o;
     }
     var keluaran = {
@@ -197,7 +211,7 @@
       validator: validasi ? { lulus: validasi.lulus, butir: validasi.butir, butirLulus: validasi.butirLulus, kembar: validasi.kembar.length, sebaran: validasi.sebaran } : null,
       paket: hasil.paket.map(function (p) {
         return {
-          no: p.no, id: p.id, benih: p.benih,
+          no: p.no, id: p.id, benih: p.benih, mode: p.mode || 'tryout',
           subtes: p.subtes.map(function (st) {
             return {
               kode: st.kode, nama: st.nama, jumlah: st.jumlah, menit: st.menit, komposisi: st.komposisi,
@@ -205,16 +219,17 @@
                 return {
                   id: b.id, no: b.no, paket: b.paket, subtes: b.subtes, submateri: b.submateri, submateriNama: b.submateriNama,
                   komposisi: b.submateriKomposisi, keluarga: b.keluarga, level: b.level, tingkat: b.tingkatNama, benih: b.benih, jenis: b.jenis,
-                  pola: b.pola || null, kategoriRiset: b.kategoriRiset || null, catatanRiset: b.catatanRiset || null, klasifikasi: b.klasifikasi || null,
+                  pola: b.pola || null, kategoriRiset: b.kategoriRiset || null, catatanRiset: b.catatanRiset || null, klasifikasi: b.klasifikasi || null, riset: b.riset || null,
                   soal: Dokumen.teksSoal(b),
+                  bentukSoal: Dokumen.bentukSiadu(b),
                   naskah_lengkap: Dokumen.naskahLengkap(b),
                   stimulus: { judul: b.stimulus.judul, teks: b.stimulus.teks, kartu: b.stimulus.kartu || null, gambar: (b.stimulus.gambar || []).map(function (d) { return desk(p, b, d); }) },
                   pertanyaan: b.pertanyaan, perintah: b.perintah,
                   opsi: b.opsi.map(function (o) { return { huruf: o.huruf, teks: o.teks, alasan: o.alasan, gambar: o.gambar ? desk(p, b, o.gambar) : null }; }),
                   kunci: b.jenis === 'pg' ? Dokumen.HURUF[b.kunci] : null,
                   jawabanBenar: Dokumen.jawabanBenar(b),
-                  isian: b.isian || null, bentukIsian: b.jenis === 'isian' ? Dokumen.bentukIsian(b) : null,
-                  langkah: b.langkah, pembahasan: b.pembahasan.map(function (t) { return Rumus.barisLatex(t); }),
+                  isian: b.isian || null, gambarIsian: Gambar.daftarLampiran(b).map(function(d){return desk(p,b,d);}), bentukIsian: b.jenis === 'isian' ? Dokumen.bentukIsian(b) : null,
+                  langkah: b.langkah, pembahasan: b.pembahasan.map(function (t) { return Rumus.barisLatex(t); }), pembahasanVerbal: b.pembahasanVerbal || null,
                   gambarPembahasan: (b.gambarPembahasan || []).map(function (d) { return desk(p, b, d); }),
                   model: b.model, sidik: b.sidik
                 };

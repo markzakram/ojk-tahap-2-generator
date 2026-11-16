@@ -23,13 +23,13 @@
 (function (root, factory) {
   var api;
   if (typeof module === 'object' && module.exports) {
-    api = factory(require('./font.js'));
+    api = factory(require('./font.js'),require('./bank-aset-badges.js'));
     module.exports = api;
   } else {
-    api = factory(root.Font);
+    api = factory(root.Font,root.BankAsetBadges);
     root.SvgRaster = api;
   }
-})(typeof self !== 'undefined' ? self : this, function (Font) {
+})(typeof self !== 'undefined' ? self : this, function (Font,Aset) {
   'use strict';
 
   var SS = 5;             // sub-garis per baris piksel
@@ -583,6 +583,23 @@
       var mm = node.attr.transform ? kaliM(m, uraiTransform(node.attr.transform)) : m;
       var a = node.attr, sk = skalaM(mm), k;
       switch (node.tag) {
+        case 'image': {
+          if(!a['data-aset-badges'])throw new Error('Sumber gambar SVG tidak didukung');
+          var im=Aset.gambar(a['data-aset-badges']),ix=angkaAttr(a.x,0),iy=angkaAttr(a.y,0),iw=angkaAttr(a.width,0),ih=angkaAttr(a.height,0);
+          if(iw<=0||ih<=0)break;
+          var corners=[[ix,iy],[ix+iw,iy],[ix,iy+ih],[ix+iw,iy+ih]].map(function(p){return terap(mm,p);});
+          var x0=Math.max(0,Math.floor(Math.min.apply(null,corners.map(function(p){return p[0];})))),x1=Math.min(W,Math.ceil(Math.max.apply(null,corners.map(function(p){return p[0];}))));
+          var y0=Math.max(0,Math.floor(Math.min.apply(null,corners.map(function(p){return p[1];})))),y1=Math.min(H,Math.ceil(Math.max.apply(null,corners.map(function(p){return p[1];}))));
+          var det=mm[0]*mm[3]-mm[1]*mm[2];if(!det)break;
+          for(var py=y0;py<y1;py++)for(var px=x0;px<x1;px++){
+            var dx=px+0.5-mm[4],dy=py+0.5-mm[5],ux=(mm[3]*dx-mm[2]*dy)/det,uy=(-mm[1]*dx+mm[0]*dy)/det;
+            if(ux<ix||ux>=ix+iw||uy<iy||uy>=iy+ih)continue;
+            var sx=Math.min(im.lebar-1,Math.floor((ux-ix)*im.lebar/iw)),sy=Math.min(im.tinggi-1,Math.floor((uy-iy)*im.tinggi/ih));
+            var src=(sy*im.lebar+sx)*3,dst=(py*W+px)*3;
+            for(var channel=0;channel<3;channel++)kv.px[dst+channel]=Math.round(im.raw[src+channel]*s._opacity+kv.px[dst+channel]*(1-s._opacity));
+          }
+          break;
+        }
         case 'g':
         case 'svg':
           node.anak.forEach(function (c) { jelajah(c, s, mm); });

@@ -55,6 +55,51 @@
       ]
     },
     {
+      "id": "portal",
+      "judul": "Buka Portal Generator OJK (Tahap 1 + Tahap 2)",
+      "singkat": "Buka Portal OJK",
+      "jenis": "aplikasi",
+      "prioritas": 3,
+      "kata_kunci": [
+        "buka portal ojk",
+        "jalankan portal ojk",
+        "nyalakan portal ojk",
+        "portal ojk",
+        "portal generator ojk",
+        "portal generator",
+        "generator ojk tahap 2",
+        "ojk tahap 2",
+        "tahap 2",
+        "tku studio",
+        "tku",
+        "portal",
+        "gabungan",
+        "buka",
+        "jalankan",
+        "nyalakan"
+      ],
+      "wajib_salah_satu": [
+        "portal ojk",
+        "portal generator ojk",
+        "portal generator",
+        "portal",
+        "generator ojk tahap 2",
+        "ojk tahap 2",
+        "tahap 2",
+        "tku studio"
+      ],
+      "perintah": [
+        "cli/portal.js",
+        "--port=3200"
+      ],
+      "alamat": "(http://localhost:\\d+)",
+      "catatan": [
+        "sama dengan node cli/portal.js --port=3200 (meneruskan ke ../Portal/buka.js): alamat http://localhost:3200 dengan tab Tahap 1 dan Tahap 2 (kalau port itu terpakai, port berikutnya sampai 3210)",
+        "tab Tahap 2 memakai ekspor statis TKU Studio: setelah Tahap 2 diperbarui, jalankan node Portal/bangun.js di folder Tes OJK Generator, lalu muat ulang halaman",
+        "akses satu jaringan kantor aktif: bagikan link Jaringan kantor yang dicetak server; tombol Buka tetap memakai localhost, dimatikan lewat tombol Matikan"
+      ]
+    },
+    {
       "id": "paket",
       "judul": "Buat paket OJK PCAM Tahap 1",
       "singkat": "Buat paket OJK Tahap 1",
@@ -151,7 +196,7 @@
         "komposisi_ku": {
           "jenis": "teks",
           "label": "Soal Kemampuan Umum per submateri (opsional)",
-          "bantuan": "Baku verbal=2,cerita=2,tabel=3,grafik=1,serial=2,matriks=2. Submateri yang tidak disebut memakai nilai baku; isi 0 untuk meniadakan.",
+          "bantuan": "Baku verbal=3,cerita=2,tabel=2,grafik=1,serial=2,matriks=2. Submateri yang tidak disebut memakai nilai baku; isi 0 untuk meniadakan.",
           "contoh": "verbal=4,cerita=2",
           "pola": "^[a-z]+=\\d{1,2}(,[a-z]+=\\d{1,2})*$",
           "maks": 80
@@ -159,7 +204,7 @@
         "komposisi_pn": {
           "jenis": "teks",
           "label": "Soal Penalaran Numerik per submateri (opsional)",
-          "bantuan": "Baku bar=3,tabel=3,garis=2,pie=2. Submateri yang tidak disebut memakai nilai baku; isi 0 untuk meniadakan.",
+          "bantuan": "Baku bar=2,tabel=2,peringkat=2,garis=2,pie=2. Tulis peringkat=2 untuk Badges. Pada komposisi kustom, peringkat yang tidak disebut bernilai 0; submateri lainnya memakai nilai baku.",
           "contoh": "bar=4,pie=1",
           "pola": "^[a-z]+=\\d{1,2}(,[a-z]+=\\d{1,2})*$",
           "maks": 80
@@ -247,6 +292,173 @@
         "setiap soal dicek ulang oleh validator lebih dulu; kalau ada yang gagal, tidak satu berkas pun ditulis",
         "tanpa centang format sama sekali, semua format dibuat; ratusan paket sebaiknya Excel dan JSON saja",
         "benih yang sama dengan pengaturan yang sama menghasilkan paket yang sama persis"
+      ],
+      "hasil": "(?:BERKAS -> |HASIL:\\s*)(.+)$",
+      "gagal": "GAGAL:\\s*(.+)",
+      "ringkasan": "Paket OJK Tahap 1 selesai dibuat",
+      "batas_menit": 60
+    },
+    {
+      "id": "materi",
+      "judul": "Buat soal per Chapter/Subchapter",
+      "singkat": "Soal per materi",
+      "tab": "Per materi",
+      "tombol": "Generate soal",
+      "kata_kunci": [
+        "soal per materi",
+        "soal per chapter",
+        "soal per subchapter",
+        "latihan materi"
+      ],
+      "wajib_salah_satu": [
+        "soal per materi",
+        "soal per chapter",
+        "soal per subchapter",
+        "latihan materi"
+      ],
+      "perintah": [
+        "cli/generate.js",
+        "--paket={jumlah}",
+        "--materi={materi}",
+        "--tingkat={tingkat}",
+        "--proporsi={proporsi}",
+        "--benih={benih}",
+        "--rumus={rumus}",
+        "{docx?--docx}",
+        "{pdf?--pdf}",
+        "{xlsx?--xlsx}",
+        "{json?--json}",
+        "{zip?--zip}"
+      ],
+      "parameter": {
+        "jumlah": {
+          "jenis": "teks",
+          "label": "Jumlah set",
+          "bantuan": "1 sampai 500 set. Setiap set berisi jumlah soal yang ditentukan pada tiap materi, tanpa durasi tryout.",
+          "bawaan": "1",
+          "contoh": "1",
+          "pola": "^\\d{1,3}$",
+          "maks": 3,
+          "dari_tugas": "(\\d{1,3})\\s*paket"
+        },
+        "rumus": {
+          "jenis": "teks",
+          "label": "Rumus pembahasan di Word",
+          "bantuan": "latex: teks LaTeX $$...$$ (baku). equation: Equation Word, dikonversi SiAdu ke MathML. Excel dan JSON selalu LaTeX; PDF selalu digambar rapi.",
+          "bawaan": "latex",
+          "contoh": "latex",
+          "pola": "^(latex|equation)$",
+          "maks": 8,
+          "dari_tugas": "\\b(latex|equation)\\b"
+        },
+        "tingkat": {
+          "jenis": "teks",
+          "label": "Tingkat kesulitan",
+          "bantuan": "campur (mudah, sedang, sulit sesuai proporsi), atau mudah / sedang / sulit saja.",
+          "bawaan": "campur",
+          "contoh": "campur",
+          "pola": "^(campur|mudah|sedang|sulit)$",
+          "maks": 8,
+          "dari_tugas": "\\b(mudah|sedang|sulit)\\b"
+        },
+        "proporsi": {
+          "jenis": "teks",
+          "label": "Proporsi mudah:sedang:sulit (opsional, untuk tingkat campur)",
+          "bantuan": "Baku 3:5:2. Kosongkan untuk memakai proporsi baku.",
+          "contoh": "3:5:2",
+          "pola": "^\\d+(\\.\\d+)?:\\d+(\\.\\d+)?:\\d+(\\.\\d+)?$",
+          "maks": 24
+        },
+        "benih": {
+          "jenis": "teks",
+          "label": "Benih (kosongkan = acak)",
+          "bantuan": "Bilangan bulat 0 sampai 4294967295. Benih dan pengaturan yang sama menghasilkan paket yang sama persis. Kosong: diacak, nilainya ditulis di ringkasan.",
+          "contoh": "2026",
+          "pola": "^\\d{1,10}$",
+          "maks": 10,
+          "dari_tugas": "benih\\s*(\\d{1,10})"
+        },
+        "docx": {
+          "jenis": "tanda",
+          "label": "Word input SiAdu (.docx)",
+          "kelompok": "Format",
+          "bawaan": true,
+          "jika_disebut": [
+            "word",
+            "docx"
+          ],
+          "jika_tanpa": [
+            "tanpa word",
+            "tanpa docx"
+          ],
+          "hanya_yang_disebut": true
+        },
+        "pdf": {
+          "jenis": "tanda",
+          "label": "PDF",
+          "kelompok": "Format",
+          "bawaan": true,
+          "jika_disebut": [
+            "pdf"
+          ],
+          "jika_tanpa": [
+            "tanpa pdf"
+          ],
+          "hanya_yang_disebut": true
+        },
+        "xlsx": {
+          "jenis": "tanda",
+          "label": "Excel (.xlsx)",
+          "kelompok": "Format",
+          "bawaan": true,
+          "jika_disebut": [
+            "excel",
+            "xlsx"
+          ],
+          "jika_tanpa": [
+            "tanpa excel",
+            "tanpa xlsx"
+          ],
+          "hanya_yang_disebut": true
+        },
+        "json": {
+          "jenis": "tanda",
+          "label": "JSON",
+          "kelompok": "Format",
+          "bawaan": true,
+          "jika_disebut": [
+            "json"
+          ],
+          "jika_tanpa": [
+            "tanpa json"
+          ],
+          "hanya_yang_disebut": true
+        },
+        "zip": {
+          "jenis": "tanda",
+          "label": "Bungkus semua jadi satu ZIP",
+          "bantuan": "Menambah berkas soal-ojk-tahap1.zip berisi semua hasil (tidak lebih dari sekitar 4 GB).",
+          "jika_disebut": [
+            "zip"
+          ],
+          "jika_tanpa": [
+            "tanpa zip"
+          ]
+        },
+        "materi": {
+          "jenis": "teks",
+          "label": "Chapter/Subchapter dan jumlah soal",
+          "bantuan": "Isi id=jumlah, pisahkan dengan koma. Lihat ID lewat node cli/generate.js --daftar-materi. Jumlah 1-60 per pilihan; dapat mencampur beberapa materi.",
+          "bawaan": "ku-serial=5",
+          "contoh": "ku-serial=5,ku-cerita/aljabar-dasar=10",
+          "pola": "^[a-z0-9/-]+=\\d{1,2}(,[a-z0-9/-]+=\\d{1,2})*$",
+          "maks": 2000
+        }
+      },
+      "catatan": [
+        "Hanya Chapter/Subchapter yang dipilih; tidak memakai komposisi tryout.",
+        "Tingkat yang tidak tersedia ditolak. Mode campur membagi proporsi di tingkat yang tersedia untuk tiap materi.",
+        "Word, PDF, Excel, JSON dan ZIP sama seperti mode tryout; nama Category, Lesson, Chapter dan Subchapter mengikuti mapping akademik."
       ],
       "hasil": "(?:BERKAS -> |HASIL:\\s*)(.+)$",
       "gagal": "GAGAL:\\s*(.+)",

@@ -20,7 +20,7 @@
 var fs = require('fs');
 var path = require('path');
 
-var VERSI = '1.1.0';
+var VERSI = '1.2.0';
 var AKAR = path.resolve(__dirname, '..');
 var JS = path.join(AKAR, 'js');
 var FORMAT = ['docx', 'pdf', 'xlsx', 'json'];
@@ -49,13 +49,18 @@ var BANTUAN = [
   '  --tanpa-waktu          Tulis langsung ke folder --keluaran, tanpa subfolder waktu.',
   '',
   'Opsi isi paket:',
+  '  --materi <id=jumlah,...> Generate hanya Chapter/Subchapter pilihan, 1-60 soal per pilihan.',
+  '                         --paket menjadi jumlah set. Tanpa durasi tryout; subtes mengikuti materi.',
+  '                         Tidak digabung dengan --subtes atau --komposisi-ku/--komposisi-pn.',
+  '  --daftar-materi        Cetak ID Chapter/Subchapter dan tingkat yang tersedia, lalu selesai.',
   '  --tingkat <t>          campur (baku), mudah, sedang, atau sulit.',
   '  --proporsi <m:s:u>     Perbandingan mudah:sedang:sulit saat tingkat campur. Baku: 3:5:2.',
   '  --komposisi-ku <daftar>  Jumlah butir per submateri Kemampuan Umum, mis.',
-  '                         verbal=2,cerita=2,tabel=3,grafik=1,serial=2,matriks=2 (baku).',
+  '                         verbal=3,cerita=2,tabel=2,grafik=1,serial=2,matriks=2 (baku).',
   '                         Submateri yang tidak disebut memakai nilai baku; isi 0 untuk meniadakan.',
   '  --komposisi-pn <daftar>  Jumlah butir per submateri Penalaran Numerik, mis.',
-  '                         bar=3,tabel=3,garis=2,pie=2 (baku).',
+  '                         bar=2,tabel=2,peringkat=2,garis=2,pie=2 (baku).',
+  '                         Pada komposisi PN kustom, peringkat yang tidak disebut bernilai 0.',
   '',
   'Opsi lain:',
   '  --skala <n>            Skala gambar PNG 1 sampai 4. Baku: 2.',
@@ -80,6 +85,7 @@ var BANTUAN = [
   '"HASIL: ..." bila berhasil, atau "GAGAL: ..." (kode keluar 1) bila gagal.',
   '',
   'Contoh:',
+  '  node cli/generate.js --materi ku-serial=5,ku-cerita/aljabar-dasar=10 --paket 1 --zip',
   '  node cli/generate.js --paket 3 --subtes semua --format docx,pdf,xlsx,json --benih 2026',
   '  node cli/generate.js --paket 100 --subtes ku --format xlsx,json --zip',
   '  node cli/generate.js --paket 20 --tingkat mudah --xlsx --json',
@@ -87,8 +93,8 @@ var BANTUAN = [
   '  node cli/generate.js --paket 50 --periksa-saja'
 ].join('\n');
 
-var OPSI_NILAI = ['--paket', '--subtes', '--format', '--benih', '--keluaran', '--tingkat', '--proporsi', '--komposisi-ku', '--komposisi-pn', '--skala', '--rumus'];
-var OPSI_TANDA = ['--docx', '--pdf', '--xlsx', '--json', '--zip', '--svg-json', '--tanpa-waktu', '--periksa-saja', '--versi', '--bantuan', '--help', '-h'];
+var OPSI_NILAI = ['--paket', '--subtes', '--format', '--benih', '--keluaran', '--tingkat', '--proporsi', '--komposisi-ku', '--komposisi-pn', '--skala', '--rumus', '--materi'];
+var OPSI_TANDA = ['--docx', '--pdf', '--xlsx', '--json', '--zip', '--svg-json', '--tanpa-waktu', '--periksa-saja', '--versi', '--bantuan', '--help', '-h', '--daftar-materi'];
 
 function Galat(pesan) { this.message = pesan; this.galatPengguna = true; }
 
@@ -181,6 +187,14 @@ function bacaPengaturan(o, Bank) {
     if (p.proporsi.mudah + p.proporsi.sedang + p.proporsi.sulit <= 0) throw new Galat('--proporsi tidak boleh nol semua');
   }
   p.komposisi = { ku: {}, pn: {} };
+  if (o['--materi'] != null) {
+    if (['--subtes','--komposisi-ku','--komposisi-pn'].some(function (k) { return o[k] != null; })) throw new Galat('--materi tidak digabung dengan --subtes atau --komposisi; subtes mengikuti materi yang dipilih');
+    p.materi = String(o['--materi']).split(',').map(function (teks) {
+      var m = /^([a-z0-9/-]+)=(\d+)$/.exec(teks.trim());
+      if (!m) throw new Galat('--materi harus berbentuk id=jumlah, mis. ku-serial=5 (lihat --daftar-materi)');
+      return { id:m[1], jumlah:bilanganBulat('--materi '+m[1],m[2],1,60) };
+    });
+  }
   if (o['--komposisi-ku'] != null) p.komposisi.ku = daftarKomposisi('--komposisi-ku', o['--komposisi-ku'], Bank.URUTAN.ku);
   if (o['--komposisi-pn'] != null) p.komposisi.pn = daftarKomposisi('--komposisi-pn', o['--komposisi-pn'], Bank.URUTAN.pn);
   p.skala = o['--skala'] == null ? 2 : bilanganBulat('--skala', o['--skala'], 1, 4);
@@ -234,7 +248,7 @@ function tulisBerkas(folder, rel, data) {
 
 /** Perintah yang mengulang hasil yang sama persis. */
 function perintahUlang(p) {
-  var a = ['node cli/generate.js', '--paket ' + p.paket, '--subtes ' + p.subtes, '--format ' + p.format.join(','), '--benih ' + p.benih, '--tingkat ' + p.tingkat];
+  var a = ['node cli/generate.js', '--paket ' + p.paket, p.materi ? '--materi ' + p.materi.map(function (m) { return m.id+'='+m.jumlah; }).join(',') : '--subtes ' + p.subtes, '--format ' + p.format.join(','), '--benih ' + p.benih, '--tingkat ' + p.tingkat];
   if (p.proporsi) a.push('--proporsi ' + p.proporsi.mudah + ':' + p.proporsi.sedang + ':' + p.proporsi.sulit);
   ['ku', 'pn'].forEach(function (st) {
     var k = Object.keys(p.komposisi[st]);
@@ -273,19 +287,23 @@ async function utama(argv) {
   if (major < 20) throw new Galat('diperlukan Node.js 20 atau lebih baru (terpasang ' + process.versions.node + ')');
 
   var Bank = require(path.join(JS, 'bank.js'));
+  if (o['--daftar-materi']) {
+    Bank.katalogMateri().forEach(function (m) { cetak(m.id + ' | ' + m.chapter + (m.subchapter ? ' / '+m.subchapter : '') + ' | '+m.tingkat.join(', ')); });
+    return 0;
+  }
   var Paket = require(path.join(JS, 'paket.js'));
   var Validator = require(path.join(JS, 'validator.js'));
   var p = bacaPengaturan(o, Bank);
 
   cetak('Generator Soal OJK PCAM Tahap 1, versi ' + VERSI);
-  cetak('Pengaturan: ' + p.paket + ' paket, subtes ' + p.subtes + ', tingkat ' + p.tingkat +
+  cetak('Pengaturan: ' + p.paket + (p.materi ? ' set materi pilihan' : ' paket, subtes ' + p.subtes) + ', tingkat ' + p.tingkat +
     (p.proporsi ? ' (' + p.proporsi.mudah + ':' + p.proporsi.sedang + ':' + p.proporsi.sulit + ')' : '') +
     ', benih ' + p.benih + (p.benihDiberi ? '' : ' (diacak)') + ', format ' + (p.periksaSaja ? '(hanya periksa)' : p.format.join(', ') + (p.zip ? ', zip' : '')));
 
   // 1. membuat paket
   var pembangun;
   try {
-    pembangun = Paket.mulai({ benih: p.benih, jumlahPaket: p.paket, subtes: p.subtes, tingkat: p.tingkat, proporsi: p.proporsi || undefined, komposisi: p.komposisi });
+    pembangun = Paket.mulai({ benih: p.benih, jumlahPaket: p.paket, subtes: p.subtes, tingkat: p.tingkat, proporsi: p.proporsi || undefined, komposisi: p.komposisi, materi: p.materi });
   } catch (e) { throw new Galat(e.message); }
   var langkahLapor = Math.max(1, Math.floor(p.paket / 10)), tPaket = Date.now();
   cetak('Membuat ' + p.paket + ' paket ...');
@@ -370,6 +388,8 @@ async function utama(argv) {
     'Dibuat       : ' + new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC',
     'Benih        : ' + p.benih,
     'Paket        : ' + hasil.paket.length,
+    'Mode         : ' + (hasil.meta.mode === 'materi' ? 'Per Chapter/Subchapter (tanpa durasi tryout)' : 'Tryout'),
+    'Materi       : ' + (hasil.meta.materi.length ? hasil.meta.materi.map(function (m) { return m.chapter + (m.subchapter ? ' / '+m.subchapter : '') + ' = ' + m.jumlah; }).join('; ') : 'sesuai komposisi submateri'),
     'Subtes       : ' + hasil.meta.subtes.join(', '),
     'Tingkat      : ' + p.tingkat + ' (mudah:sedang:sulit = ' + hasil.meta.proporsi.mudah + ':' + hasil.meta.proporsi.sedang + ':' + hasil.meta.proporsi.sulit + ')',
     'Komposisi KU : ' + Object.keys(hasil.meta.komposisi.ku).map(function (k) { return k + '=' + hasil.meta.komposisi.ku[k]; }).join(', '),

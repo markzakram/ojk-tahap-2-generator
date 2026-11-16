@@ -69,7 +69,13 @@ async function buka(url, opsi) {
     var berkasPort = path.join(dir, 'DevToolsActivePort'), port = null;
     for (var i = 0; i < 100 && !port; i++) {
       await tunggu(100);
-      if (fs.existsSync(berkasPort)) { var isi = fs.readFileSync(berkasPort, 'utf8').split(/\r?\n/); if (isi[0]) port = Number(isi[0]); }
+      try {
+        var isi = fs.readFileSync(berkasPort, 'utf8').split(/\r?\n/);
+        if (isi[0]) port = Number(isi[0]);
+      } catch (e) {
+        // Chrome Windows dapat mengunci berkas sebentar saat menulis port awal.
+        if (!['ENOENT','EBUSY','EACCES'].includes(e.code)) throw e;
+      }
     }
     if (!port) throw new Error('peramban tidak menyala');
     var halaman = null;

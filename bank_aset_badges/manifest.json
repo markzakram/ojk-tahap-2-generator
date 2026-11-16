@@ -1,0 +1,527 @@
+[
+  {
+    "kategori": "orang",
+    "nama": "Ali",
+    "awalan": "A",
+    "asset_id": "orang_Ali",
+    "file": "orang/Ali.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Bagas",
+    "awalan": "B",
+    "asset_id": "orang_Bagas",
+    "file": "orang/Bagas.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Cinta",
+    "awalan": "C",
+    "asset_id": "orang_Cinta",
+    "file": "orang/Cinta.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Dika",
+    "awalan": "D",
+    "asset_id": "orang_Dika",
+    "file": "orang/Dika.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Elvi",
+    "awalan": "E",
+    "asset_id": "orang_Elvi",
+    "file": "orang/Elvi.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Farhan",
+    "awalan": "F",
+    "asset_id": "orang_Farhan",
+    "file": "orang/Farhan.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Gilang",
+    "awalan": "G",
+    "asset_id": "orang_Gilang",
+    "file": "orang/Gilang.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Haris",
+    "awalan": "H",
+    "asset_id": "orang_Haris",
+    "file": "orang/Haris.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Intan",
+    "awalan": "I",
+    "asset_id": "orang_Intan",
+    "file": "orang/Intan.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Joko",
+    "awalan": "J",
+    "asset_id": "orang_Joko",
+    "file": "orang/Joko.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Kirana",
+    "awalan": "K",
+    "asset_id": "orang_Kirana",
+    "file": "orang/Kirana.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Laras",
+    "awalan": "L",
+    "asset_id": "orang_Laras",
+    "file": "orang/Laras.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Maya",
+    "awalan": "M",
+    "asset_id": "orang_Maya",
+    "file": "orang/Maya.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Nanda",
+    "awalan": "N",
+    "asset_id": "orang_Nanda",
+    "file": "orang/Nanda.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Oki",
+    "awalan": "O",
+    "asset_id": "orang_Oki",
+    "file": "orang/Oki.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Putri",
+    "awalan": "P",
+    "asset_id": "orang_Putri",
+    "file": "orang/Putri.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Qori",
+    "awalan": "Q",
+    "asset_id": "orang_Qori",
+    "file": "orang/Qori.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Raka",
+    "awalan": "R",
+    "asset_id": "orang_Raka",
+    "file": "orang/Raka.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Sinta",
+    "awalan": "S",
+    "asset_id": "orang_Sinta",
+    "file": "orang/Sinta.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Tio",
+    "awalan": "T",
+    "asset_id": "orang_Tio",
+    "file": "orang/Tio.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Umar",
+    "awalan": "U",
+    "asset_id": "orang_Umar",
+    "file": "orang/Umar.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Vina",
+    "awalan": "V",
+    "asset_id": "orang_Vina",
+    "file": "orang/Vina.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Wulan",
+    "awalan": "W",
+    "asset_id": "orang_Wulan",
+    "file": "orang/Wulan.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Xena",
+    "awalan": "X",
+    "asset_id": "orang_Xena",
+    "file": "orang/Xena.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Yusuf",
+    "awalan": "Y",
+    "asset_id": "orang_Yusuf",
+    "file": "orang/Yusuf.png"
+  },
+  {
+    "kategori": "orang",
+    "nama": "Zahwa",
+    "awalan": "Z",
+    "asset_id": "orang_Zahwa",
+    "file": "orang/Zahwa.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Amplop",
+    "awalan": "A",
+    "asset_id": "produk_Amplop",
+    "file": "produk/Amplop.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Bolpoin",
+    "awalan": "B",
+    "asset_id": "produk_Bolpoin",
+    "file": "produk/Bolpoin.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Cat",
+    "awalan": "C",
+    "asset_id": "produk_Cat",
+    "file": "produk/Cat.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Dompet",
+    "awalan": "D",
+    "asset_id": "produk_Dompet",
+    "file": "produk/Dompet.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Ember",
+    "awalan": "E",
+    "asset_id": "produk_Ember",
+    "file": "produk/Ember.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Flashdisk",
+    "awalan": "F",
+    "asset_id": "produk_Flashdisk",
+    "file": "produk/Flashdisk.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Gelas",
+    "awalan": "G",
+    "asset_id": "produk_Gelas",
+    "file": "produk/Gelas.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Headphone",
+    "awalan": "H",
+    "asset_id": "produk_Headphone",
+    "file": "produk/Headphone.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Jam",
+    "awalan": "J",
+    "asset_id": "produk_Jam",
+    "file": "produk/Jam.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Kalkulator",
+    "awalan": "K",
+    "asset_id": "produk_Kalkulator",
+    "file": "produk/Kalkulator.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Lampu",
+    "awalan": "L",
+    "asset_id": "produk_Lampu",
+    "file": "produk/Lampu.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Mouse",
+    "awalan": "M",
+    "asset_id": "produk_Mouse",
+    "file": "produk/Mouse.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Notebook",
+    "awalan": "N",
+    "asset_id": "produk_Notebook",
+    "file": "produk/Notebook.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Penggaris",
+    "awalan": "P",
+    "asset_id": "produk_Penggaris",
+    "file": "produk/Penggaris.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Ransel",
+    "awalan": "R",
+    "asset_id": "produk_Ransel",
+    "file": "produk/Ransel.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Stapler",
+    "awalan": "S",
+    "asset_id": "produk_Stapler",
+    "file": "produk/Stapler.png"
+  },
+  {
+    "kategori": "produk",
+    "nama": "Termos",
+    "awalan": "T",
+    "asset_id": "produk_Termos",
+    "file": "produk/Termos.png"
+  },
+  {
+    "kategori": "kendaraan",
+    "nama": "Ambulans",
+    "awalan": "A",
+    "asset_id": "kendaraan_Ambulans",
+    "file": "kendaraan/Ambulans.png"
+  },
+  {
+    "kategori": "kendaraan",
+    "nama": "Bus",
+    "awalan": "B",
+    "asset_id": "kendaraan_Bus",
+    "file": "kendaraan/Bus.png"
+  },
+  {
+    "kategori": "kendaraan",
+    "nama": "Ekskavator",
+    "awalan": "E",
+    "asset_id": "kendaraan_Ekskavator",
+    "file": "kendaraan/Ekskavator.png"
+  },
+  {
+    "kategori": "kendaraan",
+    "nama": "Helikopter",
+    "awalan": "H",
+    "asset_id": "kendaraan_Helikopter",
+    "file": "kendaraan/Helikopter.png"
+  },
+  {
+    "kategori": "kendaraan",
+    "nama": "Kapal",
+    "awalan": "K",
+    "asset_id": "kendaraan_Kapal",
+    "file": "kendaraan/Kapal.png"
+  },
+  {
+    "kategori": "kendaraan",
+    "nama": "Motor",
+    "awalan": "M",
+    "asset_id": "kendaraan_Motor",
+    "file": "kendaraan/Motor.png"
+  },
+  {
+    "kategori": "kendaraan",
+    "nama": "Pesawat",
+    "awalan": "P",
+    "asset_id": "kendaraan_Pesawat",
+    "file": "kendaraan/Pesawat.png"
+  },
+  {
+    "kategori": "kendaraan",
+    "nama": "Truk",
+    "awalan": "T",
+    "asset_id": "kendaraan_Truk",
+    "file": "kendaraan/Truk.png"
+  },
+  {
+    "kategori": "hewan",
+    "nama": "Anjing",
+    "awalan": "A",
+    "asset_id": "hewan_Anjing",
+    "file": "hewan/Anjing.png"
+  },
+  {
+    "kategori": "hewan",
+    "nama": "Bebek",
+    "awalan": "B",
+    "asset_id": "hewan_Bebek",
+    "file": "hewan/Bebek.png"
+  },
+  {
+    "kategori": "hewan",
+    "nama": "Domba",
+    "awalan": "D",
+    "asset_id": "hewan_Domba",
+    "file": "hewan/Domba.png"
+  },
+  {
+    "kategori": "hewan",
+    "nama": "Gajah",
+    "awalan": "G",
+    "asset_id": "hewan_Gajah",
+    "file": "hewan/Gajah.png"
+  },
+  {
+    "kategori": "hewan",
+    "nama": "Harimau",
+    "awalan": "H",
+    "asset_id": "hewan_Harimau",
+    "file": "hewan/Harimau.png"
+  },
+  {
+    "kategori": "hewan",
+    "nama": "Kelinci",
+    "awalan": "K",
+    "asset_id": "hewan_Kelinci",
+    "file": "hewan/Kelinci.png"
+  },
+  {
+    "kategori": "hewan",
+    "nama": "Panda",
+    "awalan": "P",
+    "asset_id": "hewan_Panda",
+    "file": "hewan/Panda.png"
+  },
+  {
+    "kategori": "hewan",
+    "nama": "Zebra",
+    "awalan": "Z",
+    "asset_id": "hewan_Zebra",
+    "file": "hewan/Zebra.png"
+  },
+  {
+    "kategori": "tumbuhan",
+    "nama": "Anggrek",
+    "awalan": "A",
+    "asset_id": "tumbuhan_Anggrek",
+    "file": "tumbuhan/Anggrek.png"
+  },
+  {
+    "kategori": "tumbuhan",
+    "nama": "Bambu",
+    "awalan": "B",
+    "asset_id": "tumbuhan_Bambu",
+    "file": "tumbuhan/Bambu.png"
+  },
+  {
+    "kategori": "tumbuhan",
+    "nama": "Cemara",
+    "awalan": "C",
+    "asset_id": "tumbuhan_Cemara",
+    "file": "tumbuhan/Cemara.png"
+  },
+  {
+    "kategori": "tumbuhan",
+    "nama": "Dahlia",
+    "awalan": "D",
+    "asset_id": "tumbuhan_Dahlia",
+    "file": "tumbuhan/Dahlia.png"
+  },
+  {
+    "kategori": "tumbuhan",
+    "nama": "Eukaliptus",
+    "awalan": "E",
+    "asset_id": "tumbuhan_Eukaliptus",
+    "file": "tumbuhan/Eukaliptus.png"
+  },
+  {
+    "kategori": "tumbuhan",
+    "nama": "Kaktus",
+    "awalan": "K",
+    "asset_id": "tumbuhan_Kaktus",
+    "file": "tumbuhan/Kaktus.png"
+  },
+  {
+    "kategori": "tumbuhan",
+    "nama": "Mawar",
+    "awalan": "M",
+    "asset_id": "tumbuhan_Mawar",
+    "file": "tumbuhan/Mawar.png"
+  },
+  {
+    "kategori": "tumbuhan",
+    "nama": "Tulip",
+    "awalan": "T",
+    "asset_id": "tumbuhan_Tulip",
+    "file": "tumbuhan/Tulip.png"
+  },
+  {
+    "kategori": "perusahaan",
+    "nama": "Perusahaan Abadi",
+    "awalan": "A",
+    "asset_id": "perusahaan_Perusahaan_Abadi",
+    "file": "perusahaan/Perusahaan Abadi.png"
+  },
+  {
+    "kategori": "perusahaan",
+    "nama": "Perusahaan Berkah",
+    "awalan": "B",
+    "asset_id": "perusahaan_Perusahaan_Berkah",
+    "file": "perusahaan/Perusahaan Berkah.png"
+  },
+  {
+    "kategori": "perusahaan",
+    "nama": "Perusahaan Cemerlang",
+    "awalan": "C",
+    "asset_id": "perusahaan_Perusahaan_Cemerlang",
+    "file": "perusahaan/Perusahaan Cemerlang.png"
+  },
+  {
+    "kategori": "perusahaan",
+    "nama": "Perusahaan Dinamika",
+    "awalan": "D",
+    "asset_id": "perusahaan_Perusahaan_Dinamika",
+    "file": "perusahaan/Perusahaan Dinamika.png"
+  },
+  {
+    "kategori": "perusahaan",
+    "nama": "Perusahaan Gemilang",
+    "awalan": "G",
+    "asset_id": "perusahaan_Perusahaan_Gemilang",
+    "file": "perusahaan/Perusahaan Gemilang.png"
+  },
+  {
+    "kategori": "perusahaan",
+    "nama": "Perusahaan Harmoni",
+    "awalan": "H",
+    "asset_id": "perusahaan_Perusahaan_Harmoni",
+    "file": "perusahaan/Perusahaan Harmoni.png"
+  },
+  {
+    "kategori": "perusahaan",
+    "nama": "Perusahaan Makmur",
+    "awalan": "M",
+    "asset_id": "perusahaan_Perusahaan_Makmur",
+    "file": "perusahaan/Perusahaan Makmur.png"
+  },
+  {
+    "kategori": "perusahaan",
+    "nama": "Perusahaan Sentosa",
+    "awalan": "S",
+    "asset_id": "perusahaan_Perusahaan_Sentosa",
+    "file": "perusahaan/Perusahaan Sentosa.png"
+  }
+]

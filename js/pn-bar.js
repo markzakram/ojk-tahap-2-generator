@@ -224,7 +224,7 @@
       // label persamaan memuat periodenya ("Wilayah Timur Kuartal 2"), jadi setiap baris terbaca sendiri
       var R = Rumus.baris;
       var lA = function (k) { return rTeks(f.namaA + ' ' + k); }, lB = function (k) { return rTeks(f.namaB + ' ' + k); };
-      var pem = ['Diketahui'].concat(butir, ['Total diatur dengan kelipatan ' + uang(f, langkah) + ' dan persentase dengan kelipatan 5%.']);
+      var pem = ['Diketahui'].concat(butir, ['Total diatur dengan kelipatan ' + uang(f, langkah) + ' dan persentase dengan kelipatan 1%.']);
       pem.push('Ditanyakan', Kapital(f.total) + ' setiap ' + f.jenis + ' serta persentase ' + f.A + ' dan ' + f.B + ' pada ' + k1 + ' dan ' + k2 + '.');
       pem.push('Pengerjaan', 'Persentase sebuah bagian selalu dihitung terhadap total pada periode yang sama:',
         R(rTeks('persentase bagian') + ' = \\frac{' + rTeks('nilai bagian') + '}{' + rTeks('total') + '} \\times 100\\%'));
@@ -324,7 +324,7 @@
     var ctx = { submateri: 'bar', keluarga: id, level: level, benih: benih };
     var kontrol = [
       { nama: 'total', label: 'Total tiap batang', min: 0, maks: s.model.sumbuMaks, langkah: s.langkahTotal, satuan: (s.f.sym || '') + (s.f.akhiran || '') },
-      { nama: 'persen', label: 'Persentase ' + s.f.namaA + ' (sisanya ' + s.f.namaB + ')', min: 0, maks: 100, langkah: 5, satuan: '%' }
+      { nama: 'persen', label: 'Persentase ' + s.f.namaA + ' (sisanya ' + s.f.namaB + ')', min: 0, maks: 100, langkah: 1, satuan: '%' }
     ];
     var gambarAwal = [{ id: 'awal', jenis: 'bar-tumpuk', model: s.model, state: s.awal, judul: 'Tampilan awal' }];
     var gambarKunci = [{ id: 'kunci', jenis: 'bar-tumpuk', model: s.model, state: s.kunci, judul: 'Kondisi akhir (kunci)' }];

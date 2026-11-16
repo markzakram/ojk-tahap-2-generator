@@ -1,4 +1,9 @@
-/* Uji keluarga figural tambahan (transformasi, lipat kertas, petak, matriks tumpuk/bentuk).
+/* Uji keluarga figural tambahan (lipat kertas, petak/jarum, matriks bentuk/jumlah, dan keluarga bercorak).
+ *
+ * Sejak bank versi 8 (batas riset figural) keluarga ini TIDAK ikut undian paket dan tidak dipetakan di
+ * kerangka.js; modulnya tetap disimpan untuk membaca/merender keluaran lama. Uji ini tetap memeriksa bahwa
+ * penyusun, pemeriksa independen, dan gambarnya benar. Klasifikasi Kerangka Course hanya diperiksa untuk
+ * keluarga yang aktif di bank.
  *
  *   node uji/figural-baru.js                      semua keluarga tambahan, 120 butir per tingkat
  *   node uji/figural-baru.js --keluarga serial-petak,serial-jarum --n 400
@@ -21,9 +26,10 @@
 var Validator = require('../js/validator.js');
 var Gambar = require('../js/gambar.js');
 var Kerangka = require('../js/kerangka.js');
+var Bank = require('../js/bank.js');
 var SvgRaster = require('../js/svgraster.js');
 
-var MODUL = ['transformasi', 'transformasi-analogi', 'lipat-kertas', 'serial-petak', 'matriks-tumpuk', 'matriks-bentuk'];
+var MODUL = ['lipat-kertas', 'serial-petak', 'matriks-bentuk', 'transformasi-corak', 'analogi-corak', 'serial-corak', 'matriks-corak'];
 var LEVEL = ['mudah', 'sedang', 'sulit'];
 var HURUF = ['A', 'B', 'C', 'D', 'E'];
 
@@ -63,7 +69,8 @@ function tukarOpsi(b, i, j) {
 function jalankan(cek, o) {
   o = o || {};
   var N = o.n || 120, DASAR = (o.benih == null ? 2026 : o.benih) >>> 0, RASTER = o.raster == null ? 2 : o.raster, PILIH = o.keluarga || null;
-  var keluarga = [], totalButir = 0;
+  var keluarga = [], totalButir = 0, AKTIF = {};
+  Bank.katalog().forEach(function (st) { st.keluarga.forEach(function (k) { AKTIF[k.id] = true; }); });
   MODUL.forEach(function (nama) {
     var mod = require('../js/' + nama + '.js');
     (mod.KELUARGA || []).forEach(function (k) {
@@ -75,9 +82,10 @@ function jalankan(cek, o) {
   function lapor(ok, teks, rinci) { cek(ok, teks, !ok && rinci && rinci.length ? rinci.slice(0, 6).join(' || ') : ''); }
 
   keluarga.forEach(function (x) {
-    var id = x.kel.id, semua = [], sub = Kerangka.KELUARGA[id];
+    var id = x.kel.id, semua = [], sub = Kerangka.KELUARGA[id], aktif = AKTIF[id];
     if (x.kel.submateri !== 'figural' || ['serial', 'matriks'].indexOf(x.kel.kolam) < 0) lapor(false, id + ': KELUARGA harus ber-submateri figural dan ber-kolam serial atau matriks');
-    if (!sub) lapor(false, id + ': belum dipetakan di kerangka.js');
+    if (aktif && !sub) lapor(false, id + ': belum dipetakan di kerangka.js');
+    if (!aktif) cek(true, id + ': tidak aktif di bank (batas riset figural), klasifikasi Kerangka tidak diperiksa');
     LEVEL.forEach(function (level) {
       var masalah = [], dibuat = 0, lulus = 0, pola = {}, waktu = 0, mutasiLolos = 0, raster = 0, sebelumnya = null;
       for (var i = 0; i < N; i++) {
@@ -96,7 +104,7 @@ function jalankan(cek, o) {
         if (!b.model || !b.model.tipe) mb.push('model.tipe kosong');
         if (typeof b.pola !== 'string' || b.pola.indexOf(id + ':') !== 0) mb.push('pola harus berawalan "' + id + ':" (' + b.pola + ')');
         if (b.kategoriRiset !== 'pengayaan' || !b.catatanRiset) mb.push('kategoriRiset harus "pengayaan" dan catatanRiset terisi');
-        try { var k = Kerangka.klasifikasi(b); if (k.subchapter !== sub) mb.push('subchapter ' + k.subchapter + ', seharusnya ' + sub); } catch (e) { mb.push(e.message); }
+        if (aktif) { try { var k = Kerangka.klasifikasi(b); if (k.subchapter !== sub) mb.push('subchapter ' + k.subchapter + ', seharusnya ' + sub); } catch (e) { mb.push(e.message); } }
         var v = Validator.periksaButir(b);
         if (!v.lulus) mb.push('validator: ' + v.masalah.slice(0, 4).join('; '));
         // gambar
