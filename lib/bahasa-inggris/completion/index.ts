@@ -15,6 +15,7 @@ import { KERANGKA_KONEKTOR } from './kerangka-konektor';
 
 export const scAdjective = familyMakna({
   id: 'SC-ADJ',
+  versi: 3,
   nama: 'Adjective dalam konteks',
   sumber: 'Blueprint Bahasa Inggris §3 (contoh adjective dalam konteks), §8 · Azar App. A-4/A-5',
   ringkas: 'Satu kalimat dengan petunjuk makna (cakupan, akibat, pertentangan, syarat). Empat adjective; hanya satu yang diterima matriks keterterimaan kerangka, sinonim dekat tidak pernah menjadi pengecoh.',
@@ -24,6 +25,7 @@ export const scAdjective = familyMakna({
 
 export const scNoun = familyMakna({
   id: 'SC-NOUN',
+  versi: 3,
   nama: 'Noun dan hubungan abstrak',
   sumber: 'Blueprint Bahasa Inggris §3 (contoh noun dan tujuan tindakan), §8 · Azar App. A-4/A-5',
   ringkas: 'Noun yang ditentukan oleh tujuan tindakan, akibat, status informasi, atau kolokasi (raise awareness, take priority over). Keempat opsi sama bentuknya sehingga artikel dan agreement tidak membocorkan kunci.',
@@ -33,6 +35,7 @@ export const scNoun = familyMakna({
 
 export const scVerb = familyMakna({
   id: 'SC-VERB',
+  versi: 3,
   nama: 'Verb dan preposisi/kolokasi',
   sumber: 'Blueprint Bahasa Inggris §3 (contoh verb dan preposisi), §7 makna dan kolokasi · Azar App. A-4/A-5, 14-12',
   ringkas: 'Verb yang harus cocok dengan preposisi/objek sesudahnya dan dengan konteks (comply with, consist of, rely on, result in). Keempat opsi berbentuk sama; pengecoh berupa makna keliru, kolokasi keliru, atau arah tindakan terbalik.',

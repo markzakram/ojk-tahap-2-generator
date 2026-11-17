@@ -34,6 +34,7 @@ a transparent | terbuka sehingga dapat diperiksa | C1
 a selective | hanya memilih sebagian
 a superficial | dangkal atau hanya di permukaan
 a optional | tidak wajib atau boleh dipilih
+a recommended | dianjurkan, tetapi tidak diwajibkan
 a voluntary | sukarela
 a confidential | rahasia dan terbatas bagi pihak tertentu
 a flexible | luwes atau mudah disesuaikan
@@ -95,6 +96,7 @@ a unconnected | tidak berhubungan
 a reluctant | enggan
 a eager | sangat ingin
 a keen | bersemangat atau berminat
+a quick | cepat atau sigap
 a delighted | sangat senang
 a willing | bersedia
 a vulnerable | rentan
@@ -190,6 +192,9 @@ n.u feedback | umpan balik
 n.cu payment | pembayaran
 n.u attendance | kehadiran
 n.c shortage | kekurangan
+n.c profit | keuntungan
+n.p savings | tabungan atau penghematan
+n.cu distance | jarak
 n.c surplus | kelebihan
 n.cu supply | pasokan
 n.c team | tim
@@ -257,6 +262,9 @@ v ban+ | melarang
 v discourage | membuat orang enggan melakukan sesuatu
 v complicate | memperumit
 v cancel | membatalkan
+v repair | memperbaiki
+v require | mewajibkan atau memerlukan
+v depend | bergantung (depend on)
 v delay | menunda
 v restrict | membatasi
 v cope | mampu mengatasi (cope with)
@@ -320,6 +328,36 @@ v open | membuka
 v complete | menyelesaikan
 v send/sent/sent | mengirim
 v increase | meningkat
+a generous | murah hati atau melimpah
+a strict | ketat
+a frank | terus terang
+a repeated | berulang kali
+a loyal | setia
+a silent | diam atau tanpa suara
+a abundant | melimpah
+a competent | cakap atau kompeten
+a elderly | lanjut usia
+a worthy | layak
+a recyclable | dapat didaur ulang
+a united | bersatu
+a lazy | malas
+n.cu confession | pengakuan atas kesalahan
+n.c donation | sumbangan
+n.cu invention | penemuan
+n.u punctuality | ketepatan waktu
+n.c penalty | hukuman atau denda
+n.cu hunger | rasa lapar atau keinginan kuat
+n.p injuries | luka fisik
+n.u gravity | kegentingan atau gaya berat
+v silence | membungkam
+v interview | mewawancarai
+v count | menghitung
+v brighten | membuat lebih terang
+v pronounce | melafalkan atau menyatakan secara resmi
+v assist | membantu
+v enjoy | menikmati
+v satisfy | memuaskan atau memenuhi syarat
+v cure | menyembuhkan
 `;
 
 const KODE_KELAS: Record<string, { kelas: Kelas; bentuk: Bentuk[] }> = {

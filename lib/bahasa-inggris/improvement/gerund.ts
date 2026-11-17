@@ -24,10 +24,17 @@ interface KerangkaPrep {
 
 // Preposisi selain to. Tingkat dasar: kalimat pendek, preposisi tepat sebelum rentang. Menengah: pemicu dua kata atau
 // klausa/infinitive lain di kalimat. Menantang: gerund pasif (being + V3) yang menuntut dua keputusan (preposisi + diatesis).
+/** Contoh blueprint bagian 4, dipakai kata per kata hanya sebagai uji emas (lib/bahasa-inggris/uji-emas.ts). */
+export const EMAS_PREP: KerangkaPrep[] = [
+  { id: 'emas-responsible-for', tingkat: 'dasar', konteks: 'laporan', kiri: 'The analyst is responsible for ', kanan: ' before Friday.', pemicu: 'responsible for', preposisi: 'for',
+    isi: [['prepare', 'the monthly report']] },
+];
+
 const PREP: KerangkaPrep[] = [
-  // Contoh blueprint bagian 4 (uji emas): The analyst is responsible for prepare the monthly report before Friday.
+  // Mekanisme contoh blueprint bagian 4 (responsible for + gerund); isi "prepare the monthly report" yang menyalin contoh
+  // blueprint kata per kata hanya dipakai sebagai uji emas (EMAS_PREP).
   { id: 'responsible-for', tingkat: 'dasar', konteks: 'laporan', kiri: 'The analyst is responsible for ', kanan: ' before Friday.', pemicu: 'responsible for', preposisi: 'for',
-    isi: [['prepare', 'the monthly report'], ['check', 'the attendance records'], ['update', 'the project schedule']] },
+    isi: [['check', 'the attendance records'], ['update', 'the project schedule']] },
   { id: 'interested-in', tingkat: 'dasar', konteks: 'masyarakat', kiri: 'Many residents are interested in ', kanan: ' next month.', pemicu: 'interested in', preposisi: 'in',
     isi: [['join', 'the community recycling project'], ['attend', 'the free first aid course']] },
   { id: 'before-entering', tingkat: 'dasar', konteks: 'pendidikan', kiri: 'Please read the safety guidelines carefully before ', kanan: ' for the first time.', pemicu: 'before', preposisi: 'before',
@@ -155,6 +162,7 @@ const pilih = (daftar: KerangkaPrep[]) => (r: Rng) => {
 
 export const siGerundPreposisi = buatFamily({
   id: 'SI-GER-PREP',
+  versi: 2,
   nama: 'Gerund setelah preposisi',
   label: 'SHL',
   sumber: 'Blueprint Bahasa Inggris §4 (contoh "responsible for prepare"), §7 · Azar 14-2, 14-12 · Materi §8',
@@ -174,4 +182,4 @@ export const siGerundTo = buatFamily({
 });
 
 /** Untuk pengujian: seluruh kerangka family gerund. */
-export const KERANGKA_GERUND = { PREP, TO, rancang };
+export const KERANGKA_GERUND = { PREP, TO, EMAS_PREP, rancang, teks };

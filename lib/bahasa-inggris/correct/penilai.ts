@@ -355,6 +355,7 @@ const NAMA_KASUS: Record<KasusPronomina, string> = {
   penentu: 'possessive adjective yang harus diikuti noun',
   milik: 'possessive pronoun yang berdiri sendiri',
   refleksif: 'reflexive pronoun',
+  kontraksi: "singkatan pronoun + is/are (it's = it is, they're = they are, who's = who is)",
 };
 
 function relasiPronomina(n: number, u: UnsurPronomina): Relasi {
@@ -362,16 +363,17 @@ function relasiPronomina(n: number, u: UnsurPronomina): Relasi {
   const tok = u.teks.trim();
   const low = tok === 'I' ? 'I' : tok.toLowerCase();
   const takBaku = PRONOMINA_TAK_BAKU[low];
+  const cocok: [string, KasusPronomina][] = [];
+  for (const [p, bentuk] of Object.entries(PRONOMINA)) for (const [c, b] of Object.entries(bentuk)) if (b === low || (b === "I'm" && tok === "I'm")) cocok.push([p, c as KasusPronomina]);
+  // Bentuk baku pada posisi yang sesuai lebih dulu: kontraksi (it's, they're, who's) sah pada posisi pronoun + is/are.
+  if (cocok.some(([, c]) => c === u.fungsi)) {
+    return relasi(kunci, 'pronomina', [], `${kap(tok)} adalah ${NAMA_KASUS[u.fungsi]} dan tepat sebagai ${u.posisi}.`, [u.pemicu], `${u.pemicu} → ${tok}`);
+  }
   if (takBaku) {
     const benar = PRONOMINA[takBaku.persona][u.fungsi];
     return relasi(kunci, 'pronomina', [takBaku.kasus === u.fungsi || !benar ? takBaku.catatan : `${takBaku.catatan} Posisi ${u.posisi} memerlukan ${benar}.`]);
   }
-  const cocok: [string, KasusPronomina][] = [];
-  for (const [p, bentuk] of Object.entries(PRONOMINA)) for (const [c, b] of Object.entries(bentuk)) if (b === low) cocok.push([p, c as KasusPronomina]);
   if (!cocok.length) return relasi(kunci, 'pronomina', [`Pronoun ${tok} tidak dikenali.`]);
-  if (cocok.some(([, c]) => c === u.fungsi)) {
-    return relasi(kunci, 'pronomina', [], `${kap(tok)} adalah ${NAMA_KASUS[u.fungsi]} dan tepat sebagai ${u.posisi}.`, [u.pemicu], `${u.pemicu} → ${tok}`);
-  }
   const [p, c] = cocok[0];
   const benar = PRONOMINA[p][u.fungsi];
   return relasi(kunci, 'pronomina', [benar

@@ -178,6 +178,8 @@ export function kataKunciSlot(slot: Slot): string {
 
 export function buatFamily(cfg: {
   id: string;
+  /** Naikkan bila isi bank berubah (seed lama tidak lagi menghasilkan soal yang sama). */
+  versi?: number;
   nama: string;
   label: Label;
   sumber: string;
@@ -188,7 +190,7 @@ export function buatFamily(cfg: {
 }): Family<ItemSI, JawabanPg> {
   return {
     id: cfg.id,
-    versi: 1,
+    versi: cfg.versi ?? 1,
     nama: cfg.nama,
     chapter: chapterById('sentence-improvement'),
     label: cfg.label,

@@ -3,10 +3,12 @@ import { buatFamily, type Kerangka } from './family';
 // VARIASI — perluasan berbasis buku (blueprint bagian 6, "Contoh Arrangement — verb dan infinitive (perluasan)"; bagian 7
 // baris "Gerund/infinitive"; Azar 14-2–14-6, 14-10–14-12, bab 15). Pola verb + to-infinitive, verb + objek + to-infinitive,
 // passive + infinitive, dan verb + gerund. Sambungan dikunci verb–to, objek–to, dan to–bentuk dasar beserta objeknya.
+// Contoh blueprint (revised policy) hanya dipakai sebagai uji emas; butir bank memakai kalimat baru.
 
-const KERANGKA: Kerangka[] = [
+/** Contoh blueprint bagian 6, dipakai kata per kata hanya sebagai uji emas solver (lib/bahasa-inggris/uji-emas.ts). */
+export const EMAS_INFINITIF: Kerangka[] = [
   {
-    id: 'requires-to', tingkat: 'menengah', kaidah: 'verb-objek-infinitive', konteks: 'kebijakan dan kepatuhan',
+    id: 'emas-requires-to', tingkat: 'menengah', kaidah: 'verb-objek-infinitive', konteks: 'kebijakan dan kepatuhan',
     fragmen: ['The revised policy', 'requires all', 'employees to submit', 'their monthly', 'expense claims'],
     fungsi: ['subjek', 'predikat + determiner objek', 'noun inti objek + to-infinitive', 'determiner + adjective objek submit', 'noun inti objek submit'],
     kait: [
@@ -18,6 +20,23 @@ const KERANGKA: Kerangka[] = [
     konsep: 'Urutan verb, objek, dan infinitive',
     kataKunci: 'requires all, employees to submit, their monthly',
     caraCepat: 'Pasangkan requires all dengan employees to submit, lalu cari objek setelah submit.',
+  },
+];
+
+const KERANGKA: Kerangka[] = [
+  {
+    id: 'requires-to', tingkat: 'menengah', kaidah: 'verb-objek-infinitive', konteks: 'kebijakan dan kepatuhan',
+    fragmen: ['The safety policy', 'requires all', 'volunteers to complete', 'their monthly', 'training forms'],
+    fungsi: ['subjek', 'predikat + determiner objek', 'noun inti objek + to-infinitive', 'determiner + adjective objek complete', 'noun inti objek complete'],
+    kait: [
+      'subjek tunggal The safety policy cocok dengan requires',
+      'determiner all memerlukan noun jamak volunteers, yang menjadi objek requires sebelum to complete',
+      'complete memerlukan objek yang diawali their monthly',
+      'their monthly masih memerlukan noun inti training forms',
+    ],
+    konsep: 'Urutan verb, objek, dan infinitive',
+    kataKunci: 'requires all, volunteers to complete, their monthly',
+    caraCepat: 'Pasangkan requires all dengan volunteers to complete, lalu cari objek setelah complete.',
   },
   {
     id: 'decided-to', tingkat: 'dasar', kaidah: 'verb-infinitive', konteks: 'kantor dan proyek',
@@ -177,6 +196,7 @@ const KERANGKA: Kerangka[] = [
 
 export const familyInfinitif = buatFamily({
   id: 'SA-INFINITIF',
+  versi: 3,
   nama: 'Verb + infinitive/gerund',
   label: 'VARIASI',
   sumber: 'Blueprint Bahasa Inggris §6 (contoh verb dan infinitive, perluasan) · §7 Gerund/infinitive · Azar 14-2–14-6, 14-10–14-12, bab 15',

@@ -8,6 +8,8 @@ export interface ChapterMapping extends Chapter {
   siadu?: string;
   /** Keterangan bila chapter belum punya family (mis. blueprint belum ada). */
   catatan?: string;
+  /** Kelompok latsol pada Mapping (PSJK: tiga kelompok "Soal Ke-OJK-an - …"). */
+  kelompok?: string;
 }
 
 export const CHAPTERS: ChapterMapping[] = [
@@ -24,24 +26,35 @@ export const CHAPTERS: ChapterMapping[] = [
   { id: 'calendar-date-selection', subtes: 'deduktif', nama: 'Calendar Date Selection', bentuk: 'Calendar Date Selection', perTryout: 3, perLatsol: 10, siadu: '3409' },
   { id: 'room-allocations', subtes: 'deduktif', nama: 'Room Allocations', bentuk: 'Place and Room Allocations', perTryout: 2, perLatsol: 10, siadu: '3410' },
   { id: 'timeline-scheduling', subtes: 'deduktif', nama: 'Timeline Scheduling', bentuk: 'Timeline Scheduling', perTryout: 2, perLatsol: 10, siadu: '3411' },
-  { id: 'badges', subtes: 'deduktif', nama: 'Badges', bentuk: 'Logical Ranking', perTryout: 3, perLatsol: 10, siadu: '3309', catatan: 'Belum ada blueprint' },
+  { id: 'badges', subtes: 'deduktif', nama: 'Badges', bentuk: 'Logical Ranking', perTryout: 3, perLatsol: 10, siadu: '3309' },
   { id: 'timeslot-scheduling', subtes: 'deduktif', nama: 'Timeslot Scheduling', bentuk: 'Timeslot Scheduling', perTryout: 2, perLatsol: 10, siadu: '3412' },
   // Tes Bahasa Inggris — 12 soal, 15 menit (urutan chapter tetap, soal diacak, kecuali Reading)
   { id: 'sentence-completion', subtes: 'bahasa-inggris', nama: 'Sentence Completion - 4 Option', bentuk: 'Option New', perTryout: 4, perLatsol: 3, siadu: '3405' },
   { id: 'sentence-improvement', subtes: 'bahasa-inggris', nama: 'Sentence Improvement', bentuk: 'Option New', perTryout: 2, perLatsol: 2, siadu: '3406' },
   { id: 'grammatically-correct-sentence', subtes: 'bahasa-inggris', nama: 'Grammatically Correct Sentence', bentuk: 'Option New', perTryout: 1, perLatsol: 1, siadu: '3407' },
   { id: 'sentence-arrangement', subtes: 'bahasa-inggris', nama: 'Sentence Arrangement - 4 Option', bentuk: 'Option New', perTryout: 1, perLatsol: 1, siadu: '3408' },
-  { id: 'reading-comprehension', subtes: 'bahasa-inggris', nama: 'Reading Comprehension - 4 Option', bentuk: 'Option New', perTryout: 4, perLatsol: 3, siadu: '3220', catatan: 'Belum ada blueprint' },
+  { id: 'reading-comprehension', subtes: 'bahasa-inggris', nama: 'Reading Comprehension - 4 Option', bentuk: 'Option New', perTryout: 4, perLatsol: 3, siadu: '3220' },
+  // Tes Pengetahuan Sektor Jasa Keuangan — 50 soal, 60 menit; latsol per kelompok (10 soal, 10 menit)
+  { id: 'pengenalan-ojk', subtes: 'sjk', nama: 'Pengenalan OJK dan Waspada Investasi', bentuk: 'Option New', perTryout: 8, perLatsol: 7, siadu: '3389', kelompok: 'OJK dan Dasar Keuangan' },
+  { id: 'perencanaan-keuangan', subtes: 'sjk', nama: 'Perencanaan Keuangan', bentuk: 'Option New', perTryout: 3, perLatsol: 3, siadu: '3390', kelompok: 'OJK dan Dasar Keuangan' },
+  { id: 'perbankan', subtes: 'sjk', nama: 'Perbankan', bentuk: 'Option New', perTryout: 7, perLatsol: 3, siadu: '3391', kelompok: 'Perbankan dan Pembiayaan' },
+  { id: 'perusahaan-pembiayaan', subtes: 'sjk', nama: 'Perusahaan Pembiayaan', bentuk: 'Option New', perTryout: 3, perLatsol: 1, siadu: '3392', kelompok: 'Perbankan dan Pembiayaan' },
+  { id: 'pergadaian', subtes: 'sjk', nama: 'Pergadaian', bentuk: 'Option New', perTryout: 2, perLatsol: 1, siadu: '3393', kelompok: 'Perbankan dan Pembiayaan' },
+  { id: 'lembaga-keuangan-mikro', subtes: 'sjk', nama: 'Lembaga Keuangan Mikro', bentuk: 'Option New', perTryout: 1, perLatsol: 1, siadu: '3394', kelompok: 'Perbankan dan Pembiayaan' },
+  { id: 'lembaga-penjaminan', subtes: 'sjk', nama: 'Lembaga Penjaminan', bentuk: 'Option New', perTryout: 1, perLatsol: 1, siadu: '3395', kelompok: 'Perbankan dan Pembiayaan' },
+  { id: 'modal-ventura', subtes: 'sjk', nama: 'Perusahaan Modal Ventura', bentuk: 'Option New', perTryout: 1, perLatsol: 1, siadu: '3396', kelompok: 'Perbankan dan Pembiayaan' },
+  { id: 'digital-financial-literacy', subtes: 'sjk', nama: 'Digital Financial Literacy', bentuk: 'Option New', perTryout: 2, perLatsol: 1, siadu: '3397', kelompok: 'Perbankan dan Pembiayaan' },
+  { id: 'fintech', subtes: 'sjk', nama: 'Fintech', bentuk: 'Option New', perTryout: 3, perLatsol: 1, siadu: '3398', kelompok: 'Perbankan dan Pembiayaan' },
+  { id: 'asuransi', subtes: 'sjk', nama: 'Asuransi', bentuk: 'Option New', perTryout: 4, perLatsol: 2, siadu: '3399', kelompok: 'Investasi dan Proteksi' },
+  { id: 'dana-pensiun', subtes: 'sjk', nama: 'Dana Pensiun', bentuk: 'Option New', perTryout: 2, perLatsol: 1, siadu: '3400', kelompok: 'Investasi dan Proteksi' },
+  { id: 'pasar-modal', subtes: 'sjk', nama: 'Pasar Modal', bentuk: 'Option New', perTryout: 6, perLatsol: 3, siadu: '3401', kelompok: 'Investasi dan Proteksi' },
+  { id: 'bulion', subtes: 'sjk', nama: 'Bulion', bentuk: 'Option New', perTryout: 1, perLatsol: 1, siadu: '3402', kelompok: 'Investasi dan Proteksi' },
+  { id: 'aset-kripto', subtes: 'sjk', nama: 'Aset Kripto', bentuk: 'Option New', perTryout: 2, perLatsol: 1, siadu: '3403', kelompok: 'Investasi dan Proteksi' },
+  { id: 'keuangan-syariah', subtes: 'sjk', nama: 'Keuangan Syariah', bentuk: 'Option New', perTryout: 4, perLatsol: 2, siadu: '3404', kelompok: 'Investasi dan Proteksi' },
 ];
 
-/**
- * Subtes yang kuotanya belum dirinci per chapter di salinan Mapping lokal.
- * Pengetahuan Sektor Jasa Keuangan: 50 soal per tryout (Mapping); 30 per latsol adalah sisa target 550 soal latsol
- * setelah tiga subtes lain (Mapping: 1.440 = 890 tryout + 550 latsol). Cek ulang di sheet asli sebelum dipakai.
- */
-export const TARGET_TANPA_CHAPTER: { subtes: Chapter['subtes']; perTryout: number; perLatsol: number; catatan: string }[] = [
-  { subtes: 'sjk', perTryout: 50, perLatsol: 30, catatan: 'Belum ada blueprint' },
-];
+/** Subtes yang kuotanya belum dirinci per chapter di Mapping (kosong: PSJK kini punya 16 chapter). */
+export const TARGET_TANPA_CHAPTER: { subtes: Chapter['subtes']; perTryout: number; perLatsol: number; catatan: string }[] = [];
 
 export const JUMLAH_TRYOUT = 10;
 export const JUMLAH_LATSOL = 5;

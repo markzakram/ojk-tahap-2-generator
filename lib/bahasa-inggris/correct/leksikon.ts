@@ -74,21 +74,35 @@ const VERBA = new Map<string, EntriVerba>();
 export const verba = (lema: string): EntriVerba | undefined => VERBA.get(lema);
 
 // ——— Pronoun ———
-export type KasusPronomina = 'subjek' | 'objek' | 'penentu' | 'milik' | 'refleksif';
+/** `kontraksi` = pronoun + is/are yang disingkat (it's = it is, they're = they are, who's = who is). */
+export type KasusPronomina = 'subjek' | 'objek' | 'penentu' | 'milik' | 'refleksif' | 'kontraksi';
 
-/** Bentuk baku per persona (Azar 8-1, 8-4). `its` sebagai possessive pronoun berdiri sendiri tidak dipakai. */
+/**
+ * Bentuk baku per persona (Azar 8-1, 8-4). `its` sebagai possessive pronoun berdiri sendiri tidak dipakai. Kontraksi
+ * (it's, they're, who's) baku hanya pada posisi pronoun + is/are; pada posisi penentu ia menjadi kesalahan (lihat
+ * PRONOMINA_TAK_BAKU), sehingga bentuk beraposfrof tidak selalu salah.
+ */
 export const PRONOMINA: Record<string, Partial<Record<KasusPronomina, string>>> = {
-  I: { subjek: 'I', objek: 'me', penentu: 'my', milik: 'mine', refleksif: 'myself' },
-  we: { subjek: 'we', objek: 'us', penentu: 'our', milik: 'ours', refleksif: 'ourselves' },
-  he: { subjek: 'he', objek: 'him', penentu: 'his', milik: 'his', refleksif: 'himself' },
-  she: { subjek: 'she', objek: 'her', penentu: 'her', milik: 'hers', refleksif: 'herself' },
-  they: { subjek: 'they', objek: 'them', penentu: 'their', milik: 'theirs', refleksif: 'themselves' },
-  it: { subjek: 'it', objek: 'it', penentu: 'its', refleksif: 'itself' },
+  I: { subjek: 'I', objek: 'me', penentu: 'my', milik: 'mine', refleksif: 'myself', kontraksi: "I'm" },
+  we: { subjek: 'we', objek: 'us', penentu: 'our', milik: 'ours', refleksif: 'ourselves', kontraksi: "we're" },
+  he: { subjek: 'he', objek: 'him', penentu: 'his', milik: 'his', refleksif: 'himself', kontraksi: "he's" },
+  she: { subjek: 'she', objek: 'her', penentu: 'her', milik: 'hers', refleksif: 'herself', kontraksi: "she's" },
+  they: { subjek: 'they', objek: 'them', penentu: 'their', milik: 'theirs', refleksif: 'themselves', kontraksi: "they're" },
+  it: { subjek: 'it', objek: 'it', penentu: 'its', refleksif: 'itself', kontraksi: "it's" },
+  /** Pronoun relatif untuk orang: who (subjek), whom (objek), whose (kepemilikan sebelum noun), who's (who is). */
+  who: { subjek: 'who', objek: 'whom', penentu: 'whose', kontraksi: "who's" },
 };
 
 /** Bentuk tak baku yang sengaja dipakai sebagai kesalahan, beserta persona dan kasus yang dimaksud penulisnya. */
 export const PRONOMINA_TAK_BAKU: Record<string, { persona: string; kasus: KasusPronomina; catatan: string }> = {
   theirselves: { persona: 'they', kasus: 'refleksif', catatan: 'Theirselves bukan bentuk baku; reflexive pronoun untuk they adalah themselves.' },
   hisself: { persona: 'he', kasus: 'refleksif', catatan: 'Hisself bukan bentuk baku; reflexive pronoun untuk he adalah himself.' },
+  themself: { persona: 'they', kasus: 'refleksif', catatan: 'Themself hanya dipakai untuk satu orang (singular they); untuk subjek jamak reflexive pronoun-nya themselves.' },
   "it's": { persona: 'it', kasus: 'penentu', catatan: "It's adalah singkatan it is atau it has; kepemilikan dinyatakan dengan its." },
+  "who's": { persona: 'who', kasus: 'penentu', catatan: "Who's adalah singkatan who is atau who has; kepemilikan dinyatakan dengan whose." },
+  "they're": { persona: 'they', kasus: 'penentu', catatan: "They're adalah singkatan they are; kepemilikan dinyatakan dengan their." },
+  "our's": { persona: 'we', kasus: 'milik', catatan: "Our's bukan bentuk baku; possessive pronoun untuk we ditulis ours, tanpa apostrof." },
+  "their's": { persona: 'they', kasus: 'milik', catatan: "Their's bukan bentuk baku; possessive pronoun untuk they ditulis theirs, tanpa apostrof." },
+  "her's": { persona: 'she', kasus: 'milik', catatan: "Her's bukan bentuk baku; possessive pronoun untuk she ditulis hers, tanpa apostrof." },
+  there: { persona: 'they', kasus: 'kontraksi', catatan: "There adalah kata keterangan atau pengantar there is/are, bukan pronoun; they are disingkat they're dan kepemilikannya their." },
 };

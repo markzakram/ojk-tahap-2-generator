@@ -43,10 +43,19 @@ function finit(v: VerbaSpek, jumlah: Jumlah): [string, string] {
   return [BE[v.kala][jumlah], BE[v.kala][lawan]];
 }
 
+/** Contoh blueprint bagian 5 (teramati), dipakai kata per kata hanya sebagai uji emas solver (lib/bahasa-inggris/uji-emas.ts). */
+const SPEK_EMAS: SpekSva[] = [
+  { id: 'emas-cabinet', tingkat: 'menengah', konteks: 'laporan & data',
+    subjek: { teks: 'The reports stored in the cabinet', inti: 'reports', pewatas: 'stored in the cabinet', jumlah: 'jamak' },
+    verba: { jenis: 'pasif', kala: 'lampau', lema: 'review' },
+    waktu: [hari('Monday')] },
+];
+
 const SPEK: SpekSva[] = [
   // — Menengah: inti subjek dipisahkan modifier (frasa preposisi/participle) yang memuat noun berjumlah lain —
-  { id: 'cabinet', tingkat: 'menengah', konteks: 'laporan & data', // contoh blueprint §5 (uji emas)
-    subjek: { teks: 'The reports stored in the cabinet', inti: 'reports', pewatas: 'stored in the cabinet', jumlah: 'jamak' },
+  // (mekanisme sama dengan contoh blueprint §5, kalimat baru)
+  { id: 'cabinet', tingkat: 'menengah', konteks: 'laporan & data',
+    subjek: { teks: 'The invoices kept in the locked cabinet', inti: 'invoices', pewatas: 'kept in the locked cabinet', jumlah: 'jamak' },
     verba: { jenis: 'pasif', kala: 'lampau', lema: 'review' },
     waktu: [hari('Monday'), tanggal('14 March'), bulan('June'), tahun('2025'), jam('9 a.m.')] },
   { id: 'feedback-forms', tingkat: 'menengah', konteks: 'pendidikan & pelatihan',
@@ -154,9 +163,11 @@ function wujud(s: SpekSva, w: Waktu): KerangkaGcs {
 }
 
 export const KERANGKA_SVA_WAKTU: KerangkaGcs[][] = SPEK.map((s) => s.waktu.map((w) => wujud(s, w)));
+export const EMAS_SVA_WAKTU: KerangkaGcs[][] = SPEK_EMAS.map((s) => s.waktu.map((w) => wujud(s, w)));
 
 export const gcsSvaWaktu = buatFamily({
   id: 'GCS-SVA-WAKTU',
+  versi: 2,
   nama: 'Agreement dan preposisi waktu',
   label: 'SHL',
   sumber: 'Blueprint Bahasa Inggris §5 (contoh agreement + preposisi waktu, teramati), §7 Agreement, §9 · Materi §4 dan §9 · Azar 5-2, 5-4, 5-5',

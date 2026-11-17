@@ -23,9 +23,17 @@ interface SpekNc {
   ekor?: string;
 }
 
-const SPEK: SpekNc[] = [
-  { id: 'payment', tingkat: 'menengah', konteks: 'ekonomi umum', konsep: 'Urutan noun clause dan passive', // contoh blueprint §5
+/** Contoh blueprint bagian 5, dipakai kata per kata hanya sebagai uji emas solver (lib/bahasa-inggris/uji-emas.ts). */
+const SPEK_EMAS: SpekNc[] = [
+  { id: 'emas-payment', tingkat: 'menengah', konteks: 'ekonomi umum', konsep: 'Urutan noun clause dan passive',
     awal: 'The officer explained', pengantar: 'why', induk: 'explained why', subjek: { teks: 'the payment', inti: 'payment' }, lema: 'delay', peran: 'penerima',
+    varian: [['why {S} [was delayed]', 0], ['why [was] {S} [delayed]', 1], ['why {S} [were delayed]', 1], ['why {S} [was delay]', 1], ['why {S} [did delayed]', 1]] },
+];
+
+const SPEK: SpekNc[] = [
+  // Mekanisme sama dengan contoh blueprint §5 (urutan noun clause + passive), kalimat baru.
+  { id: 'payment', tingkat: 'menengah', konteks: 'ekonomi umum', konsep: 'Urutan noun clause dan passive',
+    awal: 'The accountant explained', pengantar: 'why', induk: 'explained why', subjek: { teks: 'the final invoice', inti: 'invoice' }, lema: 'delay', peran: 'penerima',
     varian: [['why {S} [was delayed]', 0], ['why [was] {S} [delayed]', 1], ['why {S} [were delayed]', 1], ['why {S} [was delay]', 1], ['why {S} [did delayed]', 1],
       ['why [were] {S} [delayed]', 2], ['why [was] {S} [delay]', 2], ['why {S} [were delay]', 2]],
     ekor: 'by two weeks' },
@@ -52,10 +60,10 @@ const SPEK: SpekNc[] = [
       ['why [was] {S} [postponed]', 2], ['why {S} [was postpone]', 2]],
     ekor: 'until May' },
   { id: 'documents-signed', tingkat: 'menantang', konteks: 'kebijakan & kepatuhan', konsep: 'Urutan noun clause dan past perfect passive',
-    awal: 'The supervisor asked', pengantar: 'whether', induk: 'asked whether', subjek: { teks: 'the documents', inti: 'documents' }, lema: 'sign', peran: 'penerima',
+    awal: 'The auditor asked', pengantar: 'whether', induk: 'asked whether', subjek: { teks: 'the supplier contracts', inti: 'contracts' }, lema: 'sign', peran: 'penerima',
     varian: [['whether {S} [had been] properly [signed]', 0], ['whether [had] {S} [been] properly [signed]', 1], ['whether {S} [had] properly [signed]', 1],
       ['whether {S} [had be] properly [signed]', 1], ['whether {S} [had been] properly [sign]', 1], ['whether [had] {S} properly [signed]', 2], ['whether [had] {S} [be] properly [signed]', 2]],
-    ekor: 'by the applicants' },
+    ekor: 'by both parties' },
   { id: 'targets', tingkat: 'menantang', konteks: 'laporan & data', konsep: 'Urutan noun clause, agreement, dan passive',
     awal: 'The report does not explain', pengantar: 'how', induk: 'explain how', subjek: { teks: 'the new targets', inti: 'targets' }, lema: 'calculate', peran: 'penerima',
     varian: [['how {S} [were calculated]', 0], ['how [were] {S} [calculated]', 1], ['how {S} [was calculated]', 1], ['how {S} [were calculate]', 1], ['how {S} [did calculated]', 1],
@@ -70,6 +78,20 @@ const SPEK: SpekNc[] = [
     varian: [['whether {S} [has been approved]', 0], ['whether [has] {S} [been approved]', 1], ['whether {S} [have been approved]', 1], ['whether {S} [has approved]', 1],
       ['whether {S} [has been approve]', 1], ['whether [have] {S} [been approved]', 2], ['whether {S} [have approved]', 2]],
     ekor: 'by the review panel' },
+  { id: 'printers-repaired', tingkat: 'menengah', konteks: 'teknologi', konsep: 'Urutan noun clause dan passive dengan modal',
+    awal: 'The staff want to know', pengantar: 'when', induk: 'want to know when', subjek: { teks: 'the broken printers', inti: 'printers' }, lema: 'repair', peran: 'penerima',
+    varian: [['when {S} [will be repaired]', 0], ['when [will] {S} [be repaired]', 1], ['when {S} [will repaired]', 1], ['when {S} [will be repair]', 1],
+      ['when {S} [will been repaired]', 1], ['when [will] {S} [be repair]', 2], ['when [will] {S} [been repaired]', 2]],
+    ekor: 'by the technician' },
+  { id: 'complaints-recorded', tingkat: 'menengah', konteks: 'layanan pelanggan', konsep: 'Urutan noun clause dan passive dengan modal',
+    awal: 'The new guidelines explain', pengantar: 'how', induk: 'explain how', subjek: { teks: 'customer complaints', inti: 'complaints' }, lema: 'record', peran: 'penerima',
+    varian: [['how {S} [should be recorded]', 0], ['how [should] {S} [be recorded]', 1], ['how {S} [should recorded]', 1], ['how {S} [should be record]', 1],
+      ['how {S} [should been recorded]', 1], ['how [should] {S} [be record]', 2], ['how [should] {S} [been recorded]', 2]],
+    ekor: 'in the online system' },
+  { id: 'technician-starts', tingkat: 'menantang', konteks: 'kantor & proyek', konsep: 'Urutan noun clause dan agreement (tanpa do-support)',
+    awal: 'Nobody has told us', pengantar: 'when', induk: 'told us when', subjek: { teks: 'the new technician', inti: 'technician' }, lema: 'start', peran: 'pelaku',
+    varian: [['when {S} [starts]', 0], ['when {S} [start]', 1], ['when [does] {S} [start]', 1], ['when [does] {S} [starts]', 2], ['when [do] {S} [start]', 2]],
+    ekor: 'work at the main office' },
 ];
 
 function wujud(s: SpekNc): KerangkaGcs {
@@ -92,9 +114,11 @@ function wujud(s: SpekNc): KerangkaGcs {
 }
 
 export const KERANGKA_NOUN_CLAUSE: KerangkaGcs[][] = SPEK.map((s) => [wujud(s)]);
+export const EMAS_NOUN_CLAUSE: KerangkaGcs[][] = SPEK_EMAS.map((s) => [wujud(s)]);
 
 export const gcsNounClause = buatFamily({
   id: 'GCS-NOUN-CLAUSE',
+  versi: 2,
   nama: 'Urutan noun clause',
   label: 'VARIASI',
   sumber: 'Blueprint Bahasa Inggris §5 (contoh urutan noun clause, perluasan), §7 Noun clause · Materi §10 · Azar 12-2–12-5',

@@ -12,8 +12,9 @@ import type { TimelineItem } from '@/lib/deduktif/timeline/model';
 import type { Susunan, TimeslotItem } from '@/lib/deduktif/timeslot/model';
 import type { DragLineItem } from '@/lib/induktif/drag-line/pola';
 import type { Frame } from '@/lib/induktif/fill-shape/geometri';
-import type { PilihanGandaItem } from '@/lib/bahasa-inggris/model';
+import type { PilihanGandaItem } from '@/lib/core/pilihan-ganda';
 import type { FillShapeItem } from '@/lib/induktif/fill-shape/pola';
+import BadgesSoal from './BadgesSoal';
 import CalendarSoal from './CalendarSoal';
 import DragLineSoal from './DragLineSoal';
 import FillShapeSoal from './FillShapeSoal';
@@ -167,6 +168,7 @@ export default function Studio() {
                 {jenis === 'timeline' && <TimelineSoal key={hasil.soal.uid} item={hasil.soal.item as TimelineItem} kunci={hasil.soal.jawaban as number[]} tampilKunci={tampilKunci} />}
                 {jenis === 'timeslot' && <TimeslotSoal key={hasil.soal.uid} item={hasil.soal.item as TimeslotItem} kunci={hasil.soal.jawaban as Susunan} tampilKunci={tampilKunci} />}
                 {jenis === 'room-allocation' && <RoomSoal key={hasil.soal.uid} item={hasil.soal.item as RoomItem} kunci={hasil.soal.jawaban as Alokasi} tampilKunci={tampilKunci} />}
+                {jenis === 'logical-ranking' && <BadgesSoal key={hasil.soal.uid} item={hasil.soal.item} kunci={hasil.soal.jawaban} tampilKunci={tampilKunci} />}
                 {jenis === 'pilihan-ganda' && <PilihanGandaSoal key={hasil.soal.uid} item={hasil.soal.item as PilihanGandaItem} kunci={hasil.soal.jawaban as string} tampilKunci={tampilKunci} />}
               </div>
             )}

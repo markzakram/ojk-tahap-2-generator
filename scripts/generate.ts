@@ -23,6 +23,8 @@ Awalan: ${it.awalan!.map((id) => it.simpul!.find((s) => s.id === id)!.kode).join
   if (it.jenis === 'pilihan-ganda') {
     const pg = soal.item as PilihanGandaItem;
     console.log(`[${pg.tingkat} · ${pg.kaidah} · ${pg.konteks}] ${pg.instruksi}`);
+    if (pg.bacaan) console.log(`${pg.bacaan.judul ? `# ${pg.bacaan.judul}\n` : ''}${pg.bacaan.paragraf.map((p, i) => `(${i + 1}) ${p}`).join('\n')}\n`);
+    if (pg.pertanyaan) console.log(pg.pertanyaan);
     if (pg.stimulus.length) console.log(pg.stimulus.map((p) => (p.gaya === 'kosong' ? '_____' : p.gaya === 'miring' ? `*${p.teks}*` : p.teks)).join(''));
     for (const f of pg.fragmen ?? []) console.log(`  [${f.label}] ${f.teks}`);
     for (const o of pg.opsi) console.log(`  ${o.label}. ${o.teks}`);
@@ -36,6 +38,18 @@ Jawaban: ${pb.jawaban}`);
     if (pb.caraCepat) console.log(`Cara cepat: ${pb.caraCepat}`);
     console.log(`
 Sidik: ${soal.sidik}`);
+    process.exit(0);
+  }
+  if (it.jenis === 'logical-ranking') {
+    const lr = soal.item as { tingkat: string; judul: string; instruksi: string[]; orang: { nama: string; petunjuk: string[] }[] };
+    console.log(`# ${lr.judul}  [${lr.tingkat}]`);
+    lr.instruksi.forEach((s) => console.log(s));
+    console.log();
+    for (const o of lr.orang) console.log(`  ${o.nama.padEnd(8)} ${o.petunjuk.length ? o.petunjuk.join('  |  ') : '—'}`);
+    console.log(`\nJawaban: ${soal.pembahasan.jawaban}`);
+    soal.pembahasan.langkah.forEach((l, i) => console.log(`  ${i + 1}. ${l.teks}`));
+    if (soal.pembahasan.caraCepat) console.log(`Cara cepat: ${soal.pembahasan.caraCepat}`);
+    console.log(`\nSidik: ${soal.sidik}`);
     process.exit(0);
   }
   if (item.judul) console.log(`# ${item.judul}`);

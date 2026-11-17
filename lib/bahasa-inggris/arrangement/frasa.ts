@@ -2,11 +2,13 @@ import { buatFamily, type Kerangka } from './family';
 
 // SHL — pola teramati (blueprint bagian 6, "Contoh Arrangement — noun phrase dan complement"): subjek noun phrase +
 // predikat + pelengkap/objek, dengan sambungan yang dikunci determiner–noun, adjective–preposisi, preposisi–objeknya,
-// dan subjek–predikat. Kerangka pertama adalah contoh blueprint (uji emas).
+// dan subjek–predikat. Contoh blueprint (compliance officer) hanya dipakai sebagai uji emas; butir bank memakai kalimat
+// baru dengan mekanisme yang sama.
 
-const KERANGKA: Kerangka[] = [
+/** Contoh blueprint bagian 6, dipakai kata per kata hanya sebagai uji emas solver (lib/bahasa-inggris/uji-emas.ts). */
+export const EMAS_FRASA: Kerangka[] = [
   {
-    id: 'responsible-for', tingkat: 'dasar', kaidah: 'adjective-preposisi-gerund', konteks: 'kebijakan dan kepatuhan',
+    id: 'emas-responsible-for', tingkat: 'dasar', kaidah: 'adjective-preposisi-gerund', konteks: 'kebijakan dan kepatuhan',
     fragmen: ['The compliance officer', 'is responsible', 'for reviewing', "the company's annual", 'financial reports'],
     fungsi: ['subjek', 'predikat (be + adjective)', 'preposisi for + gerund', 'awal objek (posesif + adjective)', 'noun inti objek'],
     kait: [
@@ -17,6 +19,23 @@ const KERANGKA: Kerangka[] = [
     ],
     konsep: 'Urutan pelengkap dan frasa noun',
     kataKunci: "is responsible, for reviewing, the company's annual",
+    caraCepat: 'Pasangkan is responsible dengan for reviewing, lalu cari objek yang ditinjau.',
+  },
+];
+
+const KERANGKA: Kerangka[] = [
+  {
+    id: 'responsible-for', tingkat: 'dasar', kaidah: 'adjective-preposisi-gerund', konteks: 'pendidikan dan pelatihan',
+    fragmen: ['The new librarian', 'is responsible', 'for reviewing', "the school's annual", 'budget reports'],
+    fungsi: ['subjek', 'predikat (be + adjective)', 'preposisi for + gerund', 'awal objek (posesif + adjective)', 'noun inti objek'],
+    kait: [
+      'The new librarian adalah subjek dan is responsible adalah predikatnya',
+      'adjective responsible berpasangan dengan preposisi for',
+      "gerund reviewing memerlukan objek yang diawali the school's annual",
+      "the school's annual masih memerlukan noun inti budget reports",
+    ],
+    konsep: 'Urutan pelengkap dan frasa noun',
+    kataKunci: "is responsible, for reviewing, the school's annual",
     caraCepat: 'Pasangkan is responsible dengan for reviewing, lalu cari objek yang ditinjau.',
   },
   {
@@ -177,6 +196,7 @@ const KERANGKA: Kerangka[] = [
 
 export const familyFrasa = buatFamily({
   id: 'SA-FRASA',
+  versi: 3,
   nama: 'Frasa noun dan pelengkap',
   label: 'SHL',
   sumber: 'Blueprint Bahasa Inggris §6 (contoh noun phrase dan complement, teramati) · §7 Frasa dan urutan dasar · Azar Appendix A-1–A-4, bab 6–7, 14-12',

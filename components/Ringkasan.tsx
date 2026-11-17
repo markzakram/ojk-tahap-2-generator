@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { JUMLAH_LATSOL, JUMLAH_TRYOUT, NAMA_SUBTES } from '@/lib/data/chapters';
 import { hitungRingkasan, type BarisChapter, type StatusChapter } from '@/lib/data/ringkasan';
+import PAKET from '@/lib/data/paket.json';
+import { ringkasPaket, type HasilSusun } from '@/lib/paket/susun';
 import KepalaApp from './KepalaApp';
 
 // Ringkasan bank soal bergaya generator Tahap 1. Semua angka dihitung dari Mapping (lib/data/chapters.ts), daftar family (registry),
@@ -29,8 +31,17 @@ function BarisTabel({ c }: { c: BarisChapter }) {
 
 export default function Ringkasan() {
   const r = hitungRingkasan();
-  const grup = (['induktif', 'deduktif', 'bahasa-inggris'] as const).map((st) => ({ st, baris: r.chapter.filter((c) => c.subtes === st) }));
-  const slot = [...Array.from({ length: JUMLAH_TRYOUT }, (_, i) => `TO ${i + 1}`), ...Array.from({ length: JUMLAH_LATSOL }, (_, i) => `LS ${i + 1}`)];
+  const grup = (['induktif', 'deduktif', 'bahasa-inggris', 'sjk'] as const).map((st) => ({ st, baris: r.chapter.filter((c) => c.subtes === st) }));
+  const hasil = PAKET as unknown as HasilSusun;
+  const rp = ringkasPaket(hasil);
+  const isiSlot = (pilih: (p: HasilSusun['paket'][number]) => boolean) => {
+    const s = hasil.paket.filter(pilih).flatMap((p) => p.bagian.flatMap((b) => b.slot));
+    return { isi: s.filter((x) => x.uid).length, total: s.length };
+  };
+  const slot = [
+    ...Array.from({ length: JUMLAH_TRYOUT }, (_, i) => ({ nama: `TO ${i + 1}`, ...isiSlot((p) => p.jenis === 'tryout' && p.nomor === i + 1) })),
+    ...Array.from({ length: JUMLAH_LATSOL }, (_, i) => ({ nama: `LS ${i + 1}`, ...isiSlot((p) => p.jenis === 'latsol' && p.nomor === i + 1) })),
+  ];
 
   return (
     <>
@@ -97,9 +108,9 @@ export default function Ringkasan() {
 
           <aside className="kolom-samping">
             <section className="kartu" aria-labelledby="judul-paket">
-              <h2 id="judul-paket">Paket</h2>
-              <p className="catatan">Belum ada paket yang disusun. Penyusun paket akan mengambil soal sesuai kuota Mapping dan memakai sidik struktur agar tidak ada soal kembar antarpaket.</p>
-              <div className="slot-grid">{slot.map((s) => <span className="slot" key={s}>{s}</span>)}</div>
+              <div className="kartu-kepala"><h2 id="judul-paket">Paket</h2><Link className="tombol" href="/paket">Buka paket</Link></div>
+              <p className="catatan">{hasil.paket.length ? `Disusun ${hasil.dibuat}: ${angka(rp.terisi)} dari ${angka(rp.slot)} slot terisi, ${rp.kembar} struktur kembar. Slot kosong menunggu family chapter-nya.` : 'Belum ada paket. Jalankan npm run paket.'}</p>
+              <div className="slot-grid">{slot.map((s) => <span className={`slot${s.total && s.isi === s.total ? ' penuh' : ''}`} key={s.nama} title={`${s.isi}/${s.total} soal`}>{s.nama}<small>{s.isi}/{s.total}</small></span>)}</div>
             </section>
             <section className="kartu" aria-labelledby="judul-keputusan">
               <h2 id="judul-keputusan">Perlu keputusan</h2>

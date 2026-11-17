@@ -177,7 +177,7 @@ export function familyVerba(kerangka: KerangkaVerba[]): Family<ItemVerba, Jawaba
   const id = 'SC-VERBA';
   return {
     id,
-    versi: 1,
+    versi: 3,
     nama: 'Bentuk verb: tense, passive, agreement',
     chapter: chapterById('sentence-completion'),
     label: 'VARIASI',

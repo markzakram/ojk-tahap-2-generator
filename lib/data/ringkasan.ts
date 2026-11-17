@@ -90,6 +90,7 @@ export function hitungRingkasan(): Ringkasan {
   for (const t of TARGET_TANPA_CHAPTER) keputusan.push({ teks: `${t.catatan}: ${NAMA_SUBTES[t.subtes].replace(/^Tes /, '')}`, jumlah: `${kebutuhan(t.perTryout, t.perLatsol)} soal` });
   for (const c of chapter.filter((x) => x.status === 'belum' && x.catatan === 'Belum ada blueprint')) keputusan.push({ teks: `Belum ada blueprint: ${c.nama}`, jumlah: `${c.kebutuhan} soal` });
   keputusan.push({ teks: 'Format input SIADU untuk 7 tipe interaktif', jumlah: 'ekspor' });
+  keputusan.push({ teks: 'Telaah editor: fakta yang hanya bersumber dari e-book, sumber yang bertentangan (bahan/Catatan Telaah Editor.md)', jumlah: 'PSJK' });
   for (const c of chapter.filter((x) => x.status === 'tanpa-variasi')) keputusan.push({ teks: `${c.nama} belum punya family VARIASI`, jumlah: `${c.kebutuhan} soal` });
   for (const c of chapter.filter((x) => x.status === 'tipis')) keputusan.push({ teks: `Kapasitas ${c.nama} lebih kecil dari kebutuhan`, jumlah: `${c.kebutuhan} soal` });
 

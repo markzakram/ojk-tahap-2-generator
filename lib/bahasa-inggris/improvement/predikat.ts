@@ -41,13 +41,18 @@ const ARE = ['is', 'was', 'be', 'being', 'been'];
 const S = ['dasar', 'ing', 'to-dasar', 'have-v3', 'are-ing'];
 const DASAR = ['s', 'ing', 'to-dasar', 'has-v3', 'is-ing'];
 
+/** Contoh blueprint bagian 4 (kalimat awal benar), dipakai kata per kata hanya sebagai uji emas (lib/bahasa-inggris/uji-emas.ts). */
+export const EMAS_AGREEMENT: KerangkaPredikat[] = [
+  P({ id: 'emas-each-of-applicants', tingkat: 'dasar', konteks: 'kebijakan', kaidah: 'agreement-kuantitas', kiri: 'Each of the applicants ', kanan: ' the required documents.', inti: 'each of the applicants', pemicu: 'Each of the applicants', lemma: 'submit', ekor: '', kunci: 'has-v3', salah: ['have-v3', 'have-dasar', 'has-ing', 'have-ing'], awal: ['has-v3'] }),
+];
+
 const AGREEMENT: KerangkaPredikat[] = [
-  // Contoh blueprint bagian 4 (uji emas, kalimat awal benar): Each of the applicants has submitted the required documents.
-  P({ id: 'each-of-applicants', tingkat: 'dasar', konteks: 'kebijakan', kaidah: 'agreement-kuantitas', kiri: 'Each of the applicants ', kanan: ' the required documents.', inti: 'each of the applicants', pemicu: 'Each of the applicants', lemma: 'submit', ekor: '', kunci: 'has-v3', salah: HAS_V3, awal: ['have-v3', 'have-v3', 'has-dasar'] }),
+  // Mekanisme contoh blueprint bagian 4 (each of the + noun jamak → has + V3), kalimat baru.
+  P({ id: 'each-of-applicants', tingkat: 'dasar', konteks: 'masyarakat', kaidah: 'agreement-kuantitas', kiri: 'Each of the new volunteers ', kanan: ' the online safety course.', inti: 'each of the new volunteers', pemicu: 'Each of the new volunteers', lemma: 'complete', ekor: '', kunci: 'has-v3', salah: HAS_V3, awal: ['have-v3', 'have-v3', 'has-dasar'] }),
   P({ id: 'every-room', tingkat: 'dasar', konteks: 'pendidikan', kaidah: 'agreement-kuantitas', kiri: 'Every room in the new building ', kanan: ' a projector and a whiteboard.', inti: 'every room', pemicu: 'Every room in the new building', lemma: 'have', ekor: '', kunci: 'has', salah: ['have', 'having', 'to-have', 'are-having'], awal: ['have'] }),
   P({ id: 'students-in-class', tingkat: 'dasar', konteks: 'pendidikan', kaidah: 'agreement-modifier', kiri: 'The students in this class ', kanan: ' about renewable energy.', inti: 'students', pemicu: 'The students in this class', lemma: 'prepare', ekor: 'a short presentation', kunci: 'are-ing', salah: ['is-ing', 'are-dasar', 'is-dasar', 'be-ing', 'ing'], awal: ['is-ing', 'is-ing', 'are-dasar'] }),
   P({ id: 'list-of-suppliers', tingkat: 'dasar', konteks: 'kebijakan', kaidah: 'agreement-modifier', kiri: 'The list of approved suppliers ', kanan: ' at the start of every month.', inti: 'list', pemicu: 'The list of approved suppliers', lemma: 'update', ekor: '', kunci: 'is-v3', diatesis: 'pasif', salah: ['are-v3', 'is-dasar', 'be-v3', 'being-v3', 'were-v3'], awal: ['are-v3', 'are-v3', 'is-dasar'] }),
-  P({ id: 'results-of-survey', tingkat: 'menengah', konteks: 'layanan', kaidah: 'agreement-modifier', kiri: 'The results of the customer satisfaction survey ', kanan: ' in response times.', inti: 'results', pemicu: 'The results of the customer satisfaction survey', lemma: 'show', ekor: 'a clear improvement', kunci: 'dasar', salah: DASAR, awal: ['s', 's', 'has-v3'] }),
+  P({ id: 'results-of-survey', tingkat: 'menengah', konteks: 'layanan', kaidah: 'agreement-modifier', kiri: 'The results of the customer satisfaction survey ', kanan: ' in response times.', inti: 'results', pemicu: 'The results of the customer satisfaction survey', lemma: 'show', ekor: 'a clear improvement', kunci: 'have-v3', salah: HAVE_V3, awal: ['has-v3', 'has-v3', 'have-dasar'] }),
   P({ id: 'one-of-printers', tingkat: 'menengah', konteks: 'teknologi', kaidah: 'agreement-kuantitas', kiri: 'One of the new printers on the third floor ', kanan: '.', inti: 'one of the new printers', pemicu: 'One of the new printers', lemma: 'need', ekor: 'a replacement cartridge', kunci: 's', salah: ['dasar', 'ing', 'to-dasar', 'have-v3', 'are-ing'], awal: ['dasar', 'dasar', 'have-v3'] }),
   P({ id: 'number-of-volunteers', tingkat: 'menengah', konteks: 'masyarakat', kaidah: 'agreement-kuantitas', kiri: 'The number of volunteers at the annual beach event ', kanan: ' every year since 2019.', inti: 'the number of volunteers', pemicu: 'The number of volunteers', penanda: 'since 2019', lemma: 'increase', ekor: '', kunci: 'has-v3', salah: HAS_V3, awal: ['have-v3', 'have-v3', 'has-dasar'] }),
   P({ id: 'gerund-subject', tingkat: 'menengah', konteks: 'laporan', kaidah: 'agreement-gerund', kiri: 'Checking all the survey forms by hand ', kanan: ' than using the scanner.', inti: 'checking', pemicu: 'Checking all the survey forms by hand', lemma: 'take', ekor: 'far more time', kunci: 's', salah: S, awal: ['dasar', 'dasar', 'have-v3'] }),
@@ -137,6 +142,7 @@ const teks = (item: ItemSI) => TEKS[item.kaidah];
 
 export const siAgreement = buatFamily({
   id: 'SI-AGREEMENT',
+  versi: 2,
   nama: 'Subject–verb agreement',
   label: 'VARIASI',
   sumber: 'Blueprint Bahasa Inggris §4 (contoh "Each of the applicants has submitted"), §7 · Azar 5-2, 5-4, 5-5 · Materi §4',
@@ -155,4 +161,4 @@ export const siTense = buatFamily({
   teks,
 });
 
-export const KERANGKA_PREDIKAT = { AGREEMENT, TENSE, rancang };
+export const KERANGKA_PREDIKAT = { AGREEMENT, TENSE, EMAS_AGREEMENT, rancang, teks };

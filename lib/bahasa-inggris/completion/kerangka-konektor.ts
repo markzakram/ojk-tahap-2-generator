@@ -2,7 +2,8 @@ import type { KerangkaKonektor } from './konektor';
 
 // Kerangka connective. Penghubung lain yang sama makna dan strukturnya (while/though untuk although, since/as untuk
 // because, consequently untuk therefore, furthermore untuk moreover, yet untuk but) TIDAK dimasukkan ke pengecoh; solver
-// juga akan menolak soal bila salah satunya muncul bersama kunci.
+// juga akan menolak soal bila salah satunya muncul bersama kunci. Dua pengecoh juga tidak boleh bersinonim (therefore dan
+// consequently sekaligus), karena keduanya dapat dicoret bersama tanpa memahami kalimat.
 
 export const KERANGKA_KONEKTOR: KerangkaKonektor[] = [
   { id: 'k-meskipun-awal', tingkat: 'dasar', konteks: 'kantor', posisi: 'sub-awal', relasi: 'kontras',
@@ -17,7 +18,7 @@ export const KERANGKA_KONEKTOR: KerangkaKonektor[] = [
     hubungan: 'hujan lebat biasanya menghalangi kegiatan luar ruang, tetapi ratusan relawan tetap datang' },
   { id: 'k-however', tingkat: 'menengah', konteks: 'layanan', posisi: 'titik-koma', relasi: 'kontras',
     teks: 'The new booking software reduced waiting times considerably; ___, several older patients still preferred to make appointments by phone.',
-    kunci: 'however', ditolak: ['therefore', 'moreover', 'although', 'consequently'],
+    kunci: 'however', ditolak: ['therefore', 'moreover', 'although', 'otherwise'],
     petunjuk: ['reduced waiting times considerably', 'still preferred'],
     hubungan: 'perangkat lunak baru mempercepat layanan, tetapi sebagian pasien tetap memilih cara lama' },
   { id: 'k-therefore', tingkat: 'menengah', konteks: 'kebijakan', posisi: 'titik-koma', relasi: 'akibat',
@@ -57,12 +58,12 @@ export const KERANGKA_KONEKTOR: KerangkaKonektor[] = [
     hubungan: 'lokakarya gratis seharusnya menarik banyak peserta, tetapi pendaftarnya hanya dua belas orang' },
   { id: 'k-moreover', tingkat: 'menengah', konteks: 'masyarakat', posisi: 'titik-koma', relasi: 'tambahan',
     teks: 'The new community centre is close to the bus station; ___, it offers free parking for visitors with disabilities.',
-    kunci: 'moreover', ditolak: ['therefore', 'consequently', 'otherwise', 'although', 'despite'],
+    kunci: 'moreover', ditolak: ['therefore', 'otherwise', 'although', 'despite'],
     petunjuk: ['is close to the bus station', 'offers free parking'],
     hubungan: 'klausa kedua menambahkan satu keunggulan lain gedung itu, bukan akibat atau pertentangan' },
   { id: 'k-otherwise', tingkat: 'menantang', konteks: 'pendidikan', posisi: 'titik-koma', relasi: 'syarat-negatif',
     teks: 'Participants must register for the field trip by Friday; ___, the organisers cannot guarantee them a seat on the bus.',
-    kunci: 'otherwise', ditolak: ['therefore', 'moreover', 'although', 'consequently'],
+    kunci: 'otherwise', ditolak: ['therefore', 'moreover', 'although', 'despite'],
     petunjuk: ['must register for the field trip by Friday', 'cannot guarantee them a seat'],
     hubungan: 'kursi tidak dijamin jika peserta tidak mendaftar sebelum Jumat' },
   { id: 'k-although-tengah', tingkat: 'menantang', konteks: 'kantor', posisi: 'sub-tengah', relasi: 'kontras',

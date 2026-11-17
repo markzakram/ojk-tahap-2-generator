@@ -10,6 +10,8 @@ import { FILL_SHAPE_FAMILIES } from '../induktif/fill-shape/pola';
 import { DRAG_LINE_FAMILIES } from '../induktif/drag-line/pola';
 import { calendarSesiC0, calendarSesiC1, calendarSesiC2, calendarSesiC3 } from '../deduktif/calendar/sesi';
 import { BAHASA_INGGRIS_FAMILIES } from '../bahasa-inggris';
+import { BADGES_FAMILIES } from '../deduktif/badges';
+import { PSJK_FAMILIES } from '../psjk';
 
 /** Seluruh family yang tersedia. Tambahkan family baru di sini; id harus unik dan tidak boleh diganti setelah dipakai. */
 export const FAMILIES: Family<any, any>[] = [
@@ -32,7 +34,9 @@ export const FAMILIES: Family<any, any>[] = [
   roomDurasi,
   ...TIMELINE_FAMILIES,
   ...TIMESLOT_FAMILIES,
+  ...BADGES_FAMILIES,
   ...BAHASA_INGGRIS_FAMILIES,
+  ...PSJK_FAMILIES,
 ];
 
 export function familyById(id: string): Family<any, any> {

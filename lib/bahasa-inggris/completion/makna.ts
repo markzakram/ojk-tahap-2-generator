@@ -29,6 +29,12 @@ export interface KerangkaMakna {
   /** Kata lain yang dapat diterima pada posisi ini (dikecualikan dari pengecoh). */
   diterima: string[];
   ditolak: Record<string, AlasanTolak>;
+  /**
+   * Kata ditolak yang SEARAH dengan kunci (polaritas/arah makna sama) tetapi salah karena nuansa atau kolokasi. Wajib ada
+   * bila `ditolak` memuat kata berkode 'a' (arah berlawanan): tanpa itu ketiga pengecoh dapat searah satu sama lain dan
+   * berlawanan dengan kunci, sehingga kunci terlihat sebagai satu-satunya yang berbeda arah (uji buta putaran 2).
+   */
+  searah?: string[];
   /** Bagian kalimat yang menjadi petunjuk (harus muncul persis di kalimat). */
   petunjuk: string[];
   /** Gagasan yang dibutuhkan bagian kosong, dalam bahasa Indonesia, mis. "cakupan yang menyeluruh". */
@@ -47,6 +53,10 @@ export interface DataMakna {
   slot: Slot;
   diterima: string[];
   ditolak: Record<string, AlasanTolak>;
+  /** Pengecoh tampil yang searah dengan kunci (lihat KerangkaMakna.searah). */
+  searah: string[];
+  /** Apakah aturan polaritas berlaku (dimatikan hanya untuk kerangka emas yang memakai pengecoh blueprint apa adanya). */
+  polaritas: boolean;
   petunjuk: string[];
   gagasan: string;
   pasangan?: string;
@@ -69,17 +79,27 @@ function alasanSalah(d: DataMakna, kata: string): string {
   return kode;
 }
 
-export function familyMakna(cfg: { id: string; nama: string; sumber: string; ringkas: string; kerangka: KerangkaMakna[]; caraCepat: string }): Family<ItemMakna, JawabanPg> {
+export function familyMakna(cfg: {
+  id: string; versi?: number; nama: string; sumber: string; ringkas: string; kerangka: KerangkaMakna[]; caraCepat: string;
+  /** Aturan polaritas (default aktif); uji emas mematikannya karena memakai tiga pengecoh blueprint apa adanya. */
+  polaritas?: boolean;
+}): Family<ItemMakna, JawabanPg> {
   const { id, kerangka } = cfg;
+  const polaritas = cfg.polaritas ?? true;
   const ids = new Set<string>();
   for (const f of kerangka) {
     if (ids.has(f.id)) throw new Error(`${id}: id kerangka ganda ${f.id}`);
     ids.add(f.id);
     if (Object.keys(f.ditolak).length < 3) throw new Error(`${id}/${f.id}: kumpulan ditolak kurang dari tiga`);
+    for (const w of f.searah ?? []) {
+      if (!(w in f.ditolak)) throw new Error(`${id}/${f.id}: kata searah "${w}" tidak ada di kumpulan ditolak`);
+      if (f.ditolak[w] === 'a' || f.ditolak[w] === 'm') throw new Error(`${id}/${f.id}: kata searah "${w}" harus beralasan nuansa/kolokasi, bukan kode ${f.ditolak[w]}`);
+    }
+    if (polaritas && Object.values(f.ditolak).includes('a') && !f.searah?.length) throw new Error(`${id}/${f.id}: kerangka berpengecoh arah berlawanan tanpa pengecoh searah`);
   }
   return {
     id,
-    versi: 1,
+    versi: cfg.versi ?? 1,
     nama: cfg.nama,
     chapter: chapterById('sentence-completion'),
     label: 'SHL',
@@ -88,7 +108,10 @@ export function familyMakna(cfg: { id: string; nama: string; sumber: string; rin
 
     bangun(r) {
       const f = r.pick(kerangka);
-      const pengecoh = r.sample(Object.keys(f.ditolak), 3);
+      // Sedikitnya satu pengecoh searah dengan kunci (salah karena nuansa/kolokasi), sisanya dari kumpulan ditolak lain.
+      const searah = polaritas ? f.searah ?? [] : [];
+      const satu = searah.length ? [r.pick(searah)] : [];
+      const pengecoh = [...satu, ...r.sample(Object.keys(f.ditolak).filter((w) => !satu.includes(w)), 3 - satu.length)];
       const { opsi, kunci } = susunOpsi(r.shuffle, f.kunci, pengecoh, (x) => x);
       const item: ItemMakna = {
         jenis: 'pilihan-ganda',
@@ -103,6 +126,8 @@ export function familyMakna(cfg: { id: string; nama: string; sumber: string; rin
           slot: f.slot,
           diterima: [f.kunci, ...f.diterima].map(kecil),
           ditolak: Object.fromEntries(pengecoh.map((w) => [kecil(w), f.ditolak[w]])),
+          searah: pengecoh.filter((w) => f.searah?.includes(w)).map(kecil),
+          polaritas,
           petunjuk: f.petunjuk,
           gagasan: f.gagasan,
           pasangan: f.pasangan,
@@ -140,6 +165,10 @@ export function familyMakna(cfg: { id: string; nama: string; sumber: string; rin
         if (berulang(item, w)) m.push(`opsi "${w}" berulang dari kalimat`);
       }
       if (d.diterima.some((w) => w in d.ditolak)) m.push('kata yang sama diterima sekaligus ditolak');
+      // Polaritas: bila ada pengecoh berarah berlawanan, sedikitnya satu pengecoh harus searah dengan kunci.
+      const kode = Object.values(d.ditolak);
+      if (d.polaritas && kode.includes('a') && !d.searah.some((w) => w in d.ditolak)) m.push('pengecoh berarah berlawanan tanpa pengecoh searah kunci');
+      if (d.polaritas && kode.length && kode.every((c) => c === 'a')) m.push('ketiga pengecoh berlawanan arah dengan kunci');
       for (const p of d.petunjuk) if (!teks.includes(p)) m.push(`petunjuk "${p}" tidak ada di kalimat`);
       // Panjang opsi mencolok: kunci jauh lebih panjang/pendek daripada semua opsi lain.
       const kunciTeks = item.opsi.find((o) => o.label === j)?.teks ?? '';

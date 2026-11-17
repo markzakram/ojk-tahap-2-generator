@@ -128,9 +128,10 @@ function periksa(item: ArrangementItem, jawaban: JawabanPg): string[] {
     if (!k || bacaUrutan(k.teks, label)?.join() !== satu) m.push('kunci bukan satu-satunya urutan sah');
     if (!kapitalSah(tokenUrutan(item, sah[0]))) m.push('urutan sah tidak diawali fragmen berhuruf kapital');
   }
-  // Kapitalisasi tidak boleh menjadi penentu utama: paling banyak satu opsi yang tidak diawali fragmen berhuruf kapital.
+  // Kapitalisasi tidak boleh menjadi penentu: keempat opsi diawali fragmen berhuruf kapital (fragmen awal kalimat, seperti
+  // tampilan SHL), sehingga tidak ada opsi yang gugur hanya karena diawali fragmen berhuruf kecil.
   const awalKapital = kapital[0]?.label;
-  if (urutanOpsi.filter((u) => u && u[0] !== awalKapital).length > 1) m.push('lebih dari satu opsi dapat digugurkan hanya dari huruf kapital');
+  if (urutanOpsi.some((u) => u && u[0] !== awalKapital)) m.push('ada opsi yang dapat digugurkan hanya dari huruf kapital (tidak diawali fragmen berhuruf kapital)');
   return m;
 }
 
@@ -244,16 +245,33 @@ function permutasiDekat(kunci: string[]): string[][] {
 }
 
 /**
- * Pengecoh: urutan dekat kunci (tukar dua fragmen bertetangga, pindah satu fragmen, atau potongan akhir dipindah ke awal)
- * yang DITOLAK tata bahasa. Diutamakan yang patah tepat pada sambungan pertama yang salah sehingga mudah dijelaskan; paling
- * banyak satu pengecoh tidak diawali fragmen subjek, agar huruf kapital tidak cukup untuk menggugurkan opsi.
+ * Pengecoh: urutan dekat kunci (tukar dua fragmen bertetangga atau pindah satu fragmen) yang DITOLAK tata bahasa.
+ * Uji buta putaran 2: pengecoh yang patah sejak sambungan kedua ("has assigned the to the most …") terlalu mudah dicoret.
+ * Karena itu diutamakan pengecoh NYARIS SAH: awal kalimatnya tetap dapat diurai sejauh mungkin (titik gagal parser paling
+ * akhir), sehingga kesalahannya baru terlihat di bagian belakang kalimat; pengecoh yang patah tepat pada sambungan pertama
+ * yang salah (mudah dijelaskan) dipakai sebagai pemecah seri. Semua pengecoh diawali fragmen awal kalimat (berhuruf kapital)
+ * yang sama dengan kunci, sehingga huruf kapital tidak dapat menggugurkan opsi mana pun. Seluruh 120 urutan tetap diperiksa
+ * tata bahasa (urutan lain yang sah membuat kerangka ditolak).
  */
+/**
+ * Kata akhir yang membuat urutan jelas tidak lengkap: determiner, bilangan, posesif, pewatas noun, adjective atributif, dan
+ * preposisi yang tidak dapat menjadi adverb. Pengecoh yang baru gagal di ujung kalimat hanya dipakai bila berakhir dengan
+ * kata seperti ini; ujung lain (verb/auxiliary seperti "should be", noun, adverb, atau "before" yang dapat menjadi adverb)
+ * berisiko membentuk kalimat yang sah dengan elipsis meskipun ditolak parser.
+ */
+function akhirJelasTakLengkap(t: Token | undefined): boolean {
+  return !!t && t.b.every((b) => /^(D\.|NUM|GEN|NM|A\.attr|P\.(of|for|with|about|from|during|into|at|towards|between|among|despite)$)/.test(b));
+}
+
 function pilihPengecoh(r: Rng, kunci: string[], tokenLabel: (u: string[]) => Token[], panjang: (l: string) => number): string[][] | null {
-  type Calon = { u: string[]; jenis: string; sambung: string; tegas: boolean };
+  type Calon = { u: string[]; jenis: string; sambung: string; tegas: boolean; gagal: number };
   const calon: Calon[] = [];
+  const cadangan: Calon[] = [];
   for (const u of permutasiDekat(kunci)) {
-    const gagal = titikGagal(tokenLabel(u));
+    const tok = tokenLabel(u);
+    const gagal = titikGagal(tok);
     if (gagal < 0) return null; // urutan lain sah → kerangka tidak berkunci tunggal
+    const berisiko = gagal === tok.length && !akhirJelasTakLengkap(tok[tok.length - 1]); // hanya "kurang di ujung"
     const j = jenisSalah(u, kunci);
     // Sambungan pertama yang salah dan posisi kata awal fragmen sesudahnya.
     let i = 0;
@@ -261,19 +279,21 @@ function pilihPengecoh(r: Rng, kunci: string[], tokenLabel: (u: string[]) => Tok
     let awalFragmen = 0;
     for (let x = 0; x <= i; x++) awalFragmen += panjang(u[x]);
     const tegas = j.jenis !== 'awal' && gagal >= awalFragmen && gagal < awalFragmen + panjang(u[i + 1] ?? u[i]);
-    calon.push({ u, jenis: j.jenis, sambung: j.jenis === 'tukar' ? `t${j.i}` : `${u[i]}>${u[i + 1]}`, tegas });
+    (berisiko ? cadangan : calon).push({ u, jenis: j.jenis, sambung: j.jenis === 'tukar' ? `t${j.i}` : `${u[i]}>${u[i + 1]}`, tegas, gagal });
   }
-  const awal = r.shuffle(calon.filter((c) => c.jenis === 'awal' || c.u[0] !== kunci[0]));
   const tengah = r.shuffle(calon.filter((c) => c.u[0] === kunci[0]));
   const pilih: Calon[] = [];
-  if (awal.length && r.next() < 0.75) pilih.push(awal[0]);
-  const urutTengah = [...tengah.filter((c) => c.tegas), ...tengah.filter((c) => !c.tegas)];
+  // Urutan pilihan: titik gagal paling akhir dulu (nyaris sah), lalu yang patah tepat di sambungan salahnya.
+  const urutTengah = [...tengah].sort((a, b) => b.gagal - a.gagal || Number(b.tegas) - Number(a.tegas));
   for (const c of urutTengah) {
     if (pilih.length === 3) break;
     if (pilih.some((p) => p.sambung === c.sambung)) continue;
     pilih.push(c);
   }
   for (const c of urutTengah) { if (pilih.length === 3) break; if (!pilih.includes(c)) pilih.push(c); }
+  // Cadangan (gagal hanya di ujung kalimat) dipakai bila calon aman kurang dari tiga, yang patah tegas lebih dulu.
+  const urutCadangan = r.shuffle(cadangan.filter((c) => c.u[0] === kunci[0])).sort((a, b) => Number(b.tegas) - Number(a.tegas));
+  for (const c of urutCadangan) { if (pilih.length === 3) break; pilih.push(c); }
   return pilih.length === 3 ? pilih.map((c) => c.u) : null;
 }
 
@@ -312,10 +332,10 @@ function bangunDari(k: Kerangka, r: Rng): { item: ArrangementItem; jawaban: Jawa
   return { item, jawaban };
 }
 
-export function buatFamily(o: { id: string; nama: string; label: Label; sumber: string; ringkas: string; kerangka: Kerangka[] }): Family<ArrangementItem, JawabanPg> {
+export function buatFamily(o: { id: string; versi?: number; nama: string; label: Label; sumber: string; ringkas: string; kerangka: Kerangka[] }): Family<ArrangementItem, JawabanPg> {
   return {
     id: o.id,
-    versi: 1,
+    versi: o.versi ?? 1,
     nama: o.nama,
     chapter: chapterById('sentence-arrangement'),
     label: o.label,

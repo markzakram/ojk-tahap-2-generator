@@ -3,10 +3,12 @@ import { buatFamily, type Kerangka } from './family';
 // VARIASI — perluasan berbasis buku (blueprint bagian 6, "Contoh Arrangement — noun clause (perluasan)"; bagian 7 baris
 // "Noun dan adjective clause"; Azar 12-2–12-5). Noun clause sebagai objek atau subjek: kata penghubung (whether, why, how,
 // what, where) dikunci bersama subjek klausa bawahan, sehingga yang diuji adalah urutan pernyataan subjek–verb di dalamnya.
+// Contoh blueprint (supervisor/whether) hanya dipakai sebagai uji emas; butir bank memakai kalimat baru.
 
-const KERANGKA: Kerangka[] = [
+/** Contoh blueprint bagian 6, dipakai kata per kata hanya sebagai uji emas solver (lib/bahasa-inggris/uji-emas.ts). */
+export const EMAS_KLAUSA: Kerangka[] = [
   {
-    id: 'asked-whether', tingkat: 'menengah', kaidah: 'noun-clause-whether-passive', konteks: 'kantor dan proyek',
+    id: 'emas-asked-whether', tingkat: 'menengah', kaidah: 'noun-clause-whether-passive', konteks: 'kantor dan proyek',
     fragmen: ['The supervisor', 'asked', 'whether the documents', 'had been', 'properly signed'],
     fungsi: ['subjek klausa utama', 'verb utama', 'penghubung whether + subjek noun clause', 'auxiliary past perfect', 'adverb + V3 (passive)'],
     kait: [
@@ -17,6 +19,23 @@ const KERANGKA: Kerangka[] = [
     ],
     konsep: 'Urutan noun clause dan past perfect passive',
     kataKunci: 'asked, whether, the documents, had been',
+    caraCepat: 'Mulai dari asked whether, lalu sambungkan subjek dan rangkaian had been + V3.',
+  },
+];
+
+const KERANGKA: Kerangka[] = [
+  {
+    id: 'asked-whether', tingkat: 'menengah', kaidah: 'noun-clause-whether-passive', konteks: 'kantor dan proyek',
+    fragmen: ['The project manager', 'asked', 'whether the safety rules', 'had been', 'properly reviewed'],
+    fungsi: ['subjek klausa utama', 'verb utama', 'penghubung whether + subjek noun clause', 'auxiliary past perfect', 'adverb + V3 (passive)'],
+    kait: [
+      'The project manager adalah subjek dan asked adalah verb utamanya',
+      'asked memerlukan objek berupa noun clause yang dibuka whether',
+      'dalam noun clause, subjek the safety rules langsung disambung auxiliary had been (urutan pernyataan, bukan pertanyaan)',
+      'had been memerlukan V3 reviewed untuk membentuk past perfect passive',
+    ],
+    konsep: 'Urutan noun clause dan past perfect passive',
+    kataKunci: 'asked, whether, the safety rules, had been',
     caraCepat: 'Mulai dari asked whether, lalu sambungkan subjek dan rangkaian had been + V3.',
   },
   {
@@ -177,6 +196,7 @@ const KERANGKA: Kerangka[] = [
 
 export const familyKlausa = buatFamily({
   id: 'SA-KLAUSA',
+  versi: 3,
   nama: 'Noun clause',
   label: 'VARIASI',
   sumber: 'Blueprint Bahasa Inggris §6 (contoh noun clause, perluasan) · §7 Noun dan adjective clause · Azar 12-2–12-5',

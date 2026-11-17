@@ -30,10 +30,16 @@ interface KerangkaParalel {
 
 const TIGA = [', ', ', and '];
 
-const KERANGKA: KerangkaParalel[] = [
-  // Contoh blueprint bagian 4 (uji emas): The new system allows employees to record transactions, checking balances, and generate reports.
-  { id: 'allows-to-record', tingkat: 'menengah', konteks: 'teknologi', kiri: 'The new system allows employees to ', kanan: '.', sambung: TIGA, bentuk: 'dasar', pembuka: 'to', pemicu: 'allows employees to', sasaran: [1, 2],
+/** Contoh blueprint bagian 4, dipakai kata per kata hanya sebagai uji emas (lib/bahasa-inggris/uji-emas.ts). */
+export const EMAS_PARALEL: KerangkaParalel[] = [
+  { id: 'emas-allows-to-record', tingkat: 'menengah', konteks: 'teknologi', kiri: 'The new system allows employees to ', kanan: '.', sambung: TIGA, bentuk: 'dasar', pembuka: 'to', pemicu: 'allows employees to', sasaran: [1],
     anggota: [['record', 'transactions'], ['check', 'balances'], ['generate', 'reports']] },
+];
+
+const KERANGKA: KerangkaParalel[] = [
+  // Mekanisme contoh blueprint bagian 4 (allows + objek + to V1, V1, and V1), kalimat baru.
+  { id: 'allows-to-record', tingkat: 'menengah', konteks: 'teknologi', kiri: 'The online portal allows members to ', kanan: '.', sambung: TIGA, bentuk: 'dasar', pembuka: 'to', pemicu: 'allows members to', sasaran: [1, 2],
+    anggota: [['book', 'meeting rooms'], ['track', 'their requests'], ['store', 'shared documents']] },
   { id: 'asked-to-feed', tingkat: 'menengah', konteks: 'masyarakat', kiri: 'Volunteers at the animal shelter are asked to ', kanan: ' before leaving.', sambung: TIGA, bentuk: 'dasar', pembuka: 'to', pemicu: 'are asked to', sasaran: [1, 2],
     anggota: [['feed', 'the animals'], ['clean', 'the cages'], ['record', 'any health problems']] },
   { id: 'app-can-report', tingkat: 'dasar', konteks: 'teknologi', kiri: 'With the new app, residents can ', kanan: ' directly.', sambung: TIGA, bentuk: 'dasar', pembuka: 'modal', pemicu: 'can', sasaran: [1, 2],
@@ -118,6 +124,7 @@ function teks(item: ItemSI) {
 
 export const siParalel = buatFamily({
   id: 'SI-PARALEL',
+  versi: 2,
   nama: 'Struktur paralel',
   label: 'VARIASI',
   sumber: 'Blueprint Bahasa Inggris §4 (contoh perluasan "record, checking, generate"), §7 · Azar 16-1, 16-4 · Materi §12',
@@ -129,4 +136,4 @@ export const siParalel = buatFamily({
   teks,
 });
 
-export const KERANGKA_PARALEL = { KERANGKA, rancang };
+export const KERANGKA_PARALEL = { KERANGKA, EMAS_PARALEL, rancang, teks };

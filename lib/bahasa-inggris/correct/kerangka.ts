@@ -68,6 +68,36 @@ export function petunjukFormat(teks: string[], iKunci: number): string | null {
   return null;
 }
 
+/**
+ * Bentuk yang dipakai satu kalimat pada setiap titik uji: quantifier dan noun tiap noun phrase, setiap pronoun,
+ * preposisi waktu, kata-kata rangkaian verb per klausa, dan urutan subjek–verb per klausa. Dipakai pemeriksaan "kisi"
+ * (uji buta putaran 2, GCS-KUANTIFIER: pengecoh several/many × software/softwares dan hanya kunci memakai some): setiap
+ * bentuk kunci harus juga dipakai sedikitnya satu pengecoh, sehingga kunci tidak dapat ditemukan sebagai opsi yang
+ * menyimpang dari kisi pengecoh.
+ */
+export function bentukOpsi(unsur: Unsur[]): Set<string> {
+  const c = new Set<string>();
+  const n = { np: 0, pron: 0, prep: 0 };
+  const urut: Record<string, string> = {};
+  for (const u of unsur) {
+    if (u.peran === 'np') { c.add(`np${n.np}:det:${u.det.toLowerCase()}`); c.add(`np${n.np++}:noun:${u.noun.toLowerCase()}`); }
+    else if (u.peran === 'pronomina') c.add(`pron${n.pron++}:${u.teks.trim().toLowerCase()}`);
+    else if (u.peran === 'prep-waktu') c.add(`prep${n.prep++}:${u.teks.trim().toLowerCase()}`);
+    else if (u.peran === 'verba') {
+      for (const w of u.teks.toLowerCase().split(/\s+/).filter(Boolean)) c.add(`v:${u.klausa}:${w}`);
+      if (!urut[u.klausa]?.endsWith('V')) urut[u.klausa] = (urut[u.klausa] ?? '') + 'V';
+    } else if (u.peran === 'subjek') urut[u.klausa] = (urut[u.klausa] ?? '') + 'S';
+  }
+  for (const [k, s] of Object.entries(urut)) c.add(`urut:${k}:${s}`);
+  return c;
+}
+
+/** Bentuk kunci yang tidak dipakai pengecoh mana pun (kosong = kunci bukan pemilik tunggal bentuk apa pun). */
+export function bentukTunggalKunci(kunci: Unsur[], pengecoh: Unsur[][]): string[] {
+  const lain = pengecoh.map(bentukOpsi);
+  return [...bentukOpsi(kunci)].filter((b) => !lain.some((s) => s.has(b)));
+}
+
 const CACHE = new Map<string, number[][][]>();
 
 /** Relasi uji yang menjadi satu-satunya kesalahan sebuah kalimat (kalimat itu hanya dapat digugurkan dengan kaidah tersebut). */
@@ -99,12 +129,23 @@ export function himpunanPengecoh(k: KerangkaGcs): number[][][] {
   const tunggal = kolam.map((p) => { const unsur = rakit(k, p); return ujiTunggal(nilaiOpsi(data, { label: 'X', unsur }, render(unsur))); });
   const hasil: number[][][] = [];
   const n = kolam.length;
+  const bentukKunci = [...bentukOpsi(rakit(k, kunci))];
+  const bentukKolam = kolam.map((p) => bentukOpsi(rakit(k, p)));
   for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) for (let c = b + 1; c < n; c++) for (let d = c + 1; d < n; d++) {
     const pil = [a, b, c, d];
     if (k.uji.some((u) => !pil.some((j) => tunggal[j] === u))) continue;
+    if (bentukKunci.some((x) => !pil.some((j) => bentukKolam[j].has(x)))) continue;
     if (petunjukFormat([teks[0], ...pil.map((j) => teks[j + 1])], 0)) continue;
     hasil.push(pil.map((j) => kolam[j]));
   }
+  // Kebalikan petunjuk kisi: bila kunci satu-satunya opsi yang semua bentuknya dimiliki opsi lain, peserta dapat memilih
+  // "opsi yang paling tidak menyimpang". Utamakan himpunan yang sedikitnya satu pengecohnya juga tidak menyimpang.
+  const tanpaSimpang = (pil: number[][]) => {
+    const b = [kunci, ...pil].map((p) => bentukOpsi(rakit(k, p)));
+    return b.slice(1).some((x, i) => [...x].every((y) => b.some((z, j) => j !== i + 1 && z.has(y))));
+  };
+  const utama = hasil.filter(tanpaSimpang);
+  if (utama.length) { CACHE.set(id, utama); return utama; }
   CACHE.set(id, hasil);
   return hasil;
 }
@@ -155,6 +196,11 @@ export function periksaGcs(item: ItemGcs, jawaban: JawabanPg): string[] {
   }
   const iKunci = item.opsi.findIndex((o) => o.label === jawaban);
   if (iKunci >= 0) { const p = petunjukFormat(item.opsi.map((o) => o.teks), iKunci); if (p) m.push(p); }
+  const uKunci = item.data.opsi.find((o) => o.label === jawaban)?.unsur;
+  if (uKunci) {
+    const tunggalKunci = bentukTunggalKunci(uKunci, item.data.opsi.filter((o) => o.label !== jawaban).map((o) => o.unsur));
+    if (tunggalKunci.length) m.push(`bentuk kunci tidak dipakai pengecoh mana pun (${tunggalKunci.join(', ')})`);
+  }
   return m;
 }
 
@@ -180,14 +226,14 @@ export function bahasGcs(item: ItemGcs, jawaban: JawabanPg, caraCepat: CaraCepat
 }
 
 export function buatFamily(p: {
-  id: string; nama: string; label: Label; sumber: string; ringkas: string;
+  id: string; versi?: number; nama: string; label: Label; sumber: string; ringkas: string;
   /** Kerangka dikelompokkan per kalimat dasar; anggota kelompok = varian konkret (mis. jenis keterangan waktu). */
   kelompok: KerangkaGcs[][];
   caraCepat: CaraCepat;
 }): Family<ItemGcs, JawabanPg> {
   return {
     id: p.id,
-    versi: 1,
+    versi: p.versi ?? 1,
     nama: p.nama,
     chapter: CHAPTER_GCS,
     label: p.label,

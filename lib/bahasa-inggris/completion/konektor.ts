@@ -119,7 +119,7 @@ export function familyKonektor(kerangka: KerangkaKonektor[]): Family<ItemKonekto
   const id = 'SC-KONEKTOR';
   return {
     id,
-    versi: 1,
+    versi: 2,
     nama: 'Connective: makna dan struktur',
     chapter: chapterById('sentence-completion'),
     label: 'VARIASI',

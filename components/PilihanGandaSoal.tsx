@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { NAMA_TINGKAT, type JawabanPg, type PilihanGandaItem } from '@/lib/bahasa-inggris/model';
+import { NAMA_TINGKAT, type JawabanPg, type PilihanGandaItem } from '@/lib/core/pilihan-ganda';
 
-// Soal pilihan ganda teks (bentuk SIADU "Option New") untuk Tes Bahasa Inggris. Stimulus satu kalimat dengan bagian kosong
+// Soal pilihan ganda teks (bentuk SIADU "Option New") untuk Tes Bahasa Inggris, Reading Comprehension, dan PSJK. Stimulus satu kalimat dengan bagian kosong
 // (Completion) atau rentang miring (Improvement); Arrangement menampilkan fragmen A–E terpisah dari opsi urutan A–D,
 // sesuai blueprint bagian 2 ("keduanya harus dibedakan secara visual").
 export default function PilihanGandaSoal({ item, kunci, tampilKunci }: { item: PilihanGandaItem; kunci: JawabanPg; tampilKunci: boolean }) {
@@ -13,6 +13,13 @@ export default function PilihanGandaSoal({ item, kunci, tampilKunci }: { item: P
   return (
     <div className="pg">
       <p className="pg-instruksi"><i>{item.instruksi}</i> <span className="pg-tingkat">{NAMA_TINGKAT[item.tingkat]}</span></p>
+      {item.bacaan && (
+        <div className="pg-bacaan">
+          {item.bacaan.judul && <h3>{item.bacaan.judul}</h3>}
+          {item.bacaan.paragraf.map((t, i) => <p key={i}>{t}</p>)}
+        </div>
+      )}
+      {item.pertanyaan && <p className="pg-pertanyaan">{item.pertanyaan}</p>}
       {item.stimulus.length > 0 && (
         <p className="pg-kalimat">
           {item.stimulus.map((p, i) => p.gaya === 'kosong'
