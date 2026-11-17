@@ -284,32 +284,37 @@ function seimbangkan(kelompok: Paket[]) {
   }
 }
 
-/** Susun seluruh tryout dan latsol. `families` biasanya FAMILIES dari registry. */
-export function susunPaket(families: Family<any, any>[], benih = 'pcam-10'): HasilSusun {
-  const tryout: Paket[] = Array.from({ length: JUMLAH_TRYOUT }, (_, i) => ({
-    id: `TO-${String(i + 1).padStart(2, '0')}`, jenis: 'tryout' as const, nomor: i + 1, nama: `Tryout ${i + 1}`,
-    bagian: URUT_SUBTES.map((st) => ({ subtes: st, nama: NAMA_SUBTES[st], menit: DURASI_TRYOUT[st], slot: [] as SlotPaket[] })),
-  }));
-  const kelompok = [...new Set(CHAPTERS.filter((c) => c.perLatsol > 0).map(kelompokLatsol))];
-  const latsol: Paket[] = [];
-  for (const k of kelompok) {
-    const st = CHAPTERS.find((c) => kelompokLatsol(c) === k)!.subtes;
-    for (let n = 1; n <= JUMLAH_LATSOL; n++) {
-      latsol.push({
-        id: `LS-${String(n).padStart(2, '0')}-${k.replace(/^Soal /, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`, jenis: 'latsol', nomor: n, nama: `Latsol ${n} · ${k}`,
-        bagian: [{ subtes: st, nama: NAMA_SUBTES[st], menit: DURASI_LATSOL, slot: [] }],
-      });
-    }
-  }
+/** Rencana satu paket: bagian per subtes dan jumlah soal setiap chapter di bagian itu. */
+export interface RencanaPaket {
+  id: string;
+  jenis: 'tryout' | 'latsol';
+  nomor: number;
+  nama: string;
+  bagian: { subtes: Subtes; nama: string; menit: number; isi: Record<string, number> }[];
+}
 
-  for (const c of CHAPTERS) {
+/** Kemajuan penyusunan, dilaporkan setelah setiap chapter selesai dibagi. */
+export interface KemajuanSusun { selesai: number; total: number; chapter: string }
+
+/**
+ * Susun paket dari rencana: setiap chapter dibagi ke paket yang memintanya (urutan rencana), lalu setiap kelompok di
+ * `seimbang` (indeks paket) diseimbangkan. Satu struktur soal tidak dipakai dua kali di seluruh rencana. Berupa generator
+ * supaya halaman Paket dapat memperbarui bilah kemajuan di antara chapter; `susunDariRencana` menjalankannya sekaligus.
+ */
+export function* langkahSusun(families: Family<any, any>[], rencana: RencanaPaket[], seimbang: number[][], benih: string): Generator<KemajuanSusun, HasilSusun> {
+  const paket: Paket[] = rencana.map((r) => ({
+    id: r.id, jenis: r.jenis, nomor: r.nomor, nama: r.nama,
+    bagian: r.bagian.map((b) => ({ subtes: b.subtes, nama: b.nama, menit: b.menit, slot: [] as SlotPaket[] })),
+  }));
+  const dipakai = CHAPTERS.filter((c) => rencana.some((r) => r.bagian.some((b) => b.subtes === c.subtes && (b.isi[c.id] ?? 0) > 0)));
+  let selesai = 0;
+  for (const c of dipakai) {
     const fams = families.filter((f) => f.chapter.id === c.id);
-    const butuh = c.perTryout * JUMLAH_TRYOUT + c.perLatsol * JUMLAH_LATSOL;
+    const sasaran = rencana
+      .map((r, i) => ({ p: paket[i], n: r.bagian.find((b) => b.subtes === c.subtes)?.isi[c.id] ?? 0 }))
+      .filter((s) => s.n > 0);
+    const butuh = sasaran.reduce((a, s) => a + s.n, 0);
     const calon = fams.length ? kumpulkanCalon(c, fams, butuh, benih) : [];
-    const sasaran = [
-      ...tryout.map((p) => ({ p, n: c.perTryout })),
-      ...latsol.filter((x) => kelompokLatsol(c) === x.nama.replace(/^Latsol \d+ · /, '')).map((p) => ({ p, n: c.perLatsol })),
-    ].filter((s) => s.n > 0);
     const tulis = (p: Paket, n: number, pilih: Calon[]) => {
       const bag = p.bagian.find((b) => b.subtes === c.subtes)!;
       for (const x of pilih) bag.slot.push(slotDari(c, x));
@@ -323,10 +328,57 @@ export function susunPaket(families: Family<any, any>[], benih = 'pcam-10'): Has
       const bagian = bagiRata(calon, sasaran.map((s) => s.n), riwayat, CHAPTERS.indexOf(c) * 7);
       sasaran.forEach(({ p, n }, k) => tulis(p, n, bagian[k]));
     }
+    yield { selesai: ++selesai, total: dipakai.length, chapter: c.nama };
   }
-  seimbangkan(tryout);
-  for (const k of kelompok) seimbangkan(latsol.filter((p) => p.nama.endsWith(`· ${k}`)));
-  return { dibuat: new Date().toISOString().slice(0, 10), benih, paket: [...tryout, ...latsol] };
+  for (const k of seimbang) seimbangkan(k.map((i) => paket[i]));
+  return { dibuat: new Date().toISOString().slice(0, 10), benih, paket };
+}
+
+export function susunDariRencana(families: Family<any, any>[], rencana: RencanaPaket[], seimbang: number[][], benih: string): HasilSusun {
+  const g = langkahSusun(families, rencana, seimbang, benih);
+  for (;;) {
+    const r = g.next();
+    if (r.done) return r.value;
+  }
+}
+
+/** Komposisi baku Mapping: soal per chapter untuk satu tryout (`perTryout`) atau satu latsol (`perLatsol`). */
+export function komposisiBaku(jenis: 'tryout' | 'latsol'): Record<string, number> {
+  return Object.fromEntries(CHAPTERS.map((c) => [c.id, jenis === 'tryout' ? c.perTryout : c.perLatsol]));
+}
+
+/** Rencana `jumlah` tryout dengan subtes dan komposisi tertentu. */
+export function rencanaTryout(jumlah: number, komposisi: Record<string, number>, subtes: Subtes[] = URUT_SUBTES): RencanaPaket[] {
+  return Array.from({ length: jumlah }, (_, i) => ({
+    id: `TO-${String(i + 1).padStart(2, '0')}`, jenis: 'tryout' as const, nomor: i + 1, nama: `Tryout ${i + 1}`,
+    bagian: URUT_SUBTES.filter((st) => subtes.includes(st)).map((st) => ({
+      subtes: st, nama: NAMA_SUBTES[st], menit: DURASI_TRYOUT[st],
+      isi: Object.fromEntries(CHAPTERS.filter((c) => c.subtes === st).map((c) => [c.id, komposisi[c.id] ?? 0])),
+    })),
+  }));
+}
+
+/** Kelompok latsol dalam urutan Mapping. */
+export const KELOMPOK_LATSOL_URUT = [...new Set(CHAPTERS.filter((c) => c.perLatsol > 0).map(kelompokLatsol))];
+
+/** Rencana `jumlah` latsol untuk satu kelompok. */
+export function rencanaLatsol(kelompok: string, jumlah: number, komposisi: Record<string, number>): RencanaPaket[] {
+  const chapters = CHAPTERS.filter((c) => kelompokLatsol(c) === kelompok);
+  const st = chapters[0].subtes;
+  const slug = kelompok.replace(/^Soal /, '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  return Array.from({ length: jumlah }, (_, i) => ({
+    id: `LS-${String(i + 1).padStart(2, '0')}-${slug}`, jenis: 'latsol' as const, nomor: i + 1, nama: `Latsol ${i + 1} · ${kelompok}`,
+    bagian: [{ subtes: st, nama: NAMA_SUBTES[st], menit: DURASI_LATSOL, isi: Object.fromEntries(chapters.map((c) => [c.id, komposisi[c.id] ?? 0])) }],
+  }));
+}
+
+/** Susun seluruh tryout dan latsol resmi (Mapping). `families` biasanya FAMILIES dari registry. */
+export function susunPaket(families: Family<any, any>[], benih = 'pcam-10'): HasilSusun {
+  const tryout = rencanaTryout(JUMLAH_TRYOUT, komposisiBaku('tryout'));
+  const latsol = KELOMPOK_LATSOL_URUT.flatMap((k) => rencanaLatsol(k, JUMLAH_LATSOL, komposisiBaku('latsol')));
+  const urutan = (dari: number, n: number) => Array.from({ length: n }, (_, i) => dari + i);
+  const seimbang = [urutan(0, tryout.length), ...KELOMPOK_LATSOL_URUT.map((_, k) => urutan(tryout.length + k * JUMLAH_LATSOL, JUMLAH_LATSOL))];
+  return susunDariRencana(families, [...tryout, ...latsol], seimbang, benih);
 }
 
 /** Ringkasan untuk laporan: jumlah slot terisi, kosong per chapter, dan struktur yang terpakai lebih dari sekali (harus 0). */

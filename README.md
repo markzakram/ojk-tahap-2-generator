@@ -19,7 +19,7 @@ Tampilan mengikuti generator Tahap 1 (`tahap-1/css/style.css`): bilah atas 50 px
 
   Semua angka dihitung dari Mapping, daftar family, dan [`lib/data/kapasitas.json`](lib/data/kapasitas.json). Berkas itu ditulis otomatis oleh `npm run verify` dan digabung per family; hasil untuk versi family yang lama diabaikan.
 - **Studio (`/studio?f=…&s=…`)**: satu layar tiga panel seperti Tahap 1. Panel kiri berisi langkah 1, pilih family dari daftar chapter yang bisa dicari. Panel tengah berisi langkah 2, seed, lalu soal interaktif. Panel kanan berisi langkah 3, kunci dan pembahasan, serta langkah 4, kapasitas family.
-- **Paket (`/paket`)**: daftar 10 tryout dan latsol per kelompok di kiri, isi paket per subtes di tengah (chapter, family, tingkat, kunci, tautan ke Studio), ringkasan slot dan unduhan JSON di kanan. Lihat [Paket tryout dan latsol](#paket-tryout-dan-latsol).
+- **Paket (`/paket`)**: alur generator Tahap 1. Panel kiri berisi pengaturan: jenis paket (tryout atau latsol), langkah 1 subtes atau kelompok latsol, langkah 2 jumlah soal tiap chapter (tombol *Baku* = Mapping), langkah 3 jumlah paket dan benih, lalu tombol **Generate paket**. Panel tengah (langkah 4) menampilkan soal paket per subtes, dapat dikerjakan, dengan kunci dan pembahasan bila dicentang. Panel kanan berisi langkah 5, hasil pemeriksaan (soal terisi, kembar, sebaran label, tingkat, kunci, bacaan utuh), dan langkah 6, unduhan JSON dan CSV. Lihat [Paket tryout dan latsol](#paket-tryout-dan-latsol).
 
 ## Situs gabungan dengan Tahap 1
 
@@ -117,7 +117,8 @@ Ketiga kelompok sudah ditelaah QC independen terhadap e-book dan bahan resmi (ku
 - **5 latsol** untuk setiap kelompok latsol Mapping (11 kelompok: Fill Shape, Drag the Line, lima bentuk Deduktif, Bahasa Inggris, dan tiga kelompok Ke-OJK-an) × 10 soal, 10 menit.
 - Setiap slot diisi soal dari family chapter-nya; family dirotasi (SHL dua kali lebih sering bila ada). Satu struktur (family + sidik) hanya dipakai **sekali** di seluruh paket, jadi tidak ada soal kembar di dalam maupun antarpaket. Soal Reading diambil satu bacaan utuh dengan urutan soal tetap.
 - Soal setiap chapter dibagi **merata** ke semua paket: campuran SHL/VARIASI dan tingkat dasar/menengah/menantang sebanding antartryout, huruf kunci setiap bagian seimbang (cadangan ±25% calon dipakai untuk itu), dan tiga kunci sama berturut-turut dihindari.
-- Paket hanya menyimpan `uid` soal; halaman Paket membangkitkan ulang isi lengkap (soal, kunci, pembahasan) saat diunduh. Jalankan ulang `npm run paket` setelah family bertambah atau versinya naik; halaman Paket memperingatkan bila ada slot dari versi lama.
+- Paket hanya menyimpan `uid` soal; halaman Paket membangkitkan ulang isi lengkap (soal, kunci, pembahasan) saat ditampilkan dan diunduh. Jalankan ulang `npm run paket` setelah family bertambah atau versinya naik; halaman Paket memperingatkan bila ada slot dari versi lama.
+- Halaman Paket memakai perakit yang sama (`langkahSusun` dengan rencana dari `rencanaTryout`/`rencanaLatsol`) untuk paket lain: jumlah 1–20 paket, komposisi chapter dapat diubah, dan benih bebas. Pengaturan baku dengan benih `pcam-10` menampilkan paket resmi dari `paket.json`; pengaturan lain disusun di peramban (10 tryout ±10 detik) dan hanya tersimpan bila diunduh. Satu struktur tetap hanya dipakai sekali di dalam satu hasil.
 
 ## Foto orang
 

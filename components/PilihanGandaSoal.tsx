@@ -6,14 +6,16 @@ import { NAMA_TINGKAT, type JawabanPg, type PilihanGandaItem } from '@/lib/core/
 // Soal pilihan ganda teks (bentuk SIADU "Option New") untuk Tes Bahasa Inggris, Reading Comprehension, dan PSJK. Stimulus satu kalimat dengan bagian kosong
 // (Completion) atau rentang miring (Improvement); Arrangement menampilkan fragmen A–E terpisah dari opsi urutan A–D,
 // sesuai blueprint bagian 2 ("keduanya harus dibedakan secara visual").
-export default function PilihanGandaSoal({ item, kunci, tampilKunci }: { item: PilihanGandaItem; kunci: JawabanPg; tampilKunci: boolean }) {
+// `tanpaBacaan`: di Paket, soal lanjutan satu bacaan menampilkan catatan ini alih-alih mengulang bacaannya.
+export default function PilihanGandaSoal({ item, kunci, tampilKunci, tanpaBacaan }: { item: PilihanGandaItem; kunci: JawabanPg; tampilKunci: boolean; tanpaBacaan?: string }) {
   const [pilih, setPilih] = useState<string | null>(null);
   const [hasil, setHasil] = useState<boolean | null>(null);
 
   return (
     <div className="pg">
       <p className="pg-instruksi"><i>{item.instruksi}</i> <span className="pg-tingkat">{NAMA_TINGKAT[item.tingkat]}</span></p>
-      {item.bacaan && (
+      {item.bacaan && tanpaBacaan && <p className="pg-bacaan-sama">{tanpaBacaan}</p>}
+      {item.bacaan && !tanpaBacaan && (
         <div className="pg-bacaan">
           {item.bacaan.judul && <h3>{item.bacaan.judul}</h3>}
           {item.bacaan.paragraf.map((t, i) => <p key={i}>{t}</p>)}

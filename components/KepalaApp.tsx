@@ -13,11 +13,12 @@ const CARA_PAKAI = [
   <><b>Kerjakan soal.</b> Soal di panel tengah interaktif seperti di SHL: pilih tanggal, geser blok, seret garis, warnai bidang, pasang lencana, atau pilih opsi A–E, lalu tekan <i>Periksa</i>.</>,
   <><b>Kunci dan pembahasan.</b> Centang <i>Tampilkan kunci</i> untuk melihat jawaban, langkah penyelesaian, dan sidik struktur di panel kanan.</>,
   <><b>Kapasitas.</b> Panel kanan juga menampilkan hasil verifikasi family (seed lolos, struktur unik). Tombol uji menjalankan pemeriksaan singkat di peramban.</>,
-  <><b>Paket</b> berisi 10 tryout dan 5 latsol per kelompok yang disusun dari bank tanpa soal kembar; buka soal di Studio atau unduh JSON lengkapnya.</>,
+  <><b>Paket</b> menyusun tryout dan latsol dari bank tanpa soal kembar: atur komposisi, tekan <i>Generate paket</i>, lalu lihat, periksa, dan unduh hasilnya.</>,
   <><b>Ringkasan</b> menghitung target soal, kebutuhan per subtes, dan kapasitas per chapter dari Mapping.</>,
 ];
 
-export default function KepalaApp({ aktif, kanan }: { aktif: 'ringkasan' | 'studio' | 'paket'; kanan?: React.ReactNode }) {
+// `langkah`: langkah "Cara pakai" khusus halaman (mis. alur Generate di Paket); bawaannya langkah Studio.
+export default function KepalaApp({ aktif, kanan, langkah = CARA_PAKAI }: { aktif: 'ringkasan' | 'studio' | 'paket'; kanan?: React.ReactNode; langkah?: React.ReactNode[] }) {
   const [bantuan, setBantuan] = useState(false);
   const [dalamBingkai, setDalamBingkai] = useState(true);
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function KepalaApp({ aktif, kanan }: { aktif: 'ringkasan' | 'stud
       </header>
       {bantuan && (
         <div className="help">
-          <ol>{CARA_PAKAI.map((isi, i) => <li key={i}>{isi}</li>)}</ol>
+          <ol>{langkah.map((isi, i) => <li key={i}>{isi}</li>)}</ol>
         </div>
       )}
     </>

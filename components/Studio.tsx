@@ -6,23 +6,8 @@ import { FAMILIES } from '@/lib/core/registry';
 import type { Soal } from '@/lib/core/types';
 import { CHAPTERS, NAMA_SUBTES } from '@/lib/data/chapters';
 import { kapasitasFamily } from '@/lib/data/kapasitas';
-import type { CalendarItem } from '@/lib/deduktif/calendar/model';
-import type { Alokasi, RoomItem } from '@/lib/deduktif/room/model';
-import type { TimelineItem } from '@/lib/deduktif/timeline/model';
-import type { Susunan, TimeslotItem } from '@/lib/deduktif/timeslot/model';
-import type { DragLineItem } from '@/lib/induktif/drag-line/pola';
-import type { Frame } from '@/lib/induktif/fill-shape/geometri';
-import type { PilihanGandaItem } from '@/lib/core/pilihan-ganda';
-import type { FillShapeItem } from '@/lib/induktif/fill-shape/pola';
-import BadgesSoal from './BadgesSoal';
-import CalendarSoal from './CalendarSoal';
-import DragLineSoal from './DragLineSoal';
-import FillShapeSoal from './FillShapeSoal';
 import KepalaApp from './KepalaApp';
-import PilihanGandaSoal from './PilihanGandaSoal';
-import RoomSoal from './RoomSoal';
-import TimelineSoal from './TimelineSoal';
-import TimeslotSoal from './TimeslotSoal';
+import TampilSoal, { Pembahasan } from './TampilSoal';
 
 // Studio bergaya generator Tahap 1: satu layar tiga panel, family di kiri, seed dan soal di tengah, kunci dan kapasitas di kanan.
 type Uji = { n: number; lolos: number; sidik: number; percobaan: number; ms: number };
@@ -77,7 +62,6 @@ export default function Studio() {
   const q = cari.trim().toLowerCase();
   const cocok = (f: (typeof FAMILIES)[number]) => !q || `${f.id} ${f.nama} ${f.chapter.nama}`.toLowerCase().includes(q);
   const tersimpan = kapasitasFamily(family.id, family.versi);
-  const jenis = 'soal' in hasil ? (hasil.soal.item as { jenis: string }).jenis : null;
 
   return (
     <>
@@ -162,14 +146,7 @@ export default function Studio() {
           <div className="isi-soal">
             {'galat' in hasil ? <div className="galat">{hasil.galat}</div> : (
               <div className="kartu-soal">
-                {jenis === 'fill-shape' && <FillShapeSoal key={hasil.soal.uid} item={hasil.soal.item as FillShapeItem} kunci={hasil.soal.jawaban as Frame} tampilKunci={tampilKunci} />}
-                {jenis === 'drag-line' && <DragLineSoal key={hasil.soal.uid} item={hasil.soal.item as DragLineItem} kunci={hasil.soal.jawaban as string[]} tampilKunci={tampilKunci} />}
-                {jenis === 'calendar-date' && <CalendarSoal key={hasil.soal.uid} item={hasil.soal.item as CalendarItem} kunci={hasil.soal.jawaban as number[]} tampilKunci={tampilKunci} />}
-                {jenis === 'timeline' && <TimelineSoal key={hasil.soal.uid} item={hasil.soal.item as TimelineItem} kunci={hasil.soal.jawaban as number[]} tampilKunci={tampilKunci} />}
-                {jenis === 'timeslot' && <TimeslotSoal key={hasil.soal.uid} item={hasil.soal.item as TimeslotItem} kunci={hasil.soal.jawaban as Susunan} tampilKunci={tampilKunci} />}
-                {jenis === 'room-allocation' && <RoomSoal key={hasil.soal.uid} item={hasil.soal.item as RoomItem} kunci={hasil.soal.jawaban as Alokasi} tampilKunci={tampilKunci} />}
-                {jenis === 'logical-ranking' && <BadgesSoal key={hasil.soal.uid} item={hasil.soal.item} kunci={hasil.soal.jawaban} tampilKunci={tampilKunci} />}
-                {jenis === 'pilihan-ganda' && <PilihanGandaSoal key={hasil.soal.uid} item={hasil.soal.item as PilihanGandaItem} kunci={hasil.soal.jawaban as string} tampilKunci={tampilKunci} />}
+                <TampilSoal soal={hasil.soal} tampilKunci={tampilKunci} />
               </div>
             )}
           </div>
@@ -179,17 +156,7 @@ export default function Studio() {
         <section className="panel" aria-label="Kunci dan kapasitas">
           <h2 id="judul-kunci"><span className="step">3</span> Kunci dan pembahasan</h2>
           {'galat' in hasil ? <p className="hint">Soal gagal dibangun untuk seed ini.</p> : tampilKunci ? (
-            <div className="kunci-blok">
-              <p className="kunci-teks">{hasil.soal.pembahasan.jawaban}</p>
-              {hasil.soal.pembahasan.konsep && <div><b className="subjudul">Konsep</b>{hasil.soal.pembahasan.konsep}</div>}
-              {hasil.soal.pembahasan.kataKunci && <div><b className="subjudul">Kata kunci</b>{hasil.soal.pembahasan.kataKunci}</div>}
-              <ol>{hasil.soal.pembahasan.langkah.map((l, i) => <li key={i}>{l.teks}</li>)}</ol>
-              {hasil.soal.pembahasan.opsiSalah && (
-                <div><b className="subjudul">Alasan opsi salah</b><ul className="opsi-salah">{hasil.soal.pembahasan.opsiSalah.map((t) => <li key={t}>{t}</li>)}</ul></div>
-              )}
-              {hasil.soal.pembahasan.caraCepat && <div className="cepat"><b>Cara cepat:</b> {hasil.soal.pembahasan.caraCepat}</div>}
-              <div className="sidik">Lolos pada percobaan ke-{hasil.soal.percobaan + 1} · sidik {hasil.soal.sidik}</div>
-            </div>
+            <Pembahasan soal={hasil.soal} />
           ) : (
             <p className="hint">Centang <i>Tampilkan kunci</i> untuk melihat kunci, pembahasan langkah demi langkah, dan sidik struktur soal ini.</p>
           )}
