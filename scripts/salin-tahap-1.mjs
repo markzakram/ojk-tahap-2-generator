@@ -21,7 +21,7 @@ const sumber = resolve(akar, process.env.TAHAP1_SUMBER || 'tahap-1');
 const tujuan = join(akar, 'public', 'tahap-1');
 const SALIN = ['index.html', 'css', 'js', 'assets', 'bank_aset_badges'];
 // alamat di situs gabungan; tanpa basePath karena build Vercel melayani dari akar domain
-const SITUS = { tahap1: '/tahap-1/index.html', tahap2: '/studio' };
+const SITUS = { tahap1: '/tahap-1/index.html', tahap2: '/' };
 
 function gagal(pesan) { process.stdout.write('GAGAL: ' + pesan + '\n'); process.exit(1); }
 

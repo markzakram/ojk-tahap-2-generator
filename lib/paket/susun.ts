@@ -57,7 +57,7 @@ export interface BagianPaket {
 
 export interface Paket {
   id: string;
-  jenis: 'tryout' | 'latsol';
+  jenis: 'tryout' | 'latsol' | 'set';
   nomor: number;
   nama: string;
   bagian: BagianPaket[];
@@ -91,7 +91,10 @@ function tingkatSoal(soal: Soal): string | undefined {
  * Kumpulkan calon soal berstruktur berbeda untuk satu chapter: family dirotasi (SHL dua kali lebih sering bila ada),
  * seed `${benih}|${chapter}|${i}`, berhenti setelah cukup struktur unik atau batas percobaan.
  */
-function kumpulkanCalon(c: ChapterMapping, fams: Family<any, any>[], butuh: number, benih: string): Calon[] {
+/** Bobot tingkat yang diminta (mis. { dasar: 3, menengah: 5, menantang: 2 }); tanpa bobot = sebaran alami bank. */
+export type BobotTingkat = Partial<Record<'dasar' | 'menengah' | 'menantang', number>>;
+
+function kumpulkanCalon(c: ChapterMapping, fams: Family<any, any>[], butuh: number, benih: string, bobot?: BobotTingkat): Calon[] {
   // satu putaran: setiap family SHL dua kali dan setiap family VARIASI sekali, diselang-seling sebanding
   const shl = fams.filter((f) => f.label === 'SHL'), variasi = fams.filter((f) => f.label === 'VARIASI');
   const A = [...shl, ...shl], B = variasi;
@@ -100,12 +103,19 @@ function kumpulkanCalon(c: ChapterMapping, fams: Family<any, any>[], butuh: numb
     if (ib < B.length && (ia >= A.length || (ib + 1) / B.length <= (ia + 1) / A.length)) urut.push(B[ib++]);
     else urut.push(A[ia++]);
   }
-  const calon: Calon[] = [];
+  let calon: Calon[] = [];
   const lihat = new Set<string>();
   // Reading: kumpulkan seluruh struktur supaya setiap paket dapat mengambil satu bacaan utuh
   let target = Math.ceil(butuh * 1.25) + 4;
-  const batas = Math.max(200, butuh * 30);
-  for (let i = 0; i < batas && calon.length < target; i++) {
+  let batas = Math.max(200, butuh * 30);
+  // Bobot tingkat hanya berlaku untuk chapter yang soalnya bertingkat (Badges, Bahasa Inggris, PSJK) dan bukan Reading
+  // (satu bacaan harus diambil utuh). Kuota per tingkat = bagian kebutuhan + cadangan 25%; tingkat berbobot 0 dilewati.
+  const W = bobot ? Object.values(bobot).reduce((a, b) => a + (b ?? 0), 0) : 0;
+  let kuota: Map<string, number> | null = null;
+  let periksaBobot = W > 0;
+  const punya = new Map<string, number>();
+  const kurang = () => !!kuota && [...kuota].some(([t, q]) => (punya.get(t) ?? 0) < q);
+  for (let i = 0; i < batas && (kuota ? kurang() : calon.length < target); i++) {
     const f = urut[i % urut.length];
     let soal: Soal;
     try { soal = bangkitkan(f, `${benih}|${c.id}|${i}`); } catch { continue; }
@@ -113,8 +123,28 @@ function kumpulkanCalon(c: ChapterMapping, fams: Family<any, any>[], butuh: numb
     if (lihat.has(k)) continue;
     lihat.add(k);
     const bacaan = kunciBacaan(soal);
-    if (bacaan) target = Infinity;
+    if (bacaan) { target = Infinity; periksaBobot = false; }
+    const t = tingkatSoal(soal);
+    if (periksaBobot && !kuota && t) {
+      kuota = new Map(Object.entries(bobot!).filter(([, w]) => (w ?? 0) > 0).map(([tk, w]) => [tk, Math.ceil((butuh * 1.25 * w!) / W) + 1]));
+      batas = Math.max(batas, butuh * 80);
+    }
+    if (kuota && t) {
+      if (!kuota.has(t) || (punya.get(t) ?? 0) >= kuota.get(t)!) continue;
+      punya.set(t, (punya.get(t) ?? 0) + 1);
+    }
     calon.push({ family: f, soal, kunciStruktur: k, bacaan });
+  }
+  if (kuota) {
+    // urutkan supaya setiap awalan daftar mengikuti bobot (bagiRata membaca proporsi strata dari awal daftar)
+    const ke = new Map<string, number>();
+    const kunciUrut = calon.map((x) => {
+      const t = tingkatSoal(x.soal) ?? '';
+      const j = ke.get(t) ?? 0;
+      ke.set(t, j + 1);
+      return (j + 0.5) / ((bobot as Record<string, number>)[t] ?? 1);
+    });
+    calon = calon.map((x, i) => ({ x, k: kunciUrut[i], i })).sort((a, b) => a.k - b.k || a.i - b.i).map((y) => y.x);
   }
   return calon;
 }
@@ -287,7 +317,7 @@ function seimbangkan(kelompok: Paket[]) {
 /** Rencana satu paket: bagian per subtes dan jumlah soal setiap chapter di bagian itu. */
 export interface RencanaPaket {
   id: string;
-  jenis: 'tryout' | 'latsol';
+  jenis: 'tryout' | 'latsol' | 'set';
   nomor: number;
   nama: string;
   bagian: { subtes: Subtes; nama: string; menit: number; isi: Record<string, number> }[];
@@ -301,7 +331,7 @@ export interface KemajuanSusun { selesai: number; total: number; chapter: string
  * `seimbang` (indeks paket) diseimbangkan. Satu struktur soal tidak dipakai dua kali di seluruh rencana. Berupa generator
  * supaya halaman Paket dapat memperbarui bilah kemajuan di antara chapter; `susunDariRencana` menjalankannya sekaligus.
  */
-export function* langkahSusun(families: Family<any, any>[], rencana: RencanaPaket[], seimbang: number[][], benih: string): Generator<KemajuanSusun, HasilSusun> {
+export function* langkahSusun(families: Family<any, any>[], rencana: RencanaPaket[], seimbang: number[][], benih: string, bobot?: BobotTingkat): Generator<KemajuanSusun, HasilSusun> {
   const paket: Paket[] = rencana.map((r) => ({
     id: r.id, jenis: r.jenis, nomor: r.nomor, nama: r.nama,
     bagian: r.bagian.map((b) => ({ subtes: b.subtes, nama: b.nama, menit: b.menit, slot: [] as SlotPaket[] })),
@@ -314,7 +344,7 @@ export function* langkahSusun(families: Family<any, any>[], rencana: RencanaPake
       .map((r, i) => ({ p: paket[i], n: r.bagian.find((b) => b.subtes === c.subtes)?.isi[c.id] ?? 0 }))
       .filter((s) => s.n > 0);
     const butuh = sasaran.reduce((a, s) => a + s.n, 0);
-    const calon = fams.length ? kumpulkanCalon(c, fams, butuh, benih) : [];
+    const calon = fams.length ? kumpulkanCalon(c, fams, butuh, benih, bobot) : [];
     const tulis = (p: Paket, n: number, pilih: Calon[]) => {
       const bag = p.bagian.find((b) => b.subtes === c.subtes)!;
       for (const x of pilih) bag.slot.push(slotDari(c, x));
@@ -369,6 +399,21 @@ export function rencanaLatsol(kelompok: string, jumlah: number, komposisi: Recor
   return Array.from({ length: jumlah }, (_, i) => ({
     id: `LS-${String(i + 1).padStart(2, '0')}-${slug}`, jenis: 'latsol' as const, nomor: i + 1, nama: `Latsol ${i + 1} · ${kelompok}`,
     bagian: [{ subtes: st, nama: NAMA_SUBTES[st], menit: DURASI_LATSOL, isi: Object.fromEntries(chapters.map((c) => [c.id, komposisi[c.id] ?? 0])) }],
+  }));
+}
+
+/** Rencana `jumlah` set bebas (mode Per Chapter): materi = chapter dan jumlah soal per set; durasi sebanding tryout. */
+export function rencanaSet(jumlah: number, materi: { chapterId: string; n: number }[]): RencanaPaket[] {
+  const soalTryout = (st: Subtes) => CHAPTERS.filter((c) => c.subtes === st).reduce((a, c) => a + c.perTryout, 0);
+  const subtes = URUT_SUBTES.filter((st) => materi.some((m) => m.n > 0 && CHAPTERS.find((c) => c.id === m.chapterId)?.subtes === st));
+  return Array.from({ length: jumlah }, (_, i) => ({
+    id: `SET-${String(i + 1).padStart(2, '0')}`, jenis: 'set' as const, nomor: i + 1, nama: `Set ${i + 1}`,
+    bagian: subtes.map((st) => {
+      const isi: Record<string, number> = {};
+      for (const m of materi) if (m.n > 0 && CHAPTERS.find((c) => c.id === m.chapterId)?.subtes === st) isi[m.chapterId] = (isi[m.chapterId] ?? 0) + m.n;
+      const n = Object.values(isi).reduce((a, b) => a + b, 0);
+      return { subtes: st, nama: NAMA_SUBTES[st], menit: Math.max(1, Math.round((n * DURASI_TRYOUT[st]) / Math.max(1, soalTryout(st)))), isi };
+    }),
   }));
 }
 

@@ -9,14 +9,17 @@ import type { Soal, Subtes } from '@/lib/core/types';
 import { CHAPTERS, chapterById, JUMLAH_LATSOL, JUMLAH_TRYOUT, NAMA_SUBTES } from '@/lib/data/chapters';
 import DATA from '@/lib/data/paket.json';
 import {
-  DURASI_LATSOL, DURASI_TRYOUT, KELOMPOK_LATSOL_URUT, kelompokLatsol, komposisiBaku, langkahSusun, rencanaLatsol, rencanaTryout,
-  ringkasPaket, type HasilSusun, type Paket as TPaket, type SlotPaket,
+  DURASI_LATSOL, DURASI_TRYOUT, KELOMPOK_LATSOL_URUT, kelompokLatsol, komposisiBaku, langkahSusun, rencanaLatsol, rencanaSet,
+  rencanaTryout, ringkasPaket, type BobotTingkat, type HasilSusun, type Paket as TPaket, type SlotPaket,
 } from '@/lib/paket/susun';
 import KepalaApp from './KepalaApp';
 import TampilSoal, { Pembahasan } from './TampilSoal';
 
-// Halaman Paket dengan alur generator Tahap 1: pengaturan di kiri (jenis, komposisi, jumlah, benih, Generate), pratinjau
-// soal di tengah (pilih paket dan subtes, soal dapat dikerjakan, kunci dan pembahasan), hasil pemeriksaan dan unduhan di kanan.
+// Generator Tahap 2 (halaman utama), alur dan langkah 1–7 sama dengan generator Tahap 1:
+//   kiri   — mode generate; 1 subtes/kelompok/materi; 2 soal tiap chapter (terbuka, dapat diubah); 3 tingkat kesulitan;
+//            4 jumlah paket & benih; tombol Generate paket
+//   tengah — 5 pratinjau soal (pilih paket dan subtes, soal dapat dikerjakan, kunci dan pembahasan)
+//   kanan  — 6 hasil pemeriksaan; 7 unduh
 // Pengaturan baku dengan benih paket resmi menampilkan paket resmi (lib/data/paket.json, `npm run paket`); pengaturan lain
 // disusun di peramban dengan perakit yang sama (lib/paket/susun.ts).
 
@@ -27,17 +30,24 @@ const MAKS_SOAL_CHAPTER = 20;
 const pendek = (st: Subtes) => NAMA_SUBTES[st].replace(/^Tes (Penalaran |Pengetahuan )?/, '');
 const tanpaSoal = (k: string) => k.replace(/^Soal /, '');
 const huruf = (s: SlotPaket) => (s.kunci && /^[A-E]$/.test(s.kunci) ? s.kunci : undefined);
+const CHAPTER_ADA = CHAPTERS.filter((c) => FAMILIES.some((f) => f.chapter.id === c.id));
 
-type Jenis = 'tryout' | 'latsol';
+type Mode = 'tryout' | 'latsol' | 'set';
+type PilihTingkat = 'bank' | 'atur' | 'dasar' | 'menengah' | 'menantang';
 interface Hasil { data: HasilSusun; resmi: boolean; judul: string }
+interface Materi { chapterId: string; n: number }
+
+const NAMA_MODE: Record<Mode, string> = { tryout: 'Tryout', latsol: 'Latsol', set: 'Per Chapter' };
+const JUMLAH_BAKU: Record<Mode, number> = { tryout: JUMLAH_TRYOUT, latsol: JUMLAH_LATSOL, set: 3 };
 
 const BANTUAN = [
-  <><b>Pilih jenis paket.</b> <i>Tryout</i> berisi empat subtes dengan komposisi Mapping; <i>Latsol</i> berisi satu kelompok latihan, 10 soal per latsol.</>,
-  <><b>Atur komposisi.</b> Pilih subtes (tryout) atau kelompok (latsol), lalu jumlah soal tiap chapter. Tombol <i>Baku</i> mengembalikan angka Mapping.</>,
-  <><b>Jumlah paket dan benih.</b> Benih dan pengaturan yang sama selalu menghasilkan paket yang sama. Pengaturan baku dengan benih <code>{RESMI.benih}</code> menampilkan paket resmi.</>,
-  <><b>Generate.</b> Soal diambil dari family yang lolos verifikasi. Satu struktur soal hanya dipakai sekali di seluruh hasil; label SHL/VARIASI dan tingkat dibagi rata, dan huruf kunci diseimbangkan.</>,
+  <><b>Pilih mode.</b> <i>Tryout</i> berisi subtes dengan komposisi Mapping per chapter, <i>Latsol</i> berisi satu kelompok latihan Mapping, dan <i>Per Chapter</i> untuk menambahkan chapter dan jumlah soal masing-masing.</>,
+  <><b>Atur jumlah.</b> Jumlah soal pada daftar chapter berlaku untuk setiap paket. Tombol <i>Baku</i> mengembalikan angka Mapping.</>,
+  <><b>Tingkat kesulitan.</b> <i>Campur (sebaran bank)</i> mengikuti bank soal; pilih perbandingan dasar : menengah : menantang atau satu tingkat saja. Tingkat berlaku untuk Badges, Bahasa Inggris selain Reading, dan Sektor Jasa Keuangan.</>,
+  <><b>Jumlah paket dan benih.</b> Benih dan pengaturan yang sama selalu menghasilkan paket yang sama. Pengaturan baku dengan benih <code>{RESMI.benih}</code> menampilkan paket resmi. Lalu tekan <i>Generate paket</i>.</>,
   <><b>Lihat paket.</b> Pilih paket dan subtes di tengah. Soal dapat langsung dikerjakan; centang <i>Tampilkan kunci &amp; pembahasan</i> untuk melihat jawaban dan langkahnya.</>,
-  <><b>Periksa dan unduh.</b> Panel kanan menampilkan hasil pemeriksaan (soal terisi, soal kembar, sebaran label, tingkat, dan kunci). Unduh JSON lengkap atau daftar soal CSV.</>,
+  <><b>Hasil pemeriksaan.</b> Panel kanan menghitung soal terisi, struktur kembar (harus 0), sebaran label SHL/VARIASI, tingkat, huruf kunci, dan bacaan Reading utuh.</>,
+  <><b>Unduh.</b> JSON berisi soal lengkap (isi, kunci, pembahasan) per paket atau semua paket; CSV berisi daftar soal dengan kode SIADU, seed, tingkat, dan kunci.</>,
 ];
 
 function unduhBerkas(nama: string, isi: string, jenis: string) {
@@ -94,7 +104,8 @@ function periksa(h: HasilSusun) {
   }
   const perChapter = CHAPTERS.map((c) => {
     const s = isi.filter((x) => x.chapterId === c.id);
-    return { c, shl: s.filter((x) => x.label === 'SHL').length, variasi: s.filter((x) => x.label === 'VARIASI').length };
+    const t = (n: string) => s.filter((x) => x.tingkat === n).length;
+    return { c, shl: s.filter((x) => x.label === 'SHL').length, variasi: s.filter((x) => x.label === 'VARIASI').length, dasar: t('dasar'), menengah: t('menengah'), menantang: t('menantang') };
   }).filter((x) => x.shl + x.variasi > 0);
   const versiLama = isi.filter((s) => FAMILIES.find((f) => f.id === s.familyId)?.versi !== s.versi).length;
   return {
@@ -106,18 +117,24 @@ function periksa(h: HasilSusun) {
   };
 }
 
-const resmiUntuk = (jenis: Jenis, kelompok: string): Hasil => {
-  const paket = RESMI.paket.filter((p) => p.jenis === jenis && (jenis === 'tryout' || p.nama.endsWith(`· ${kelompok}`)));
-  return { data: { ...RESMI, paket }, resmi: true, judul: jenis === 'tryout' ? `${paket.length} tryout resmi` : `${paket.length} latsol resmi ${tanpaSoal(kelompok)}` };
+const resmiUntuk = (mode: 'tryout' | 'latsol', kelompok: string): Hasil => {
+  const paket = RESMI.paket.filter((p) => p.jenis === mode && (mode === 'tryout' || p.nama.endsWith(`· ${kelompok}`)));
+  return { data: { ...RESMI, paket }, resmi: true, judul: mode === 'tryout' ? `${paket.length} tryout resmi` : `${paket.length} latsol resmi ${tanpaSoal(kelompok)}` };
 };
 
 export default function Paket() {
   // ---- pengaturan (kiri) ----
-  const [jenis, setJenis] = useState<Jenis>('tryout');
-  const [subtes, setSubtes] = useState<Subtes[]>(URUT_SUBTES);
+  const [mode, setMode] = useState<Mode>('tryout');
+  const [subtes, setSubtes] = useState<Subtes | 'semua'>('semua');
   const [kelompok, setKelompok] = useState(KELOMPOK_LATSOL_URUT[0]);
   const [komposisi, setKomposisi] = useState({ tryout: komposisiBaku('tryout'), latsol: komposisiBaku('latsol') });
-  const [jumlah, setJumlah] = useState({ tryout: JUMLAH_TRYOUT, latsol: JUMLAH_LATSOL });
+  const [materi, setMateri] = useState<Materi[]>([]);
+  const [materiSubtes, setMateriSubtes] = useState<Subtes>('induktif');
+  const [materiChapter, setMateriChapter] = useState(CHAPTER_ADA.find((c) => c.subtes === 'induktif')!.id);
+  const [materiJumlah, setMateriJumlah] = useState(5);
+  const [tingkat, setTingkat] = useState<PilihTingkat>('bank');
+  const [proporsi, setProporsi] = useState({ dasar: 3, menengah: 5, menantang: 2 });
+  const [jumlah, setJumlah] = useState<Record<Mode, number>>(JUMLAH_BAKU);
   const [benih, setBenih] = useState(RESMI.benih);
   const [berjalan, setBerjalan] = useState(false);
   const [kemajuan, setKemajuan] = useState(0);
@@ -131,22 +148,31 @@ export default function Paket() {
   const [statusUnduh, setStatusUnduh] = useState('');
   const daftarRef = useRef<HTMLDivElement>(null);
 
-  const kom = komposisi[jenis];
-  const chapterAtur = jenis === 'tryout'
-    ? CHAPTERS.filter((c) => subtes.includes(c.subtes) && c.perTryout + kom[c.id] > 0)
-    : CHAPTERS.filter((c) => kelompokLatsol(c) === kelompok);
+  // ---- komposisi aktif ----
+  const subtesTryout = subtes === 'semua' ? URUT_SUBTES : [subtes];
+  const kom = mode === 'set' ? Object.fromEntries(materi.map((m) => [m.chapterId, m.n])) : komposisi[mode];
+  const chapterAtur = mode === 'tryout'
+    ? CHAPTERS.filter((c) => subtesTryout.includes(c.subtes) && (c.perTryout > 0 || (kom[c.id] ?? 0) > 0))
+    : mode === 'latsol' ? CHAPTERS.filter((c) => kelompokLatsol(c) === kelompok)
+      : materi.map((m) => chapterById(m.chapterId));
   const totalSoal = chapterAtur.reduce((a, c) => a + (kom[c.id] ?? 0), 0);
-  const bakuSemua = komposisiBaku(jenis);
-  const samaBaku = chapterAtur.every((c) => kom[c.id] === bakuSemua[c.id]);
-  const n = jumlah[jenis];
-  const sesuaiResmi = benih.trim() === RESMI.benih && samaBaku && n === (jenis === 'tryout' ? JUMLAH_TRYOUT : JUMLAH_LATSOL) && (jenis === 'latsol' || subtes.length === URUT_SUBTES.length);
+  const samaBaku = mode !== 'set' && chapterAtur.every((c) => kom[c.id] === komposisiBaku(mode)[c.id]);
+  const n = jumlah[mode];
+  const bobot: BobotTingkat | undefined = tingkat === 'bank' ? undefined : tingkat === 'atur' ? proporsi : { [tingkat]: 1 };
+  const bobotValid = !bobot || Object.values(bobot).some((v) => (v ?? 0) > 0);
+  const sesuaiResmi = mode !== 'set' && tingkat === 'bank' && benih.trim() === RESMI.benih && samaBaku && n === JUMLAH_BAKU[mode] && (mode === 'latsol' || subtes === 'semua');
 
   const ubahKomposisi = (id: string, v: string) => {
     const x = Math.max(0, Math.min(MAKS_SOAL_CHAPTER, Math.floor(Number(v) || 0)));
-    setKomposisi((k) => ({ ...k, [jenis]: { ...k[jenis], [id]: x } }));
+    if (mode === 'set') setMateri((m) => m.map((y) => (y.chapterId === id ? { ...y, n: x } : y)));
+    else setKomposisi((k) => ({ ...k, [mode]: { ...k[mode as 'tryout' | 'latsol'], [id]: x } }));
   };
-  const baku = () => setKomposisi((k) => ({ ...k, [jenis]: komposisiBaku(jenis) }));
-  const togelSubtes = (st: Subtes) => setSubtes((s) => s.includes(st) ? (s.length > 1 ? s.filter((x) => x !== st) : s) : URUT_SUBTES.filter((x) => x === st || s.includes(x)));
+  const baku = () => { if (mode !== 'set') setKomposisi((k) => ({ ...k, [mode]: komposisiBaku(mode) })); };
+  const pilihMateriSubtes = (st: Subtes) => { setMateriSubtes(st); setMateriChapter(CHAPTER_ADA.find((c) => c.subtes === st)!.id); };
+  const tambahMateri = () => {
+    const x = Math.max(1, Math.min(MAKS_SOAL_CHAPTER, Math.floor(materiJumlah) || 1));
+    setMateri((m) => (m.some((y) => y.chapterId === materiChapter) ? m.map((y) => (y.chapterId === materiChapter ? { ...y, n: x } : y)) : [...m, { chapterId: materiChapter, n: x }]));
+  };
 
   const tampilkan = (h: Hasil) => {
     setHasil(h);
@@ -155,16 +181,16 @@ export default function Paket() {
   };
 
   const generate = async () => {
-    if (berjalan || !totalSoal) return;
+    if (berjalan || !totalSoal || !bobotValid) return;
     const b = benih.trim() || seedBaru();
     if (b !== benih) setBenih(b);
     if (sesuaiResmi) {
-      tampilkan(resmiUntuk(jenis, kelompok));
+      tampilkan(resmiUntuk(mode as 'tryout' | 'latsol', kelompok));
       setStatus({ teks: `Pengaturan sama dengan paket resmi; menampilkan paket resmi (disusun ${RESMI.dibuat}).`, jenis: 'ok' });
       return;
     }
-    const rencana = jenis === 'tryout' ? rencanaTryout(n, kom, subtes) : rencanaLatsol(kelompok, n, kom);
-    const g = langkahSusun(FAMILIES, rencana, [rencana.map((_, i) => i)], b);
+    const rencana = mode === 'tryout' ? rencanaTryout(n, kom, subtesTryout) : mode === 'latsol' ? rencanaLatsol(kelompok, n, kom) : rencanaSet(n, materi);
+    const g = langkahSusun(FAMILIES, rencana, [rencana.map((_, i) => i)], b, bobot);
     setBerjalan(true); setKemajuan(0);
     const t0 = performance.now();
     try {
@@ -173,7 +199,8 @@ export default function Paket() {
         const r = g.next();
         if (r.done) {
           const cek = periksa(r.value);
-          tampilkan({ data: r.value, resmi: false, judul: jenis === 'tryout' ? `${n} tryout` : `${n} latsol ${tanpaSoal(kelompok)}` });
+          const judul = mode === 'tryout' ? `${n} tryout${subtes === 'semua' ? '' : ` ${pendek(subtes)}`}` : mode === 'latsol' ? `${n} latsol ${tanpaSoal(kelompok)}` : `${n} set per chapter`;
+          tampilkan({ data: r.value, resmi: false, judul });
           setStatus({
             teks: `${r.value.paket.length} paket, ${cek.terisi} dari ${cek.slot} soal terisi, ${cek.kembar} struktur kembar (${((performance.now() - t0) / 1000).toFixed(1).replace('.', ',')} dtk).`,
             jenis: cek.kosong || cek.kembar ? 'error' : 'ok',
@@ -227,30 +254,39 @@ export default function Paket() {
   };
   const unduhCsv = () => { unduhBerkas(`daftar-soal-${hasil.data.benih}.csv`, csvSlot(hasil.data), 'text/csv;charset=utf-8'); setStatusUnduh('Daftar soal CSV diunduh.'); };
 
+  // grup komposisi (langkah 2): satu fieldset per subtes, terbuka seperti Tahap 1
+  const grupKomposisi = mode === 'tryout'
+    ? subtesTryout.map((st) => ({ kunci: st, judul: pendek(st), menit: DURASI_TRYOUT[st], daftar: chapterAtur.filter((c) => c.subtes === st) }))
+    : mode === 'latsol' ? [{ kunci: kelompok, judul: tanpaSoal(kelompok), menit: DURASI_LATSOL, daftar: chapterAtur }]
+      : [];
+
   return (
     <>
-      <KepalaApp aktif="paket" kanan={`${FAMILIES.length} family`} langkah={BANTUAN} />
+      <KepalaApp aktif="generator" kanan={`${FAMILIES.length} family`} langkah={BANTUAN} />
       <main className="layout">
         {/* ============ KIRI: PENGATURAN ============ */}
-        <section className="panel" aria-label="Pengaturan paket">
-          <label className="field"><span>Jenis paket</span>
-            <select value={jenis} onChange={(e) => setJenis(e.target.value as Jenis)} disabled={berjalan}>
-              <option value="tryout">Tryout (empat subtes)</option>
-              <option value="latsol">Latsol (satu kelompok)</option>
+        <section className="panel panel-atur" aria-label="Pengaturan generate">
+          <label className="field"><span>Mode generate</span>
+            <select value={mode} onChange={(e) => setMode(e.target.value as Mode)} disabled={berjalan}>
+              <option value="tryout">Tryout</option>
+              <option value="latsol">Latsol</option>
+              <option value="set">Per Chapter</option>
             </select>
           </label>
 
-          {jenis === 'tryout' ? (
+          {mode === 'tryout' && (
             <>
               <h2><span className="step">1</span> Subtes</h2>
               <div className="row wrap gap-s">
                 {URUT_SUBTES.map((st) => (
-                  <button key={st} type="button" className={`ghost${subtes.includes(st) ? ' active' : ''}`} aria-pressed={subtes.includes(st)} onClick={() => togelSubtes(st)} disabled={berjalan}>{pendek(st)}</button>
+                  <button key={st} type="button" className={`ghost${subtes === st ? ' active' : ''}`} aria-pressed={subtes === st} onClick={() => setSubtes(st)} disabled={berjalan}>{pendek(st)}</button>
                 ))}
+                <button type="button" className={`ghost${subtes === 'semua' ? ' active' : ''}`} aria-pressed={subtes === 'semua'} onClick={() => setSubtes('semua')} disabled={berjalan}>Semua</button>
               </div>
-              <p className="hint">Klik untuk memasukkan atau mengeluarkan subtes. Tryout Mapping memuat keempatnya ({JUMLAH_TRYOUT} tryout).</p>
+              <p className="hint">Tryout Mapping memuat keempat subtes: Induktif 15 soal, Deduktif 12, Bahasa Inggris 12, dan Sektor Jasa Keuangan 50.</p>
             </>
-          ) : (
+          )}
+          {mode === 'latsol' && (
             <>
               <h2><span className="step">1</span> Kelompok latsol</h2>
               <label className="field"><span>Kelompok</span>
@@ -258,40 +294,91 @@ export default function Paket() {
                   {KELOMPOK_LATSOL_URUT.map((k) => <option key={k} value={k}>{tanpaSoal(k)}</option>)}
                 </select>
               </label>
-              <p className="hint">Mapping: {JUMLAH_LATSOL} latsol per kelompok, {DURASI_LATSOL} menit per latsol.</p>
+              <p className="hint">Mapping: {JUMLAH_LATSOL} latsol per kelompok, 10 soal dan {DURASI_LATSOL} menit per latsol.</p>
+            </>
+          )}
+          {mode === 'set' && (
+            <>
+              <h2><span className="step">1</span> Pilih materi</h2>
+              <label className="field"><span>Subtes</span>
+                <select value={materiSubtes} onChange={(e) => pilihMateriSubtes(e.target.value as Subtes)} disabled={berjalan}>
+                  {URUT_SUBTES.map((st) => <option key={st} value={st}>{pendek(st)}</option>)}
+                </select>
+              </label>
+              <label className="field"><span>Chapter</span>
+                <select value={materiChapter} onChange={(e) => setMateriChapter(e.target.value)} disabled={berjalan}>
+                  {CHAPTER_ADA.filter((c) => c.subtes === materiSubtes).map((c) => <option key={c.id} value={c.id}>{c.nama}</option>)}
+                </select>
+              </label>
+              <div className="row gap-s">
+                <label className="num-field"><span>Soal per set</span>
+                  <input type="number" min={1} max={MAKS_SOAL_CHAPTER} step={1} value={materiJumlah} onChange={(e) => setMateriJumlah(Number(e.target.value) || 1)} disabled={berjalan} />
+                </label>
+                <button type="button" className="ghost tombol-tambah" onClick={tambahMateri} disabled={berjalan}>Tambahkan</button>
+              </div>
             </>
           )}
 
           <h2>
-            <span className="step">2</span> Soal tiap chapter
-            <button type="button" className="ghost mini-btn" onClick={baku} disabled={berjalan || samaBaku} title="Kembalikan komposisi Mapping">Baku</button>
+            <span className="step">2</span> {mode === 'set' ? 'Materi yang dipilih' : 'Soal tiap chapter'}
+            {mode !== 'set' && <button type="button" className="ghost mini-btn" onClick={baku} disabled={berjalan || samaBaku} title="Kembalikan komposisi Mapping">Baku</button>}
           </h2>
-          {(jenis === 'tryout' ? URUT_SUBTES.filter((st) => subtes.includes(st)) : [CHAPTERS.find((c) => kelompokLatsol(c) === kelompok)!.subtes]).map((st) => {
-            const daftar = chapterAtur.filter((c) => c.subtes === st);
-            const jml = daftar.reduce((a, c) => a + (kom[c.id] ?? 0), 0);
-            return (
-              // dilipat secara bawaan supaya langkah 3 dan tombol Generate tetap terlihat; latsol hanya satu grup, jadi terbuka
-              <details key={`${jenis}-${st}-${kelompok}`} className="komposisi-grup" open={jenis === 'latsol' || undefined}>
-                <summary>{jenis === 'tryout' ? pendek(st) : tanpaSoal(kelompok)}<span className="total">{jml} soal / {jenis === 'tryout' ? DURASI_TRYOUT[st] : DURASI_LATSOL} menit</span></summary>
-                <fieldset className="komposisi-isi" disabled={berjalan}>
-                  {daftar.map((c) => (
-                    <label key={c.id} className="komposisi-baris">
-                      <span>{c.nama}</span>
-                      <input type="number" min={0} max={MAKS_SOAL_CHAPTER} step={1} value={kom[c.id] ?? 0} onChange={(e) => ubahKomposisi(c.id, e.target.value)} />
-                    </label>
-                  ))}
-                </fieldset>
-              </details>
-            );
-          })}
-          <p className="hint">{totalSoal} soal per {jenis === 'tryout' ? 'tryout' : 'latsol'}{samaBaku ? ' (komposisi Mapping)' : ' (komposisi diubah)'}.{jenis === 'tryout' ? ' Klik nama subtes untuk mengubah jumlah soal tiap chapter.' : ''}</p>
+          {grupKomposisi.map((g) => (
+            <fieldset key={g.kunci} className="komposisi-grup" disabled={berjalan}>
+              <legend>{g.judul}<span className="total">{g.daftar.reduce((a, c) => a + (kom[c.id] ?? 0), 0)} soal / {g.menit} menit</span></legend>
+              {g.daftar.map((c) => (
+                <label key={c.id} className="komposisi-baris">
+                  <span>{c.nama}</span>
+                  <input type="number" min={0} max={MAKS_SOAL_CHAPTER} step={1} value={kom[c.id] ?? 0} onChange={(e) => ubahKomposisi(c.id, e.target.value)} />
+                </label>
+              ))}
+            </fieldset>
+          ))}
+          {mode === 'set' && (
+            materi.length ? (
+              <fieldset className="komposisi-grup" disabled={berjalan}>
+                <legend>Per set<span className="total">{totalSoal} soal</span></legend>
+                {materi.map((m) => (
+                  <div key={m.chapterId} className="komposisi-baris">
+                    <span>{chapterById(m.chapterId).nama} <span className="redup">· {pendek(chapterById(m.chapterId).subtes)}</span></span>
+                    <span className="row gap-s">
+                      <input type="number" aria-label={`Jumlah soal ${chapterById(m.chapterId).nama}`} min={0} max={MAKS_SOAL_CHAPTER} step={1} value={m.n} onChange={(e) => ubahKomposisi(m.chapterId, e.target.value)} />
+                      <button type="button" className="ghost mini-hapus" aria-label={`Hapus ${chapterById(m.chapterId).nama}`} onClick={() => setMateri((x) => x.filter((y) => y.chapterId !== m.chapterId))}>×</button>
+                    </span>
+                  </div>
+                ))}
+              </fieldset>
+            ) : <p className="hint">Belum ada materi. Pilih subtes dan chapter di langkah 1, lalu tekan <i>Tambahkan</i>.</p>
+          )}
+          {mode !== 'set' && <p className="hint">{totalSoal} soal per {mode === 'tryout' ? 'tryout' : 'latsol'}{samaBaku ? ' (komposisi Mapping)' : ' (komposisi diubah)'}.</p>}
 
-          <h2><span className="step">3</span> Jumlah paket &amp; benih</h2>
+          <h2><span className="step">3</span> Tingkat kesulitan</h2>
+          <label className="field"><span>Tingkat</span>
+            <select value={tingkat} onChange={(e) => setTingkat(e.target.value as PilihTingkat)} disabled={berjalan}>
+              <option value="bank">Campur (sebaran bank)</option>
+              <option value="atur">Campur (atur perbandingan)</option>
+              <option value="dasar">Dasar semua</option>
+              <option value="menengah">Menengah semua</option>
+              <option value="menantang">Menantang semua</option>
+            </select>
+          </label>
+          {tingkat === 'atur' && (
+            <div className="row gap-s" title="Perbandingan banyak soal dasar : menengah : menantang">
+              {(['dasar', 'menengah', 'menantang'] as const).map((t) => (
+                <label key={t} className="num-field num-field-kecil"><span>{NAMA_TINGKAT[t]}</span>
+                  <input type="number" min={0} max={100} step={1} value={proporsi[t]} disabled={berjalan} onChange={(e) => setProporsi((p) => ({ ...p, [t]: Math.max(0, Math.min(100, Math.floor(Number(e.target.value) || 0))) }))} />
+                </label>
+              ))}
+            </div>
+          )}
+          <p className="hint">Berlaku untuk Badges, Bahasa Inggris selain Reading, dan Sektor Jasa Keuangan; soal Induktif dan Deduktif lainnya belum bertingkat.{!bobotValid && <b className="teks-galat"> Isi sedikitnya satu angka perbandingan.</b>}</p>
+
+          <h2><span className="step">4</span> Jumlah paket &amp; benih</h2>
           <div className="row gap-s wrap">
             <label className="num-field" title={`Jumlah paket yang dibuat sekaligus (1 sampai ${MAKS_PAKET})`}>
-              <span>{jenis === 'tryout' ? 'Tryout' : 'Latsol'}</span>
+              <span>{mode === 'set' ? 'Set' : NAMA_MODE[mode]}</span>
               <input type="number" min={1} max={MAKS_PAKET} step={1} value={n} disabled={berjalan}
-                onChange={(e) => setJumlah((j) => ({ ...j, [jenis]: Math.max(1, Math.min(MAKS_PAKET, Math.floor(Number(e.target.value) || 1))) }))} />
+                onChange={(e) => setJumlah((j) => ({ ...j, [mode]: Math.max(1, Math.min(MAKS_PAKET, Math.floor(Number(e.target.value) || 1))) }))} />
             </label>
             <label className="num-field num-field-lebar" title="Teks bebas. Benih dan pengaturan yang sama menghasilkan paket yang sama.">
               <span>Benih</span>
@@ -303,7 +390,7 @@ export default function Paket() {
 
           <div className="aksi-generate">
             <div className="row gap-s">
-              <button type="button" className="primary wide-btn" onClick={generate} disabled={berjalan || !totalSoal}>{berjalan ? 'Menyusun…' : 'Generate paket'}</button>
+              <button type="button" className="primary wide-btn" onClick={generate} disabled={berjalan || !totalSoal || !bobotValid}>{berjalan ? 'Menyusun…' : 'Generate paket'}</button>
             </div>
             <progress value={kemajuan} max={100} hidden={!berjalan} />
             <div className={`status-line${status.jenis ? ` ${status.jenis}` : ''}`} role="status">{status.teks}</div>
@@ -313,7 +400,7 @@ export default function Paket() {
         {/* ============ TENGAH: PRATINJAU ============ */}
         <section className="panel wide" aria-label="Pratinjau soal">
           <h2>
-            <span className="step">4</span> Pratinjau soal
+            <span className="step">5</span> Pratinjau soal
             <span className={`pil ${hasil.resmi ? 'cukup' : 'tanpa-variasi'}`}>{hasil.resmi ? 'Paket resmi' : 'Hasil generate'}</span>
             <span className="redup judul-hasil">{hasil.judul} · benih {hasil.data.benih}</span>
           </h2>
@@ -375,7 +462,7 @@ export default function Paket() {
 
         {/* ============ KANAN: HASIL DAN UNDUHAN ============ */}
         <section className="panel" aria-label="Hasil pemeriksaan dan unduhan">
-          <h2><span className="step">5</span> Hasil pemeriksaan</h2>
+          <h2><span className="step">6</span> Hasil pemeriksaan</h2>
           <div className={`lencana ${cek.lolos ? 'ok' : 'bad'}`}>{cek.lolos ? 'Lolos pemeriksaan' : 'Perlu dicek'}</div>
           <dl className="ukur">
             <dt>Paket</dt><dd>{paketDaftar.length}</dd>
@@ -390,18 +477,23 @@ export default function Paket() {
           </dl>
           {cek.versiLama > 0 && <p className="galat">{cek.versiLama} soal berasal dari versi family lama. Susun ulang paket resmi dengan <code>npm run paket</code>.</p>}
           {cek.kosong > 0 && (
-            <p className="galat">{cek.kosong} slot kosong karena kapasitas struktur chapter habis: {Object.entries(cek.kosongPerChapter).map(([id, v]) => `${chapterById(id).nama} (${v})`).join(', ')}. Kurangi jumlah paket atau soal chapter itu.</p>
+            <p className="galat">{cek.kosong} slot kosong karena struktur chapter habis untuk pengaturan ini: {Object.entries(cek.kosongPerChapter).map(([id, v]) => `${chapterById(id).nama} (${v})`).join(', ')}. Kurangi jumlah paket atau soal chapter itu, atau longgarkan tingkat.</p>
           )}
           <table className="tabel-mini">
-            <thead><tr><th>Chapter</th><th className="ang">SHL</th><th className="ang">VAR</th><th className="ang">Jumlah</th></tr></thead>
+            <thead><tr><th>Chapter</th><th className="ang" title="SHL / VARIASI">SHL·VAR</th><th className="ang" title="Dasar / menengah / menantang">D·M·Mn</th><th className="ang">Jumlah</th></tr></thead>
             <tbody>
-              {cek.perChapter.map(({ c, shl, variasi }) => (
-                <tr key={c.id}><td>{c.nama}</td><td className="ang">{shl}</td><td className="ang">{variasi}</td><td className="ang">{shl + variasi}</td></tr>
+              {cek.perChapter.map(({ c, shl, variasi, dasar, menengah, menantang }) => (
+                <tr key={c.id}>
+                  <td>{c.nama}</td>
+                  <td className="ang">{shl}·{variasi}</td>
+                  <td className="ang">{dasar + menengah + menantang ? `${dasar}·${menengah}·${menantang}` : '—'}</td>
+                  <td className="ang">{shl + variasi}</td>
+                </tr>
               ))}
             </tbody>
           </table>
 
-          <h2><span className="step">6</span> Unduh</h2>
+          <h2><span className="step">7</span> Unduh</h2>
           <p className="hint">Paket yang sedang dilihat:</p>
           <div className="row wrap gap-s">
             <button type="button" className="ghost" onClick={unduhPaket} disabled={!paket}>JSON {paket?.nama.replace(/ · .*/, '') ?? 'paket'}</button>

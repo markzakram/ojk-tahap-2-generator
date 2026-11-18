@@ -13,12 +13,12 @@ const CARA_PAKAI = [
   <><b>Kerjakan soal.</b> Soal di panel tengah interaktif seperti di SHL: pilih tanggal, geser blok, seret garis, warnai bidang, pasang lencana, atau pilih opsi A–E, lalu tekan <i>Periksa</i>.</>,
   <><b>Kunci dan pembahasan.</b> Centang <i>Tampilkan kunci</i> untuk melihat jawaban, langkah penyelesaian, dan sidik struktur di panel kanan.</>,
   <><b>Kapasitas.</b> Panel kanan juga menampilkan hasil verifikasi family (seed lolos, struktur unik). Tombol uji menjalankan pemeriksaan singkat di peramban.</>,
-  <><b>Paket</b> menyusun tryout dan latsol dari bank tanpa soal kembar: atur komposisi, tekan <i>Generate paket</i>, lalu lihat, periksa, dan unduh hasilnya.</>,
+  <><b>Generator</b> (halaman utama Tahap 2) menyusun tryout, latsol, atau set per chapter tanpa soal kembar dengan langkah 1–7 seperti Tahap 1.</>,
   <><b>Ringkasan</b> menghitung target soal, kebutuhan per subtes, dan kapasitas per chapter dari Mapping.</>,
 ];
 
 // `langkah`: langkah "Cara pakai" khusus halaman (mis. alur Generate di Paket); bawaannya langkah Studio.
-export default function KepalaApp({ aktif, kanan, langkah = CARA_PAKAI }: { aktif: 'ringkasan' | 'studio' | 'paket'; kanan?: React.ReactNode; langkah?: React.ReactNode[] }) {
+export default function KepalaApp({ aktif, kanan, langkah = CARA_PAKAI }: { aktif: 'generator' | 'studio' | 'ringkasan'; kanan?: React.ReactNode; langkah?: React.ReactNode[] }) {
   const [bantuan, setBantuan] = useState(false);
   const [dalamBingkai, setDalamBingkai] = useState(true);
   useEffect(() => {
@@ -35,15 +35,15 @@ export default function KepalaApp({ aktif, kanan, langkah = CARA_PAKAI }: { akti
         {!dalamBingkai && (
           <nav className="tab-tahap" aria-label="Pilih tahap">
             <a className="tab-tahap-item" href="/tahap-1/index.html"><b>Tahap 1</b><span>Tes Potensi Dasar</span></a>
-            <Link className="tab-tahap-item aktif" href="/studio" aria-current="page"><b>Tahap 2</b><span>Tes Kemampuan Umum</span></Link>
+            <Link className="tab-tahap-item aktif" href="/" aria-current="page"><b>Tahap 2</b><span>Tes Kemampuan Umum</span></Link>
           </nav>
         )}
         <div className="topbar-actions">
           {kanan && <span className="topbar-info">{kanan}</span>}
           <nav className="nav-app" aria-label="Halaman Tahap 2">
+            <Link href="/" className={aktif === 'generator' ? 'active' : undefined} aria-current={aktif === 'generator' ? 'page' : undefined}>Generator</Link>
             <Link href="/studio" className={aktif === 'studio' ? 'active' : undefined} aria-current={aktif === 'studio' ? 'page' : undefined}>Studio</Link>
-            <Link href="/paket" className={aktif === 'paket' ? 'active' : undefined} aria-current={aktif === 'paket' ? 'page' : undefined}>Paket</Link>
-            <Link href="/" className={aktif === 'ringkasan' ? 'active' : undefined} aria-current={aktif === 'ringkasan' ? 'page' : undefined}>Ringkasan</Link>
+            <Link href="/ringkasan" className={aktif === 'ringkasan' ? 'active' : undefined} aria-current={aktif === 'ringkasan' ? 'page' : undefined}>Ringkasan</Link>
           </nav>
           <button type="button" className="ghost" aria-expanded={bantuan} onClick={() => setBantuan((b) => !b)}>Cara pakai</button>
         </div>

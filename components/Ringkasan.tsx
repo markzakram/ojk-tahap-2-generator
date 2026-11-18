@@ -108,7 +108,7 @@ export default function Ringkasan() {
 
           <aside className="kolom-samping">
             <section className="kartu" aria-labelledby="judul-paket">
-              <div className="kartu-kepala"><h2 id="judul-paket">Paket</h2><Link className="tombol" href="/paket">Buka paket</Link></div>
+              <div className="kartu-kepala"><h2 id="judul-paket">Paket</h2><Link className="tombol" href="/">Buka generator</Link></div>
               <p className="catatan">{hasil.paket.length ? `Disusun ${hasil.dibuat}: ${angka(rp.terisi)} dari ${angka(rp.slot)} slot terisi, ${rp.kembar} struktur kembar. Slot kosong menunggu family chapter-nya.` : 'Belum ada paket. Jalankan npm run paket.'}</p>
               <div className="slot-grid">{slot.map((s) => <span className={`slot${s.total && s.isi === s.total ? ' penuh' : ''}`} key={s.nama} title={`${s.isi}/${s.total} soal`}>{s.nama}<small>{s.isi}/{s.total}</small></span>)}</div>
             </section>
