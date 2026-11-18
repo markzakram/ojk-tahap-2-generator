@@ -122,7 +122,7 @@ Ketiga kelompok sudah ditelaah QC independen terhadap e-book dan bahan resmi (ku
 
 ## Foto orang
 
-Calendar Date Selection dan Room Allocations menampilkan inisial berwarna sampai foto dipasang:
+Calendar Date Selection dan Room Allocations memakai foto dari folder **Asset Generator** di Google Drive tim: 26 foto Calendar dan 26 foto Room sudah terpasang di `public/foto/` (November 2026). Nama tanpa foto tampil sebagai inisial berwarna. Bila aset di Drive berubah, pasang ulang:
 1. Di Google Drive tim, unduh folder **Asset Generator** (klik kanan → Download) lalu ekstrak ZIP-nya.
 2. Jalankan:
 
