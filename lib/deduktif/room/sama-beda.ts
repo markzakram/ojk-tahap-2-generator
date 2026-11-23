@@ -1,7 +1,7 @@
 import type { Family, LangkahPembahasan, Pembahasan } from '../../core/types';
 import { chapterById } from '../../data/chapters';
 import { NAMA_RUANGAN, daftarKata } from '../../data/nama';
-import { semuaAlokasi, teksKendala, type Alokasi, type KendalaRuang, type RoomItem } from './model';
+import { dalamKapasitas, semuaAlokasi, teksKendala, type Alokasi, type KendalaRuang, type RoomItem } from './model';
 
 // Blueprint Room Allocations bagian 2 — "Pengelompokan ruangan sama atau berbeda".
 // Sumber: deduktif.pdf hlm. 19–20 (Convention Booths). Lima orang, dua ruangan bernama, lima baris petunjuk satu klausa:
@@ -56,7 +56,7 @@ function bahas(item: RoomItem, jawaban: Alokasi): Pembahasan | null {
   if (item.orang.some((o) => !tahu[o.id])) return null;
   if (item.orang.some((o) => tahu[o.id] !== jawaban[o.id])) return null;
   const isi = item.ruang.map((r) => ({ r, anggota: item.orang.filter((o) => tahu[o.id] === r.id).map((o) => o.nama) }));
-  langkah.push({ teks: `Periksa kapasitas: ${isi.map(({ r, anggota }) => `${r.nama} berisi ${anggota.length} orang`).join(', ')}; tidak ada yang melebihi ${KAPASITAS}. Kelima petunjuk terpenuhi.` });
+  langkah.push({ teks: `Periksa: ${isi.map(({ r, anggota }) => `${r.nama} berisi ${daftarKata(anggota)}`).join('; ')}. Setiap orang ditempatkan tepat sekali dan kelima petunjuk terpenuhi.` });
   return {
     jawaban: isi.map(({ r, anggota }) => `${r.nama}: ${daftarKata(anggota)}`).join('; '),
     langkah,
@@ -83,7 +83,7 @@ function sidik(item: RoomItem, jawaban: Alokasi): string {
 
 export const roomSamaBeda: Family<RoomItem, Alokasi> = {
   id: 'RA-SAMA-BEDA',
-  versi: 2,
+  versi: 3, // v3: QC T05, batas hunian internal; keunikan dari petunjuk yang terlihat
   nama: 'Ruangan sama atau berbeda',
   chapter: chapterById('room-allocations'),
   label: 'SHL',
@@ -115,7 +115,7 @@ export const roomSamaBeda: Family<RoomItem, Alokasi> = {
     const item: RoomItem = {
       jenis: 'room-allocation',
       judul: konteks.judul,
-      instruksi: [konteks.perintah, `Setiap ruangan menampung maksimal ${KAPASITAS === 3 ? 'tiga' : KAPASITAS} orang.`],
+      instruksi: [konteks.perintah],
       ruang,
       kapasitas: KAPASITAS,
       orang: ids.map((id, i) => ({ id, nama: nama[i], petunjuk: [teksKendala(kendala[i], namaDari)!] })),
@@ -127,8 +127,9 @@ export const roomSamaBeda: Family<RoomItem, Alokasi> = {
   pecahkan: (item) => semuaAlokasi(item, item.kendala),
   kunci: (a) => Object.keys(a).sort().map((o) => `${o}=${a[o]}`).join(','),
 
-  periksa(item) {
+  periksa(item, jawaban) {
     const masalah: string[] = [];
+    if (!dalamKapasitas(item, jawaban)) masalah.push('hunian ruangan melebihi batas internal');
     const hitung = (j: string) => item.kendala.filter((k) => k.jenis === j).length;
     if (item.orang.length !== 5) masalah.push('jumlah orang bukan lima');
     if (hitung('di') !== 1 || hitung('sama') !== 2 || hitung('beda') !== 2) masalah.push('komposisi petunjuk bukan 1 langsung/2 sama/2 berbeda');

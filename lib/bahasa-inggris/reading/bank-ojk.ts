@@ -378,7 +378,7 @@ export const BANK_OJK: BacaanBank[] = [
           { t: 'Add examples that fit their own region', j: 'didukung', b: ['add local examples'], f: [['examples that fit their own region', 'local examples']],
             a: 'Paragraf 2 menyebut pengajar dapat menambahkan contoh lokal karena teksnya dapat disunting.' },
           { t: 'Sell printed copies to earn royalties', j: 'detail-salah', b: ['materials that earn no royalties'],
-            a: 'Buku terbuka justru tidak menghasilkan royalti; menjual salinan cetak tidak disebut.' },
+            a: 'Bacaan tidak menyebut penjualan cetakan sebagai perubahan yang dilakukan pengajar; bagian royalti menjelaskan kendala penghargaan bagi staf dalam konteks bacaan ini.' },
           { t: 'Add video lectures to each chapter', j: 'tidak-disebut', a: 'Jawaban ini terdengar wajar untuk buku daring, tetapi video kuliah tidak disebut; yang disebut adalah membuang bab, menambah contoh lokal, dan memperbaiki kesalahan.' },
           { t: 'Wait for the next official edition to fix errors', j: 'bertentangan', b: ['without waiting for a new edition'],
             a: 'Kesalahan dapat diperbaiki tanpa menunggu edisi baru.' },

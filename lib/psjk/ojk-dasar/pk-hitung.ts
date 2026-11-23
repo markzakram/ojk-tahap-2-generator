@@ -3,6 +3,7 @@ import type { Family } from '../../core/types';
 import { bahasPg, periksaFormatPg, susunOpsi, type JawabanPg, type PilihanGandaItem, type Tingkat } from '../../core/pilihan-ganda';
 import { chapterById } from '../../data/chapters';
 import { INSTRUKSI_PSJK, type SumberFakta } from '../umum';
+import { kapital } from './relasi';
 import { BSC, EB_PK, SLK9 } from './sumber';
 
 // Perencanaan Keuangan — hitungan sederhana (VARIASI). Bukan familyKurasi: setiap soal dibangun dari angka acak, kunci
@@ -267,7 +268,7 @@ function rasioCicilan(r: Rng, nama: string): Rancangan | null {
     jenis: 'rasio-cicilan', varian: dua ? '2cicilan' : '1cicilan', tingkat: dua ? 'menengah' : 'dasar', satuan: 'persen',
     pertanyaan: `Penghasilan bulanan ${nama} ${rp(pendapatan)}, pengeluaran pokoknya ${rp(pokok)}, dan ia membayar ${cicilanTeks} setiap bulan. Rasio cicilan terhadap penghasilan ${nama} (dibulatkan ke persen terdekat) adalah ....`,
     angka, benar: rasio, salah,
-    konsep: 'Rasio cicilan = total cicilan per bulan ÷ pendapatan bulanan × 100%; Buku Saku Cerdas memakai batas maksimal 30%. Rasio ini indikator, bukan keputusan akhir.',
+    konsep: 'Rasio cicilan = total cicilan per bulan ÷ pendapatan bulanan × 100%; batas yang lazim dipakai maksimal 30%. Rasio ini indikator, bukan keputusan akhir.',
     kataKunci: 'rasio cicilan terhadap penghasilan',
     langkah: [
       ...(dua ? [`Total cicilan = ${rp(c1)} + ${rp(c2)} = ${rp(total)}.`] : []),
@@ -351,9 +352,9 @@ function porsiSisihkan(r: Rng, nama: string): Rancangan | null {
   ];
   return {
     jenis: 'porsi-sisihkan', varian: pos, tingkat: 'menengah', satuan: 'rupiah',
-    pertanyaan: `Penghasilan bulanan ${nama} ${rp(penghasilan)}. Menurut acuan prinsip "sisihkan, bukan sisakan" dalam Buku Saku Cerdas Mengelola Keuangan, ${tanya} adalah ....`,
+    pertanyaan: `Penghasilan bulanan ${nama} ${rp(penghasilan)}. Ia memakai prinsip "sisihkan, bukan sisakan" dengan pembagian sekitar 10% untuk dana sosial, minimal 20% untuk investasi, maksimal 30% untuk cicilan utang, dan 40% untuk kebutuhan sehari-hari. ${kapital(tanya)} adalah ....`,
     angka: { penghasilan, porsiPersen: p }, benar: (penghasilan * p) / 100, salah,
-    konsep: 'Acuan Buku Saku Cerdas: sisihkan sekitar 10% untuk dana sosial, minimal 20% untuk investasi, maksimal 30% untuk cicilan utang, dan sisa 40% untuk kebutuhan sehari-hari.',
+    konsep: 'Sisihkan sekitar 10% untuk dana sosial, minimal 20% untuk investasi, maksimal 30% untuk cicilan utang, dan sisa 40% untuk kebutuhan sehari-hari.',
     kataKunci: `porsi ${teks}`,
     langkah: [`Porsi ${teks} = ${p}%.`, `${p}% × ${rp(penghasilan)} = ${rp((penghasilan * p) / 100)}.`],
     caraCepat: 'Ingat urutan 10–20–30–40: sosial, investasi, cicilan, kebutuhan.',
@@ -383,7 +384,7 @@ function rasioUtangAset(r: Rng, nama: string): Rancangan | null {
     jenis: 'rasio-utang-aset', varian: 'u2a3', tingkat: 'menantang', satuan: 'persen',
     pertanyaan: `${nama} memiliki tabungan ${rp(a0)}, investasi ${rp(a1)}, dan rumah senilai ${rp(a2)}. Utangnya terdiri atas sisa KPR ${rp(u0)} dan pinjaman kendaraan ${rp(u1)}. Rasio utang terhadap aset ${nama} (dibulatkan ke persen terdekat) adalah ....`,
     angka: { aset0: a0, aset1: a1, aset2: a2, utang0: u0, utang1: u1 }, benar: rasio, salah,
-    konsep: 'Rasio utang terhadap aset = total utang ÷ total aset × 100%; standar Buku 9 kurang dari 50%, Buku Saku Cerdas maksimal 50%.',
+    konsep: 'Rasio utang terhadap aset = total utang ÷ total aset × 100%; batas sehatnya di bawah 50% (paling tinggi 50%).',
     kataKunci: 'rasio utang terhadap aset',
     langkah: [`Total aset = ${rp(a0)} + ${rp(a1)} + ${rp(a2)} = ${rp(totA)}.`, `Total utang = ${rp(u0)} + ${rp(u1)} = ${rp(totU)}.`, `Rasio = ${rp(totU)} ÷ ${rp(totA)} × 100% = ${rasio}%.`],
     caraCepat: 'Utang di atas, aset di bawah.',
@@ -454,7 +455,7 @@ export const pkHitung: Family<ItemHitung, JawabanPg> = {
     for (const o of item.opsi) if (o.label !== j) opsiSalah[o.label] = d.alasanSalah[o.teks];
     const p = bahasPg({ item, kunci: j, konsep: d.konsep, kataKunci: d.kataKunci, alasan: d.langkah, opsiSalah, caraCepat: d.caraCepat });
     if (!p) return null;
-    return { ...p, langkah: [...p.langkah, { teks: `Sumber: ${d.sumber}${d.berlakuPer ? ` (berlaku per ${d.berlakuPer})` : ''}.` }] };
+    return p; // sumber penyusunan tetap di item.data.sumber (metadata internal), tidak dicetak di pembahasan peserta (QC T09)
   },
   sidik: (item) => `${ID}|${item.data.jenis}|${item.data.varian}`,
 };

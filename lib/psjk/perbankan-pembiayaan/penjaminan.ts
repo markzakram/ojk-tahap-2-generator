@@ -275,7 +275,7 @@ export const jaminKasus = familyKurasi({
     sumber: `${S.ebJamin}, §3.1.3 C`,
   }),
   butir('jamkrindo', 'dasar', 'kelembagaan', {
-    tanya: 'Jamkrindo, yang kantor wilayahnya tercantum dalam Seri Literasi Keuangan OJK Buku 7, dikenal sebagai lembaga yang bergerak di bidang ...',
+    tanya: 'Jamkrindo dikenal sebagai lembaga yang bergerak di bidang ...',
     jawab: 'Penjaminan kredit',
     salah: [
       ['Penjaminan simpanan nasabah bank', 'Penjaminan simpanan adalah fungsi LPS.'],

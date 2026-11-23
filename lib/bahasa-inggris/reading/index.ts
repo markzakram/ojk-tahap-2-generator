@@ -11,7 +11,7 @@ import { periksaPolaBank } from './model';
 
 export const rcOjk = familyReading({
   id: 'RC-OJK',
-  versi: 4,
+  versi: 5, // v5: QC 1 F08, alasan opsi salah soal buku terbuka dibatasi pada isi bacaan
   nama: 'Bacaan panjang, empat soal format riset',
   label: 'SHL',
   format: 'panjang',

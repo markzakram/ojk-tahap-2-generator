@@ -89,7 +89,7 @@ function bahasPsjk(item: ItemPsjk, j: JawabanPg) {
   for (const o of item.opsi) if (o.label !== j) opsiSalah[o.label] = d.alasanSalah[o.teks];
   const p = bahasPg({ item, kunci: j, konsep: d.konsep, kataKunci: d.kataKunci, alasan: d.alasan, opsiSalah, caraCepat: d.caraCepat });
   if (!p) return null;
-  return { ...p, langkah: [...p.langkah, { teks: `Sumber: ${d.sumber}${d.berlakuPer ? ` (berlaku per ${d.berlakuPer})` : ''}.` }] };
+  return p; // sumber penyusunan tetap di item.data.sumber (metadata internal), tidak dicetak di pembahasan peserta (QC T09)
 }
 
 interface InfoFamily {

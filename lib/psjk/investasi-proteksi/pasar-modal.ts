@@ -29,7 +29,7 @@ const RD_NAMA: Record<keyof typeof RD_DEF, string> = {
 function butirRd(k: 'saham' | 'pt' | 'campuran' | 'pu', tambahan: string): ButirKurasi {
   return {
     id: `rd-${k}`, tingkat: 'menengah', topik: 'jenis-reksa-dana', sumber: `${BS}, bab 2.1.4 B (Jenis Reksa Dana)`, berlakuPer: RD_BERLAKU,
-    pertanyaan: `Menurut Buku Saku Pasar Modal OJK (2023), berdasarkan karakteristik portofolionya, ${RD_NAMA[k]} adalah reksa dana yang ....`,
+    pertanyaan: `Berdasarkan karakteristik portofolionya, ${RD_NAMA[k]} adalah reksa dana yang ....`,
     jawaban: RD_DEF[k],
     pengecoh: (Object.keys(RD_DEF) as (keyof typeof RD_DEF)[]).filter((x) => x !== k).map((x) => P(RD_DEF[x], `Itu ciri ${RD_NAMA[x]}, bukan ${RD_NAMA[k]}.`)),
     konsep: 'Jenis reksa dana konvensional berdasarkan portofolio', kataKunci: RD_NAMA[k],
@@ -99,20 +99,6 @@ const FAKTA: ButirKurasi[] = [
     konsep: 'Bentuk hukum reksa dana', kataKunci: 'bentuk hukum reksa dana',
     alasan: ['Bentuk hukum reksa dana ada dua: reksa dana berbentuk perseroan dan reksa dana berbentuk kontrak investasi kolektif (KIK).'],
     caraCepat: 'Reksa dana: PT atau KIK.',
-  },
-  {
-    id: 'kik', tingkat: 'menengah', topik: 'reksa-dana', sumber: `${BS}, bab 2.1.4 A`,
-    pertanyaan: 'Dalam reksa dana berbentuk kontrak investasi kolektif (KIK), kontraknya dibuat antara ....',
-    jawaban: 'manajer investasi dan bank kustodian, yang juga mengikat pemegang unit penyertaan',
-    pengecoh: [
-      P('emiten dan Bursa Efek Indonesia, yang juga mengikat seluruh pemegang saham emiten', 'Emiten dan BEI bukan pihak dalam kontrak KIK reksa dana.'),
-      P('investor dan OJK, yang juga mengikat agen penjual efek reksa dana yang ditunjuk', 'OJK adalah pengawas, bukan pihak kontrak KIK.'),
-      P('agen penjual efek reksa dana dan KPEI, tanpa melibatkan manajer investasi', 'APERD dan KPEI bukan pihak kontrak KIK.'),
-      P('bank kustodian dan KSEI, tanpa melibatkan manajer investasi pengelola', 'Manajer investasi justru pihak utama kontrak KIK.'),
-    ],
-    konsep: 'Kontrak investasi kolektif', kataKunci: 'reksa dana berbentuk KIK',
-    alasan: ['Kontrak KIK dibuat antara manajer investasi dan bank kustodian dan mengikat pemegang unit penyertaan; manajer investasi mengelola portofolio, bank kustodian melaksanakan penitipan kolektif dan administrasi.'],
-    caraCepat: 'KIK = MI + bank kustodian, mengikat investor.',
   },
   {
     id: 'pasar-tunai', tingkat: 'menengah', topik: 'penyelesaian', sumber: `${EB}, subbab 3.1.12`, berlakuPer: 'ketentuan BEI tentang segmen pasar dan waktu penyelesaian',
@@ -406,20 +392,6 @@ const KASUS: ButirKurasi[] = [
     caraCepat: 'Pesanan > penawaran → penjatahan + refund.',
   },
   {
-    id: 'sekuritisasi', tingkat: 'menantang', topik: 'instrumen', sumber: `${BS}, bab 2.1.6`,
-    pertanyaan: 'Sebuah bank mengalihkan kumpulan tagihan KPR kepada KIK EBA melalui jual beli putus (true sale), lalu KIK EBA menerbitkan efek kepada investor. Tujuan utama proses ini adalah ....',
-    jawaban: 'mengubah aset yang tidak likuid menjadi likuid melalui sekuritisasi',
-    pengecoh: [
-      P('menghapus kewajiban para debitur KPR untuk membayar cicilan kepada bank', 'Debitur tetap membayar; arus kasnya menjadi dasar EBA.'),
-      P('menjadikan investor sebagai pemilik saham bank yang menjual tagihan KPR', 'Investor memegang EBA, bukan saham bank.'),
-      P('menjamin investor bebas dari risiko gagal bayar para debitur KPR', 'EBA tetap memiliki risiko yang bergantung pada aset dasarnya.'),
-      P('menggantikan fungsi bank kustodian sebagai penyimpan aset KIK EBA', 'Bank kustodian tetap berperan dalam penitipan aset KIK EBA.'),
-    ],
-    konsep: 'Sekuritisasi aset', kataKunci: 'tagihan KPR dialihkan ke KIK EBA',
-    alasan: ['Sekuritisasi menjadikan aset tidak likuid menjadi likuid dengan menjual sekumpulan aset dari originator kepada KIK EBA melalui true sale; originator menerima dana dan investor memperoleh imbal hasil.'],
-    caraCepat: 'Tagihan dikumpulkan dan dijual sebagai efek = sekuritisasi (EBA).',
-  },
-  {
     id: 'majemuk-sro', tingkat: 'menantang', topik: 'infrastruktur', sumber: `${EB}, subbab 3.1.4; ${BS}, bab 1.4.1`,
     pertanyaan: 'Perhatikan pernyataan berikut.\n(1) KPEI menjalankan kliring dan penjaminan penyelesaian transaksi bursa.\n(2) KSEI menyelenggarakan kustodian sentral dan penyelesaian transaksi efek.\n(3) OJK mempertemukan order beli dan jual saham setiap hari.\n(4) BEI menjamin harga saham akan naik.\nPernyataan yang benar adalah ....',
     jawaban: '(1) dan (2)',
@@ -478,20 +450,6 @@ const TABEL_PELAKU: TabelRelasi[] = [
       bL('ppe-rating', 'perusahaan pemeringkat efek', 'pihak yang memberi opini tentang kemampuan memenuhi kewajiban pembayaran secara penuh dan tepat waktu', 'menengah'),
       bL('pi', 'penasihat investasi', 'pihak yang memberi rekomendasi jual beli efek kepada pihak lain dengan memperoleh imbalan jasa', 'menengah'),
       bL('emiten', 'emiten', 'pihak yang melakukan penawaran umum efek kepada masyarakat'),
-    ],
-  },
-  {
-    id: 'profesi', topik: 'profesi-penunjang',
-    tanyaNilai: (s) => `Dalam kegiatan pasar modal, ${s} adalah ....`,
-    tanyaSubjek: (n) => `Dalam kegiatan pasar modal, ${n} adalah ....`,
-    alasanSalah: alasanRelasi, kalimat: kalimatRelasi, konsep: 'Profesi penunjang dan profesi pelaku usaha pasar modal',
-    caraCepat: 'Akuntan = opini laporan keuangan; konsultan hukum = legal opinion; penilai = nilai aset/usaha; notaris = akta; ASPM = kesesuaian syariah.',
-    baris: [
-      bPr('akuntan', 'akuntan publik', 'profesi penunjang yang memberikan opini atas informasi keuangan pihak di pasar modal'),
-      bPr('hukum', 'konsultan hukum', 'profesi penunjang yang memberikan pendapat hukum mengenai emiten untuk dimuat dalam prospektus'),
-      bPr('penilai', 'penilai', 'profesi penunjang yang menaksir properti, badan usaha, dan instrumen keuangan', 'menengah'),
-      bPr('notaris', 'notaris', 'pejabat umum yang membuat akta otentik, misalnya perubahan anggaran dasar emiten'),
-      bPr('aspm', 'Ahli Syariah Pasar Modal (ASPM)', 'orang perseorangan yang memberi nasihat atau pernyataan kesesuaian syariah atas produk pasar modal', 'menengah'),
     ],
   },
 ];

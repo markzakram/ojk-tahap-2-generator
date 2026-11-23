@@ -48,3 +48,14 @@ Hal yang ditemukan QC independen (November 2026) tetapi tidak diputuskan sendiri
 1. Cara cepat masih cukup panjang bila soal memuat banyak jenis petunjuk.
 2. Label tingkat tampil di judul soal di Studio; pertimbangkan menyembunyikannya bila komponen dipakai di tryout.
 3. Nama terbatas pada 26 nama bank foto; konteks BDG-SHL-KANTOR dan BDG-SHL-GAJI masing-masing satu konteks (sesuai SHL).
+
+## QC 1 PCAM Tahap 2 (19 November 2026) — sisa tindak lanjut
+
+Temuan QC TO-01 yang sudah diterapkan pada family tercatat di README (bagian "QC 1 PCAM Tahap 2"). Yang berikut belum selesai atau butuh keputusan:
+
+1. **Visual pembahasan belum dibuat**: T01 (Fill Shape per objek — Hijau 1/Hijau 2/Ungu 1, lintasan G1–G5 dengan objek lain diredupkan, gabungan G5 sama dengan kunci), T04 (Drag the Line — jalur jawaban beranotasi per sambungan, awalan dikunci, komponen penentu disorot), dan T07 (Deduktif — irisan hari tersedia pada Calendar, penempatan bertahap pada denah Room, lajur urutan Badges, skala waktu dengan blok yang digeser pada Timeline/Timeslot). Pembahasan saat ini masih berupa langkah teks.
+2. **Finance lease dan sale and leaseback** tetap ditanyakan karena merupakan inti chapter Perusahaan Pembiayaan; QC menandainya PENGAYAAN (definisi dan pembeda skema belum diuraikan materi folder). Mohon materi folder ditambah uraiannya, atau putuskan butir ini dikeluarkan (tabel relasi cara pembiayaan perlu lima baris).
+3. **Drag the Line 2 Character tanpa family SHL**: satu-satunya family SHL (DL-SELANG, contoh blueprint hlm. 9) berbasis deret huruf–angka, sehingga dikeluarkan bersama DL-BERTINGKAT, DL-SISIP, DL-OPERASI, dan DL-SIKLIS sesuai T03. Chapter ini kini memakai DL-DOMINO dan DL-SAMBUNG-UJUNG (VARIASI). Bila tim tetap ingin pola SHL hlm. 9, mohon konfirmasi bahwa T03 tidak berlaku untuk chapter ini.
+4. **Cakupan materi folder belum diperiksa menyeluruh**: pengayaan yang dikeluarkan hanya 13 butir yang disebut QC untuk TO-01. Butir SJK lain di bank belum dicocokkan satu per satu dengan 16 materi folder acuan.
+5. **Ekspor SiAdu 6 bentuk interaktif**: Fill Shape, Node Arrow Navigation, Calendar Date Selection, Place and Room Allocations, Timeline Scheduling, dan Timeslot Scheduling belum punya template Auto Input. Ekspor saat ini berupa berkas usulan (tabel data + kunci). Mohon tangkapan layar formulir SiAdu untuk bentuk tersebut agar ekspor disesuaikan dengan kolomnya.
+6. **Uji tampilan pada perangkat peserta** (T02/T08, F06): jarak aman ruas Drag the Line (≥ 0,85 satuan dari pusat simpul lain) dan font simpul sudah diterapkan di generator, tetapi belum diuji pada aplikasi/ukuran layar peserta yang sebenarnya.

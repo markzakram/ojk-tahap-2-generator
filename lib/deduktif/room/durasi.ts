@@ -1,7 +1,7 @@
 import type { Family, LangkahPembahasan } from '../../core/types';
 import { chapterById } from '../../data/chapters';
 import { NAMA_RUANGAN, daftarKata } from '../../data/nama';
-import { durasiOrang, kunciAlokasi, semuaAlokasi, type Alokasi, type KendalaRuang, type RoomItem } from './model';
+import { dalamKapasitas, durasiOrang, kunciAlokasi, semuaAlokasi, type Alokasi, type KendalaRuang, type RoomItem } from './model';
 
 // Blueprint Room Allocations bagian 4 — "Pembagian ruang berdasarkan durasi rapat".
 // Sumber: contoh 2.pdf hlm. 1 (Meeting Room Requirements) berisi empat orang; blueprint menyesuaikannya menjadi lima orang
@@ -27,7 +27,7 @@ const kombinasi = <T,>(xs: T[], k: number): T[][] =>
 
 export const roomDurasi: Family<RoomItem, Alokasi> = {
   id: 'RA-DURASI',
-  versi: 1,
+  versi: 2, // v2: QC T05, batas hunian internal (tidak ditulis); 3–2 dipaksa durasi
   nama: 'Pembagian ruang menurut durasi rapat',
   chapter: chapterById('room-allocations'),
   label: 'SHL',
@@ -65,7 +65,7 @@ export const roomDurasi: Family<RoomItem, Alokasi> = {
       judul: r.pick(KONTEKS),
       instruksi: [
         `Ruang Barat dan Ruang Timur masing-masing tersedia pukul ${h.mulai}–${h.selesai}.`,
-        'Rapat dalam satu ruangan berlangsung bergantian tanpa jeda dan harus selesai dalam jam tersebut; setiap ruangan menampung maksimal tiga orang.',
+        'Rapat dalam satu ruangan berlangsung bergantian tanpa jeda dan harus selesai dalam jam tersebut.',
         'Bagilah kelima orang ke ruangan agar semua rapat dapat berlangsung.',
       ],
       ruang: RUANG,
@@ -84,9 +84,13 @@ export const roomDurasi: Family<RoomItem, Alokasi> = {
   pecahkan: (item) => semuaAlokasi(item),
   kunci: kunciAlokasi,
 
-  periksa(item) {
+  periksa(item, jawaban) {
     const masalah: string[] = [];
     if (item.orang.length !== 5) masalah.push('jumlah orang bukan lima');
+    if (!dalamKapasitas(item, jawaban)) masalah.push('hunian ruangan melebihi batas internal');
+    // tanpa batas hunian yang tertulis, pembagian tiga–dua harus terpaksa oleh durasi: empat orang mana pun melebihi jam tersedia
+    const jamOrang = item.orang.map((o) => durasiOrang(item.kendala, o.id)).sort((a, b) => a - b);
+    if (jamOrang.slice(0, 4).reduce((s, x) => s + x, 0) <= jamMaks(item)) masalah.push('empat orang muat dalam satu ruangan');
     if (item.kendala.filter((k) => k.jenis === 'di').length !== 1) masalah.push('pilihan ruang tertentu bukan satu orang');
     const total = item.orang.reduce((s, o) => s + durasiOrang(item.kendala, o.id), 0);
     // Soal harus menuntut perhitungan durasi: tanpa batas jam, pembagian tidak boleh tunggal.
@@ -103,7 +107,9 @@ export const roomDurasi: Family<RoomItem, Alokasi> = {
     const JAM = jamMaks(item);
     const langkah: LangkahPembahasan[] = [];
     langkah.push({ teks: `Total durasi: ${ids.map(jam).join(' + ')} = ${total} jam; dua ruangan menyediakan 2 × ${JAM} = ${2 * JAM} jam.` });
-    langkah.push({ teks: 'Dengan maksimal tiga orang per ruangan, satu ruangan berisi tiga orang dan ruangan lainnya dua orang.' });
+    const empat = ids.map(jam).sort((a, b) => a - b).slice(0, 4).reduce((s, x) => s + x, 0);
+    if (empat <= JAM) return null;
+    langkah.push({ teks: `Empat orang tidak mungkin berada dalam satu ruangan: empat durasi terpendek saja sudah ${empat} jam, melebihi ${JAM} jam. Jadi satu ruangan berisi tiga orang dan ruangan lainnya dua orang.` });
     const trio = kombinasi(ids, 3).map((t) => {
       const sisa = ids.filter((id) => !t.includes(id));
       return { t, sisa, jt: t.reduce((s, id) => s + jam(id), 0), js: sisa.reduce((s, id) => s + jam(id), 0) };

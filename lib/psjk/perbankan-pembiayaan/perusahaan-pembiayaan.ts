@@ -14,8 +14,8 @@ const POJK_PP_BARU = 'POJK 46/2024 jo. POJK 35/2025';
 const CARA: TabelRelasi = {
   id: 'cara-pembiayaan',
   topik: 'cara pembiayaan',
-  tanyaNilai: (s) => `Dalam kegiatan perusahaan pembiayaan, cara pembiayaan ${s} adalah ...`,
-  tanyaSubjek: (n) => `Cara pembiayaan perusahaan pembiayaan berupa ${n} disebut ...`,
+  tanyaNilai: (s) => `Cara pembiayaan ${s} adalah ...`, // QC F03: tanpa nama lembaga yang menjadi kunci soal lain di chapter ini
+  tanyaSubjek: (n) => `Cara pembiayaan berupa ${n} disebut ...`, // QC F03: tanpa nama lembaga yang menjadi kunci soal lain di chapter ini
   alasanSalah: alasanRelasi('adalah'),
   kalimat: kalimatRelasi('adalah'),
   konsep: 'Cara pembiayaan perusahaan pembiayaan: sewa pembiayaan (finance lease), jual dan sewa balik (sale and leaseback), anjak piutang (factoring), pembelian dengan pembayaran secara angsuran, dan fasilitas dana.',
@@ -32,8 +32,8 @@ const CARA: TabelRelasi = {
 const KEGIATAN: TabelRelasi = {
   id: 'kegiatan-usaha',
   topik: 'kegiatan usaha perusahaan pembiayaan',
-  tanyaNilai: (s) => `Dalam kegiatan usaha perusahaan pembiayaan, ${s} adalah ...`,
-  tanyaSubjek: (n) => `Kegiatan usaha perusahaan pembiayaan berupa ${n} disebut ...`,
+  tanyaNilai: (s) => `Dalam kegiatan usaha pembiayaan, ${s} adalah ...`, // QC F03: tanpa nama lembaga yang menjadi kunci soal lain di chapter ini
+  tanyaSubjek: (n) => `Kegiatan usaha pembiayaan berupa ${n} disebut ...`, // QC F03: tanpa nama lembaga yang menjadi kunci soal lain di chapter ini
   alasanSalah: alasanRelasi('adalah'),
   kalimat: kalimatRelasi('adalah'),
   konsep: 'Kegiatan usaha perusahaan pembiayaan: pembiayaan investasi, modal kerja, multiguna, kegiatan pembiayaan lain dengan persetujuan OJK, serta sewa operasi dan kegiatan berbasis imbal jasa.',
@@ -319,7 +319,7 @@ export const ppKasus = familyKurasi({
     jawab: 'Penagihan dan penanganan jaminan mengikuti prosedur hukum.',
     salah: [
       ['Penagihan cukup mengikuti keputusan petugas.', 'Keputusan petugas tidak dapat menggantikan ketentuan hukum dan perjanjian.'],
-      ['Barang dapat langsung ditarik perusahaan begitu cicilan terlambat.', 'Sumber menegaskan keterlambatan tidak berarti barang langsung ditarik tanpa prosedur hukum.'],
+      ['Barang dapat langsung ditarik perusahaan begitu cicilan terlambat.', 'Keterlambatan tidak berarti barang langsung ditarik tanpa prosedur hukum.'],
       ['Penagihan ditentukan oleh nilai pasar kendaraan.', 'Nilai pasar kendaraan bukan dasar prosedur penagihan.'],
       ['Tunggakan dihapus bila konsumen terlambat tiga bulan.', 'Kewajiban konsumen tidak hapus karena keterlambatan.'],
     ],
@@ -385,7 +385,7 @@ export const ppKasus = familyKurasi({
     sumber: `${S.buku5}, Bab 3 (hlm. 63)`,
   }),
   butir('biaya-kecuali', 'menengah', 'hak konsumen', {
-    tanya: 'Menurut Buku Saku Cerdas Mengelola Keuangan (OJK), biaya-biaya dalam produk pembiayaan antara lain sebagai berikut, KECUALI ...',
+    tanya: 'Biaya yang lazim dikenakan dalam produk pembiayaan antara lain sebagai berikut, KECUALI ...',
     jawab: 'Premi penjaminan simpanan LPS',
     salah: [
       ['Biaya administrasi', ALASAN_BIAYA],
@@ -444,7 +444,7 @@ export const ppKasus = familyKurasi({
     sumber: `${S.ebPp}, §3.1.2, §3.1.7, §3.1.20`,
   }),
   butir('pojk-pp', 'menengah', 'regulasi', {
-    tanya: 'Menurut e-book Perusahaan Pembiayaan, kerangka regulasi pengembangan dan penguatan perusahaan pembiayaan yang perlu diketahui adalah ...',
+    tanya: 'Ketentuan OJK yang mengatur pengembangan dan penguatan perusahaan pembiayaan adalah ...',
     jawab: 'POJK 46/2024 jo. POJK 35/2025',
     salah: [
       ['POJK 39/2024 jo. POJK 29/2025', 'Keduanya mengatur pergadaian.'],
@@ -596,7 +596,7 @@ const tEfektif: TemplateHitung = {
   id: 'efektif-bulan-2', tingkat: 'menantang', topik: 'bunga efektif',
   sumber: `${S.ebPp}, §3.1.3 dan §3.1.20; ${S.bsc}, Bab VI (hlm. 90)`,
   parameter: kombinasi({ pokok: [12e6, 24e6, 36e6], bunga: [12, 18, 24] }, (p) => bulat(((p.pokok - p.pokok / 12) * p.bunga) / 1200)),
-  pertanyaan: (p) => `Pembiayaan ${rp(p.pokok)} memakai bunga efektif ${p.bunga}% per tahun dengan tenor 12 bulan. Angsuran pokok tetap ${rp(p.pokok / 12)} setiap bulan, sedangkan bunga setiap bulan dihitung dari sisa pokok. Besar bunga pada bulan ke-2 adalah ...`,
+  pertanyaan: (p) => `Pembiayaan ${rp(p.pokok)} memakai bunga efektif ${p.bunga}% per tahun dengan tenor 12 bulan. Angsuran pokok tetap ${rp(p.pokok / 12)} setiap bulan, sedangkan bunga bulanan ${String(p.bunga / 12).replace('.', ',')}% (${p.bunga}% ÷ 12) dihitung atas sisa pokok awal bulan. Besar bunga pada bulan ke-2 adalah ...`,
   hitung: (p) => ((p.pokok - p.pokok / 12) * p.bunga) / 1200,
   pengecoh: (p) => [
     { nilai: (p.pokok * p.bunga) / 1200, alasan: 'Itu bunga bulan pertama (dari pokok awal); setelah angsuran pertama, sisa pokok sudah berkurang.' },

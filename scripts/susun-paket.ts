@@ -5,7 +5,8 @@
 import { writeFileSync } from 'node:fs';
 import { FAMILIES } from '../lib/core/registry';
 import { CHAPTERS } from '../lib/data/chapters';
-import { ringkasPaket, susunPaket } from '../lib/paket/susun';
+import { bangunSlot } from '../lib/paket/hasil';
+import { hitungBocor, ringkasPaket, susunPaket } from '../lib/paket/susun';
 
 const benih = process.argv[2] ?? 'pcam-10';
 const t0 = Date.now();
@@ -43,7 +44,10 @@ for (const p of hasil.paket) {
 }
 const terpakai = new Set(slot.map((s) => s.familyId).filter(Boolean));
 const tidakTerpakai = FAMILIES.filter((f) => !terpakai.has(f.id)).map((f) => f.id);
-console.log(`\nPemeriksaan: Reading utuh ${galat.length ? '✗' : '✓'} · deret 3 kunci sama ${deret3} · family tidak terpakai: ${tidakTerpakai.join(', ') || '-'}`);
+// QC F03: dua soal satu paket tidak boleh saling membocorkan (kunci yang satu muncul di batang soal yang lain)
+const bocor = hitungBocor(hasil, (s) => bangunSlot(s) ?? undefined);
+if (bocor) galat.push(`${bocor} pasangan soal saling membocorkan di dalam paket (QC F03)`);
+console.log(`\nPemeriksaan: Reading utuh ${galat.some((g) => g.includes('Reading')) ? '✗' : '✓'} · deret 3 kunci sama ${deret3} · soal saling membocorkan ${bocor} · family tidak terpakai: ${tidakTerpakai.join(', ') || '-'}`);
 const tryout = hasil.paket.filter((p) => p.jenis === 'tryout');
 for (const st of ['induktif', 'deduktif', 'bahasa-inggris', 'sjk'] as const) {
   const per = tryout.map((p) => p.bagian.find((b) => b.subtes === st)!.slot);

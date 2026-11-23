@@ -91,6 +91,8 @@ function bangunRapat(r: Rng, tanya: 'lebih-awal' | 'paling-akhir', pilihanDurasi
   // Tiga orang: minimal satu harus menggeser satu kegiatan agar blok jawaban sah.
   const mode = r.shuffle(['geser', r.pick(['geser', 'bebas']), 'bebas']);
   const pemegangDemo = kel.demo ? r.int(0, 2) : -1;
+  // QC F04: demo hanya disebut di paragraf bila benar-benar terpasang pada kalender seseorang
+  let demoTerpasang = false;
   const baris: BarisTL[] = [];
   for (let p = 0; p < 3; p++) {
     const terpakai = kosong();
@@ -114,7 +116,7 @@ function bangunRapat(r: Rng, tanya: 'lebih-awal' | 'paling-akhir', pilihanDurasi
       const m = r.int(0, KOTAK_TL - dd);
       let ok = true;
       for (let i = m; i < m + dd; i++) if (blokir[i]) ok = false;
-      if (ok) { tandai(blokir, m, dd); kegiatan.push({ id: idBaru(), nama: kel.demo!, mulai: m, durasi: dd, bisaGeser: false }); }
+      if (ok) { tandai(blokir, m, dd); kegiatan.push({ id: idBaru(), nama: kel.demo!, mulai: m, durasi: dd, bisaGeser: false }); demoTerpasang = true; }
     }
     kegiatan.push(...isiAcak(r, blokir, r.int(4, 6) - kegiatan.length, nama, true));
     if (kegiatan.length < 4) return null;
@@ -130,7 +132,7 @@ function bangunRapat(r: Rng, tanya: 'lebih-awal' | 'paling-akhir', pilihanDurasi
         ? `${kel.target} saat ini dijadwalkan pukul ${rentangTL(S, d)} di Kalender Anda, tetapi perlu dimajukan ke waktu yang lebih awal${durasiTeks}.`
         : `${kel.target} semula dijadwalkan pukul ${rentangTL(S, d)}, tetapi harus dipindahkan agar selesai paling lambat pukul ${jamTL(batas!)}${durasiTeks}.`,
       `${daftarKata(namaOrang)} harus hadir; masing-masing boleh menggeser paling banyak satu kegiatannya sejauh 30 menit (lebih awal atau lebih lambat) sebagai satu blok utuh.`,
-      kel.demo ? `${kel.demo} dan semua janji di Kalender Anda tidak boleh dipindah.` : 'Semua janji di Kalender Anda tidak boleh dipindah.',
+      demoTerpasang ? `${kel.demo} dan semua janji di Kalender Anda tidak boleh dipindah.` : 'Semua janji di Kalender Anda tidak boleh dipindah.',
     ],
     pertanyaan: tanya === 'lebih-awal'
       ? `Pilih waktu yang lebih awal untuk ${kel.target} pada Kalender Anda.`
@@ -390,7 +392,7 @@ interface DefTL {
 
 function family(p: DefTL): Family<TimelineItem, number[]> {
   return {
-    id: p.id, versi: 1, nama: p.nama, label: p.label, sumber: p.sumber, ringkas: p.ringkas,
+    id: p.id, versi: 2, nama: p.nama, label: p.label, sumber: p.sumber, ringkas: p.ringkas, // v2: QC F04 demo hanya disebut bila terpasang
     chapter: chapterById('timeline-scheduling'),
     bangun: p.bangun,
     pecahkan: pecahkanTimeline,

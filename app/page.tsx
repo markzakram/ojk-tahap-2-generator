@@ -1,6 +1,6 @@
-import Paket from '@/components/Paket';
+import Aplikasi from '@/components/gen/Aplikasi';
 
-// Halaman utama Tahap 2 = generator paket (alur langkah 1–7 seperti Tahap 1); tab "Tahap 2" dan Portal membuka halaman ini.
+// Halaman utama Tahap 2 = generator bergaya UTBK/SKD (Dasbor, Buat paket, Hasil paket, Ekspor); tab "Tahap 2" dan Portal membuka halaman ini.
 export default function Page() {
-  return <Paket />;
+  return <Aplikasi awal="buat" />;
 }

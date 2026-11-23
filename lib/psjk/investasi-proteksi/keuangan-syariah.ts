@@ -274,21 +274,6 @@ const KASUS: ButirKurasi[] = [
     caraCepat: 'Bebas = muthlaqah; dibatasi syarat = muqayyadah.',
   },
   {
-    id: 'muqayyadah', tingkat: 'menengah', topik: 'mudharabah', sumber: `${B8} (Deposito/Investasi Khusus Terikat)`,
-    pertanyaan: 'Seorang investor institusi menempatkan dana di bank syariah dengan syarat dana hanya disalurkan ke proyek tertentu yang ia pilih, dan hasilnya bergantung pada keberhasilan proyek itu. Prinsip yang digunakan adalah ....',
-    jawaban: 'mudharabah muqayyadah',
-    pengecoh: [
-      P('mudharabah muthlaqah', 'Pada muthlaqah nasabah tidak memberi syarat penggunaan dana.'),
-      P("wadi'ah yad dhamanah", 'Wadiah adalah titipan, bukan investasi pada proyek pilihan.'),
-      P('qardh', 'Qardh adalah pinjaman dengan pengembalian pokok.'),
-      P('ijarah', 'Ijarah adalah sewa manfaat.'),
-      P('musyarakah mutanaqisah', 'Musyarakah mutanaqisah adalah kerja sama kepemilikan aset yang porsi salah satu mitra berkurang bertahap, bukan penempatan dana investasi terikat.'),
-    ],
-    konsep: 'Investasi terikat', kataKunci: 'dana disalurkan ke proyek tertentu pilihan nasabah',
-    alasan: ['Pada mudharabah al-muqayyadah (investasi terikat), nasabah menetapkan syarat tertentu, misalnya bisnis atau proyek tertentu, dan hasilnya terkait langsung dengan keberhasilan proyek tersebut.'],
-    caraCepat: 'Ada syarat penyaluran dari nasabah = muqayyadah.',
-  },
-  {
     id: 'posisi-penghimpunan', tingkat: 'menengah', topik: 'mudharabah', sumber: `${EB}, subbab 3.1.5 dan 3.1.7`,
     pertanyaan: 'Nasabah menempatkan dana pada produk penghimpunan dana berakad mudharabah di bank syariah. Kedudukan para pihak dalam akad tersebut adalah ....',
     jawaban: 'nasabah sebagai shahibul mal dan bank sebagai mudharib',
@@ -474,7 +459,7 @@ const KASUS: ButirKurasi[] = [
   },
   {
     id: 'reksa-dana-syariah', tingkat: 'menengah', topik: 'pasar-modal-syariah', sumber: `${SUMBER.bspm}, bab 2.1.4 B (Reksa Dana Syariah); ${EB}, subbab 3.1.15`, berlakuPer: 'Buku Saku Pasar Modal 2023',
-    pertanyaan: 'Menurut Buku Saku Pasar Modal OJK (2023), pernyataan yang tepat mengenai portofolio reksa dana syariah adalah ....',
+    pertanyaan: 'Pernyataan yang tepat mengenai portofolio reksa dana syariah adalah ....',
     jawaban: 'reksa dana syariah hanya berinvestasi pada efek yang termasuk Daftar Efek Syariah',
     pengecoh: [
       P('reksa dana syariah boleh berinvestasi pada efek apa pun asalkan namanya berlabel syariah', 'Label saja tidak cukup; efeknya harus termasuk DES.'),
@@ -483,7 +468,7 @@ const KASUS: ButirKurasi[] = [
       P('reksa dana syariah tidak memerlukan manajer investasi dalam pengelolaannya', 'Reksa dana syariah tetap dikelola manajer investasi.'),
     ],
     konsep: 'Reksa dana syariah', kataKunci: 'portofolio reksa dana syariah',
-    alasan: ['Buku Saku Pasar Modal 2023: reksa dana syariah hanya berinvestasi pada efek yang masuk kategori DES.', 'Keuntungannya tidak dijamin, dan nilai investasinya tetap dapat berubah.'],
+    alasan: ['Reksa dana syariah hanya berinvestasi pada efek yang masuk kategori DES.', 'Keuntungannya tidak dijamin, dan nilai investasinya tetap dapat berubah.'],
     caraCepat: 'Reksa dana syariah → portofolio dari DES.',
   },
 ];

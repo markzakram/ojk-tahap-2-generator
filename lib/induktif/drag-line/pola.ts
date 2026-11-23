@@ -17,6 +17,29 @@ export interface DragLineItem {
 }
 
 export const JARI_JARI = 0.5;
+/** QC T02: ruas jalur jawaban harus berjarak ≥ jari-jari simpul + 0,35 dari pusat setiap simpul lain (tebal garis dan area sentuh). */
+export const JARAK_AMAN = JARI_JARI + 0.35;
+
+function jarakKeRuas(p: { x: number; y: number }, a: { x: number; y: number }, b: { x: number; y: number }): number {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy || 1)));
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+}
+
+/** Ruas jalur yang melintas terlalu dekat dengan simpul selain kedua ujungnya (kosong bila aman). */
+export function ruasMenabrak(simpul: Simpul[], jalur: string[]): { dari: string; ke: string; simpul: string; jarak: number }[] {
+  const per = new Map(simpul.map((x) => [x.id, x]));
+  const hasil: { dari: string; ke: string; simpul: string; jarak: number }[] = [];
+  for (let i = 0; i + 1 < jalur.length; i++) {
+    const a = per.get(jalur[i])!, b = per.get(jalur[i + 1])!;
+    for (const x of simpul) {
+      if (x.id === a.id || x.id === b.id) continue;
+      const d = jarakKeRuas(x, a, b);
+      if (d < JARAK_AMAN) hasil.push({ dari: a.id, ke: b.id, simpul: x.id, jarak: +d.toFixed(3) });
+    }
+  }
+  return hasil;
+}
 const LEBAR = 10, TINGGI = 6.4;
 
 /** Sebar n simpul acak di kanvas, jarak antarpusat ≥ 1,9 satuan, tepi ≥ 0,8 satuan. */
@@ -55,17 +78,23 @@ const PANJANG_CHAPTER: Record<string, number> = { 'drag-the-line-2': 2, 'drag-th
 function buat(cfg: CfgDL): Family<DragLineItem, string[]> {
   const kodeUrut = (item: DragLineItem, jawaban: string[]) => jawaban.map((id) => item.simpul.find((s) => s.id === id)!.kode);
   return {
-    id: cfg.id, versi: 1, nama: cfg.nama, chapter: chapterById(cfg.chapter), label: cfg.label, sumber: cfg.sumber, ringkas: cfg.ringkas,
+    // v2: QC T02, tata letak menjauhkan ruas jalur jawaban dari simpul lain
+    id: cfg.id, versi: 2, nama: cfg.nama, chapter: chapterById(cfg.chapter), label: cfg.label, sumber: cfg.sumber, ringkas: cfg.ringkas,
     maksPercobaan: 800,
     bangun(r) {
       const kode = cfg.bangun(r);
       if (!kode) return null;
-      const pos = tata(r, kode.length);
-      if (!pos) return null;
       const acak = r.shuffle(kode.map((_, i) => i));
-      const simpul: Simpul[] = acak.map((asal, j) => ({ id: `s${j + 1}`, kode: kode[asal], ...pos[j] }));
-      const jawaban = kode.map((_, i) => simpul[acak.indexOf(i)].id);
-      return { item: { jenis: 'drag-line', simpul, awalan: jawaban.slice(0, cfg.awalan), lebar: LEBAR, tinggi: TINGGI }, jawaban };
+      // tata letak diulang sampai tidak ada ruas jalur jawaban yang melintasi simpul lain (QC T02)
+      for (let coba = 0; coba < 80; coba++) {
+        const pos = tata(r, kode.length);
+        if (!pos) continue;
+        const simpul: Simpul[] = acak.map((asal, j) => ({ id: `s${j + 1}`, kode: kode[asal], ...pos[j] }));
+        const jawaban = kode.map((_, i) => simpul[acak.indexOf(i)].id);
+        if (ruasMenabrak(simpul, jawaban).length) continue;
+        return { item: { jenis: 'drag-line', simpul, awalan: jawaban.slice(0, cfg.awalan), lebar: LEBAR, tinggi: TINGGI }, jawaban };
+      }
+      return null;
     },
     pecahkan: (item) => semuaJalur(item.simpul, item.awalan),
     kunci: (j) => j.join('>'),
@@ -77,6 +106,8 @@ function buat(cfg: CfgDL): Family<DragLineItem, string[]> {
       if (cfg.chapter === 'drag-the-line-special' && kode.filter((k) => /^[A-Za-z0-9]+$/.test(k)).length > 1) m.push('chapter Special Character harus memakai simbol khusus');
       if (!cfg.kembar && new Set(kode).size !== kode.length) m.push('ada kode kembar');
       if (item.awalan.length < 1 || item.awalan.length >= jawaban.length - 1) m.push('awalan tidak wajar');
+      const tabrak = ruasMenabrak(item.simpul, jawaban);
+      if (tabrak.length) m.push(`ruas ${tabrak[0].dari}–${tabrak[0].ke} melintasi simpul ${tabrak[0].simpul} (jarak ${tabrak[0].jarak})`);
       return m;
     },
     bahas(item, jawaban) {
@@ -166,6 +197,32 @@ export const dlSisip = buat({
   },
 });
 
+/** QC T03: Drag the Line 2 Character tanpa deret — kode bertetangga berbagi tepat satu karakter (urutan karakter diacak). */
+export const dlDomino = buat({
+  id: 'DL-DOMINO', nama: 'Domino karakter dua posisi', chapter: CH2, label: 'VARIASI', kelas: 'berbagi', awalan: 2,
+  sumber: 'Aturan rantai kecocokan karakter (Blueprint Drag the Line 3 · induktif.pdf hlm. 13) pada kode dua karakter; pengganti pola deret sesuai QC 1 T03',
+  ringkas: 'Kode dua karakter. Dua kode bertetangga memiliki tepat satu karakter yang sama, seperti kartu domino; urutan karakter di dalam kode acak. Tidak ada deret huruf atau angka.',
+  caraCepat: 'Cari karakter yang sama dengan simpul terakhir; satu karakter penghubung hanya dimiliki dua simpul bertetangga.',
+  bangun(r) {
+    const n = r.int(6, 7);
+    const sambung = r.sample(ALNUM, n + 1);
+    return unik(Array.from({ length: n }, (_, t) => r.shuffle([sambung[t], sambung[t + 1]]).join('')));
+  },
+});
+
+/** QC T03: Drag the Line 2 Character tanpa deret — karakter akhir sama dengan karakter awal kode berikutnya. */
+export const dlSambungUjung = buat({
+  id: 'DL-SAMBUNG-UJUNG', nama: 'Sambungan karakter akhir–awal dua posisi', chapter: CH2, label: 'VARIASI', kelas: 'akhir-awal', awalan: 2,
+  sumber: 'Aturan rantai karakter akhir–awal (Blueprint Drag the Line, variasi D) pada kode dua karakter; pengganti pola deret sesuai QC 1 T03',
+  ringkas: 'Kode dua karakter. Karakter kedua suatu kode menjadi karakter pertama kode berikutnya. Beberapa kode memakai karakter yang sama di posisi lain sebagai pengecoh, tetapi hanya satu rantai yang memakai semua simpul.',
+  caraCepat: 'Baca karakter terakhir simpul aktif, lalu cari simpul yang diawali karakter itu.',
+  bangun(r) {
+    const n = r.int(6, 7);
+    const rantai = r.sample(ALNUM, n + 1);
+    return unik(Array.from({ length: n }, (_, t) => rantai[t] + rantai[t + 1]));
+  },
+});
+
 export const dlOperasi = buat({
   id: 'DL-OPERASI', nama: 'Operasi hitung bergantian', chapter: CH2, label: 'VARIASI', kelas: 'operasi-ganti', awalan: 3,
   sumber: 'Blueprint Drag the Line, variasi C',
@@ -189,7 +246,7 @@ export const dlOperasi = buat({
 const CH3 = 'drag-the-line-3';
 
 export const dlSimbol = buat({
-  id: 'DL-SIMBOL', nama: 'Perubahan simbol menurut posisi', chapter: CH3, label: 'SHL', kelas: 'simbol', awalan: 2, kembar: true,
+  id: 'DL-SIMBOL', nama: 'Perubahan simbol menurut posisi', chapter: CH3, label: 'SHL', kelas: 'simbol', awalan: 3, kembar: true, // QC F05: tiga simpul dikunci
   sumber: 'Blueprint Drag the Line 2 · induktif.pdf hlm. 11',
   ringkas: 'Kode tiga simbol O/X. Setiap langkah tepat satu simbol diganti; posisi yang diganti bergiliran dengan urutan tetap. Dua kode kembar adalah simpul berbeda.',
   caraCepat: 'Cari posisi yang berubah pada awalan, lalu ulangi giliran posisinya.',
@@ -387,9 +444,12 @@ export const dlArahLebar = buat({
   bangun: (r) => rantaiArah(r, { '>': 1, '>>': 2, '>>>': 3, '<': -1, '<<': -2 }, 8, 12),
 });
 
+/** Family berbasis deret (DL-SELANG, DL-BERTINGKAT, DL-SISIP, DL-OPERASI, DL-SIKLIS) dikeluarkan sesuai QC 1 T03. */
+export const DRAG_LINE_NONAKTIF = [dlSelang, dlBertingkat, dlSisip, dlOperasi, dlSiklis];
+
 export const DRAG_LINE_FAMILIES = [
-  dlSelang, dlBertingkat, dlSisip, dlOperasi,
+  dlDomino, dlSambungUjung,
   dlSimbol, dlRantai, dlGeser, dlAkhirAwal, dlBiner,
-  dlLubang, dlSiklis, dlRotasi,
+  dlLubang, dlRotasi,
   dlHitung, dlArah, dlArahLebar, dlHitungCampur,
 ];

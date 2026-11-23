@@ -264,7 +264,7 @@ const KASUS: ButirKurasi[] = [
       P('dana pensiun bebas memakai aset pendiri tanpa pencatatan', 'Kekayaan dana pensiun dan pendiri tetap terpisah.'),
     ],
     konsep: 'Pendanaan PPMP', kataKunci: 'kekayaan lebih kecil dari kewajiban aktuaria',
-    alasan: ['Buku 6: pada PPMP, bila kekayaan dana pensiun lebih kecil dari kewajiban aktuaria, pendiri harus membayar iuran tambahan.'],
+    alasan: ['Pada PPMP, bila kekayaan dana pensiun lebih kecil dari kewajiban aktuaria, pendiri harus membayar iuran tambahan.'],
     caraCepat: 'PPMP kurang dana → pendiri menambah iuran.',
   },
   {
@@ -312,7 +312,7 @@ const KASUS: ButirKurasi[] = [
   },
   {
     id: 'prinsip-kecuali', tingkat: 'menengah', topik: 'prinsip', sumber: `${EB}, subbab 3.1.8 (merujuk Buku Saku OJK)`,
-    pertanyaan: 'Buku Saku OJK memperkenalkan sejumlah prinsip dana pensiun. Berikut ini termasuk prinsip tersebut, KECUALI ....',
+    pertanyaan: 'Berikut ini termasuk prinsip penyelenggaraan dana pensiun, KECUALI ....',
     jawaban: 'kewajiban setiap pemberi kerja membentuk dana pensiun',
     pengecoh: [
       P('keterpisahan kekayaan dana pensiun dari kekayaan pendiri', 'Ini termasuk prinsip dana pensiun (keterpisahan kekayaan).'),

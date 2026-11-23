@@ -18,13 +18,13 @@ const LAYANAN: TabelRelasi = {
   alasanSalah: alasanRelasi('adalah'),
   kalimat: kalimatRelasi('adalah'),
   konsep: 'Usaha pergadaian: pinjaman dengan jaminan barang bergerak (hukum gadai), jasa titipan, jasa taksiran, pinjaman berbasis fidusia, dan produk lain sesuai izin.',
-  caraCepat: 'Barang diserahkan untuk pinjaman → gadai; hanya menilai harga → taksiran; hanya menyimpan → titipan; BPKB/sertifikat dijaminkan, barang tetap dipakai → fidusia.',
+  caraCepat: 'Barang diserahkan untuk pinjaman → gadai; hanya menilai harga → taksiran; hanya menyimpan → titipan; kendaraan diikat fidusia (BPKB diserahkan), kendaraan tetap dipakai → fidusia.',
   baris: [
     baris('gadai', 'pinjaman gadai', 'kredit jangka pendek dengan jaminan barang bergerak yang diserahkan dan dikuasai pemberi pinjaman', 'dasar', `${S.bsc}, Bab VIII (hlm. 114–115); ${S.ebGadai}, §3.1.1`),
     baris('taksiran', 'jasa taksiran', 'layanan pengujian barang bergerak untuk menilai harga barang milik nasabah tanpa harus meminjam', 'dasar', `${S.bsc}, Bab VIII (hlm. 115); ${S.ebGadai}, contoh soal 4.4`),
     baris('titipan', 'jasa titipan', 'layanan penyimpanan barang berharga untuk menghindari risiko kehilangan, pencurian, atau kebakaran', 'dasar', `${S.bsc}, Bab VIII (hlm. 115)`),
     baris('angsuran', 'gadai sistem angsuran', 'kredit usaha produktif dengan jaminan dikuasai pergadaian dan pelunasan secara cicilan bulanan', 'menengah', `${S.bsc}, Bab VIII (hlm. 116)`),
-    baris('fidusia', 'pinjaman berbasis fidusia', 'kredit dengan jaminan bukti kepemilikan seperti BPKB atau sertifikat tanah, sementara barangnya tetap dipakai pemilik', 'menengah', `${S.bsc}, Bab VIII (hlm. 116); ${S.ebGadai}, §3.1.13`),
+    baris('fidusia', 'pinjaman berbasis fidusia', 'kredit dengan pengikatan jaminan fidusia atas kendaraan (BPKB diserahkan), sementara kendaraannya tetap dipakai pemilik', 'menengah', `${S.bsc}, Bab VIII (hlm. 116); ${S.ebGadai}, §3.1.13`),
   ],
 };
 
@@ -114,7 +114,7 @@ export const gadaiKasus = familyKurasi({
       ['Sewa pembiayaan', 'Sewa pembiayaan adalah cara pembiayaan perusahaan pembiayaan untuk penyediaan barang.'],
     ],
     konsep: 'Produk berbasis fidusia', kunci: 'BPKB, motor tetap dipakai',
-    alasan: 'Produk berbasis fidusia memakai jaminan fidusia, misalnya BPKB atau sertifikat tanah, sementara barangnya tetap dikuasai dan dipakai pemilik.',
+    alasan: 'Pada pinjaman dengan pengikatan fidusia atas kendaraan, BPKB diserahkan sebagai jaminan, sedangkan kendaraannya tetap dikuasai dan dipakai debitur; pengikatan jaminannya mengikuti ketentuan fidusia (UU 42/1999).',
     cepat: 'Surat kepemilikan dijaminkan, barang tetap dipakai → fidusia.',
     sumber: `${S.bsc}, Bab VIII (hlm. 116); ${S.ebGadai}, §3.1.19`,
   }),

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import Paket from '@/components/Paket';
+import Aplikasi from '@/components/gen/Aplikasi';
 
-// Alamat lama /paket tetap membuka generator (halaman utama kini /).
-export const metadata: Metadata = { title: 'Generator — Generator Soal OJK PCAM Tahap 2' };
+// Alamat lama /paket membuka Hasil paket pada generator.
+export const metadata: Metadata = { title: 'Hasil paket — Generator Soal OJK PCAM Tahap 2' };
 
 export default function Page() {
-  return <Paket />;
+  return <Aplikasi awal="hasil" />;
 }

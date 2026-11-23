@@ -4,7 +4,7 @@ import { bulat, familyHitung, kombinasi, miliar, persen2, rp, type Param, type T
 
 // Chapter Perbankan (kebutuhan 85). Empat family:
 //   PSJK-BANK-ISTILAH  SHL      relasi dua arah: produk/jasa bank, analisis 5C, akad bank syariah, rasio bank
-//   PSJK-BANK-LEMBAGA  SHL      relasi dua arah: kewenangan OJK, jenis risiko, peran lembaga, publikasi perbankan
+//   PSJK-BANK-LEMBAGA  SHL      relasi dua arah: kewenangan OJK, jenis risiko, peran lembaga
 //   PSJK-BANK-KASUS    VARIASI  kasus, "KECUALI", pernyataan majemuk (BPR vs bank umum, LPS, Basel, pengawasan, kredit)
 //   PSJK-BANK-HITUNG   VARIASI  hitungan: bunga flat, bunga simpanan, NPL, LDR, CAR, margin murabahah, arus kas
 
@@ -88,8 +88,6 @@ const RASIO: TabelRelasi = {
     baris('npl', 'NPL', 'porsi kredit bermasalah terhadap total kredit', 'dasar', `${S.ebBank}, §3.1.22 dan contoh soal 4.18`),
     baris('bopo', 'BOPO', 'perbandingan biaya operasional terhadap pendapatan operasional', 'menengah', `${S.ebBank}, §3.1.22; ${S.buku2}, Bab 6 (hlm. 198)`),
     baris('ldr', 'LDR', 'perbandingan kredit yang disalurkan terhadap dana pihak ketiga', 'menengah', `${S.buku2}, Bab 6 (hlm. 198); ${S.ebBank}, §3.1.17`),
-    baris('lcr', 'LCR', 'kecukupan aset likuid berkualitas tinggi untuk menutup arus kas keluar bersih 30 hari ke depan', 'menantang', `${S.bpi}, Bab III.B (Kerangka Likuiditas Basel III)`),
-    baris('nsfr', 'NSFR', 'kecukupan pendanaan stabil untuk ketahanan likuiditas jangka panjang', 'menantang', `${S.bpi}, Bab III.B (Kerangka Likuiditas Basel III)`),
     baris('leverage', 'rasio pengungkit (leverage ratio)', 'modal inti relatif terhadap total eksposur tanpa pembobotan risiko', 'menantang', `${S.bpi}, Bab III.B (Kerangka Leverage)`),
   ],
 };
@@ -152,6 +150,8 @@ const LEMBAGA: TabelRelasi = {
   ],
 };
 
+// Tidak dipakai sejak QC T09 (soal SJK tidak menanyakan isi/nama publikasi); disimpan sebagai catatan materi.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const PUBLIKASI: TabelRelasi = {
   id: 'publikasi-perbankan',
   topik: 'publikasi perbankan OJK',
@@ -180,7 +180,7 @@ export const bankLembaga = familyRelasi({
   id: 'PSJK-BANK-LEMBAGA', versi: 2, nama: 'Kewenangan, risiko, dan lembaga perbankan', chapter: 'perbankan', label: 'SHL',
   sumber: `${S.bpi}; ${S.ebBank}; ${S.ebDfl}`,
   ringkas: 'Relasi dua arah untuk enam kewenangan OJK, delapan jenis risiko bank, peran OJK/BI/LPS/LAPS SJK/Satgas PASTI, dan jenis publikasi perbankan.',
-}, [KEWENANGAN, RISIKO, LEMBAGA, PUBLIKASI]);
+}, [KEWENANGAN, RISIKO, LEMBAGA]); // PUBLIKASI dikeluarkan: QC T09 melarang soal tentang isi/nama publikasi
 
 // ---------------------------------------------------------------- kasus
 
@@ -323,7 +323,7 @@ export const bankKasus = familyKurasi({
     sumber: `${S.bsc}, Bab III (hlm. 31–34); ${S.buku2}, Bab 5 (hlm. 110)`, berlaku: 'ketentuan penjaminan LPS sebagaimana dikutip OJK (2021)',
   }),
   butir('lps-batas', 'dasar', 'penjaminan simpanan', {
-    tanya: 'Menurut Buku Saku Cerdas Mengelola Keuangan (OJK, 2021), nilai simpanan yang dijamin LPS paling tinggi sebesar ...',
+    tanya: 'Nilai simpanan per nasabah per bank yang dijamin LPS paling tinggi sebesar ...',
     jawab: 'Rp2 miliar per nasabah per bank',
     salah: [
       ['Rp2 miliar per nasabah untuk seluruh bank', 'Batas penjaminan dihitung per nasabah per bank, bukan gabungan seluruh bank.'],

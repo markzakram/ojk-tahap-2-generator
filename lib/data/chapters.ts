@@ -10,9 +10,35 @@ export interface ChapterMapping extends Chapter {
   catatan?: string;
   /** Kelompok latsol pada Mapping (PSJK: tiga kelompok "Soal Ke-OJK-an - …"). */
   kelompok?: string;
+  /** Kolom Category, Lesson, dan Chapter Mapping apa adanya (dipakai tampilan dan ekspor SiAdu). */
+  category: string;
+  lesson: string;
+  /** Nama chapter persis seperti kolom Chapter Mapping (Reading: "4 Option" di bawah Lesson Reading Comprehension). */
+  chapter: string;
 }
 
-export const CHAPTERS: ChapterMapping[] = [
+/** Kolom Tes, Category, dan Lesson Mapping per subtes (Reading Comprehension memakai Lesson sendiri). */
+export const TES = 'Tes Kemampuan Umum (TKU)';
+const KLASIFIKASI: Record<Chapter['subtes'], { category: string; lesson: string }> = {
+  induktif: { category: 'Penalaran Spasial', lesson: 'SHL Induktif Interaktif' },
+  deduktif: { category: 'Penalaran Verbal', lesson: 'SHL Deduktif Interaktif' },
+  'bahasa-inggris': { category: 'Bahasa Inggris', lesson: 'Grammar and Vocabulary' },
+  sjk: { category: 'Pengetahuan', lesson: 'Pengetahuan Ke-OJK-an' },
+};
+/** Kolom "Navigation; Urutan Soal" Mapping. */
+export const NAVIGASI: Record<Chapter['subtes'], string> = {
+  induktif: 'Navigation: Disable · Urutan Soal: Random Full',
+  deduktif: 'Navigation: Disable · Urutan Soal: Random Full',
+  'bahasa-inggris': 'Navigation: Disable · Urutan Soal: urutan chapter tetap, soal diambil acak, kecuali Reading',
+  sjk: 'Navigation: Disable · Urutan Soal: Random Full',
+};
+/** Kolom Sistem Penilaian Mapping. */
+export const PENILAIAN = { subtes: '(Total soal benar)/(Total soal) × 100', tes: 'Rata-rata nilai ke-4 subtes' };
+
+type BarisMapping = Omit<ChapterMapping, 'category' | 'lesson' | 'chapter'> & Partial<Pick<ChapterMapping, 'category' | 'lesson' | 'chapter'>>;
+const lengkapi = (c: BarisMapping): ChapterMapping => ({ ...KLASIFIKASI[c.subtes], chapter: c.nama, ...c } as ChapterMapping);
+
+export const CHAPTERS: ChapterMapping[] = ([
   // Tes Penalaran Induktif — 15 soal, 18 menit
   { id: 'fill-shape-six-pointed-star', subtes: 'induktif', nama: 'Fill Shape - Six-pointed Star', bentuk: 'Fill Shape', perTryout: 2, perLatsol: 3, siadu: '3413' },
   { id: 'fill-shape-square', subtes: 'induktif', nama: 'Fill Shape - Square', bentuk: 'Fill Shape', perTryout: 2, perLatsol: 3, siadu: '3414' },
@@ -33,7 +59,7 @@ export const CHAPTERS: ChapterMapping[] = [
   { id: 'sentence-improvement', subtes: 'bahasa-inggris', nama: 'Sentence Improvement', bentuk: 'Option New', perTryout: 2, perLatsol: 2, siadu: '3406' },
   { id: 'grammatically-correct-sentence', subtes: 'bahasa-inggris', nama: 'Grammatically Correct Sentence', bentuk: 'Option New', perTryout: 1, perLatsol: 1, siadu: '3407' },
   { id: 'sentence-arrangement', subtes: 'bahasa-inggris', nama: 'Sentence Arrangement - 4 Option', bentuk: 'Option New', perTryout: 1, perLatsol: 1, siadu: '3408' },
-  { id: 'reading-comprehension', subtes: 'bahasa-inggris', nama: 'Reading Comprehension - 4 Option', bentuk: 'Option New', perTryout: 4, perLatsol: 3, siadu: '3220' },
+  { id: 'reading-comprehension', subtes: 'bahasa-inggris', nama: 'Reading Comprehension - 4 Option', lesson: 'Reading Comprehension', chapter: '4 Option', bentuk: 'Option New', perTryout: 4, perLatsol: 3, siadu: '3220' },
   // Tes Pengetahuan Sektor Jasa Keuangan — 50 soal, 60 menit; latsol per kelompok (10 soal, 10 menit)
   { id: 'pengenalan-ojk', subtes: 'sjk', nama: 'Pengenalan OJK dan Waspada Investasi', bentuk: 'Option New', perTryout: 8, perLatsol: 7, siadu: '3389', kelompok: 'OJK dan Dasar Keuangan' },
   { id: 'perencanaan-keuangan', subtes: 'sjk', nama: 'Perencanaan Keuangan', bentuk: 'Option New', perTryout: 3, perLatsol: 3, siadu: '3390', kelompok: 'OJK dan Dasar Keuangan' },
@@ -51,7 +77,7 @@ export const CHAPTERS: ChapterMapping[] = [
   { id: 'bulion', subtes: 'sjk', nama: 'Bulion', bentuk: 'Option New', perTryout: 1, perLatsol: 1, siadu: '3402', kelompok: 'Investasi dan Proteksi' },
   { id: 'aset-kripto', subtes: 'sjk', nama: 'Aset Kripto', bentuk: 'Option New', perTryout: 2, perLatsol: 1, siadu: '3403', kelompok: 'Investasi dan Proteksi' },
   { id: 'keuangan-syariah', subtes: 'sjk', nama: 'Keuangan Syariah', bentuk: 'Option New', perTryout: 4, perLatsol: 2, siadu: '3404', kelompok: 'Investasi dan Proteksi' },
-];
+] as BarisMapping[]).map(lengkapi);
 
 /** Subtes yang kuotanya belum dirinci per chapter di Mapping (kosong: PSJK kini punya 16 chapter). */
 export const TARGET_TANPA_CHAPTER: { subtes: Chapter['subtes']; perTryout: number; perLatsol: number; catatan: string }[] = [];

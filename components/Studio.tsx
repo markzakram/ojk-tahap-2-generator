@@ -6,10 +6,9 @@ import { FAMILIES } from '@/lib/core/registry';
 import type { Soal } from '@/lib/core/types';
 import { CHAPTERS, NAMA_SUBTES } from '@/lib/data/chapters';
 import { kapasitasFamily } from '@/lib/data/kapasitas';
-import KepalaApp from './KepalaApp';
 import TampilSoal, { Pembahasan } from './TampilSoal';
 
-// Studio bergaya generator Tahap 1: satu layar tiga panel, family di kiri, seed dan soal di tengah, kunci dan kapasitas di kanan.
+// Pustaka soal (Studio): tiga panel di dalam kerangka generator — family di kiri, seed dan soal di tengah, kunci dan kapasitas di kanan.
 type Uji = { n: number; lolos: number; sidik: number; percobaan: number; ms: number };
 const SUBTES_URUT = ['induktif', 'deduktif', 'bahasa-inggris', 'sjk'] as const;
 
@@ -65,8 +64,12 @@ export default function Studio() {
 
   return (
     <>
-      <KepalaApp aktif="studio" kanan={`${FAMILIES.length} family`} />
-
+      <div className="a-page-head a-studio-kepala">
+        <div>
+          <h1 className="a-page-title">Pustaka soal</h1>
+          <p className="a-sub">{FAMILIES.length} family. Pilih family di kiri, atur seed, kerjakan soalnya, lalu lihat kunci, pembahasan, dan kapasitas family. Family + seed yang sama selalu menghasilkan soal yang sama.</p>
+        </div>
+      </div>
       <main className="layout">
         {/* ============ KIRI: FAMILY ============ */}
         <section className="panel" aria-label="Daftar chapter dan family">

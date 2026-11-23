@@ -1,6 +1,6 @@
 import { bangkitkan } from '../core/engine';
 import type { Family, Label, Soal, Subtes } from '../core/types';
-import { CHAPTERS, JUMLAH_LATSOL, JUMLAH_TRYOUT, NAMA_SUBTES, type ChapterMapping } from '../data/chapters';
+import { CHAPTERS, chapterById, JUMLAH_LATSOL, JUMLAH_TRYOUT, NAMA_SUBTES, type ChapterMapping } from '../data/chapters';
 
 // Perakit tryout dan latsol (Mapping PCAM 10 OJK): 10 tryout berisi keempat subtes dan 5 latsol untuk setiap kelompok
 // latsol (11 kelompok × 10 soal). Setiap slot diisi soal dari family chapter-nya; satu struktur soal (family + sidik) hanya
@@ -250,6 +250,83 @@ function membuatDeret(slot: SlotPaket[], i: number, h: string | undefined): bool
   return false;
 }
 
+const normal = (t: string) => t.toLowerCase().replace(/[^\p{L}\p{N} ]+/gu, ' ').replace(/\s+/g, ' ').trim();
+/** Kunci dan batang soal pilihan ganda (dinormalkan); null untuk soal interaktif dan soal Reading. */
+function teksPg(s: Soal | undefined): { kunci: string; batang: string } | null {
+  const it = s?.item as { jenis?: string; bacaan?: unknown; pertanyaan?: string; stimulus?: { teks?: string }[]; opsi?: { label: string; teks: string }[] } | undefined;
+  if (!s || it?.jenis !== 'pilihan-ganda' || it.bacaan) return null;
+  return { kunci: normal(it.opsi?.find((o) => o.label === s.jawaban)?.teks ?? ''), batang: normal([it.pertanyaan ?? '', ...(it.stimulus ?? []).map((x) => x.teks ?? '')].join(' ')) };
+}
+/**
+ * QC F03: dua soal satu paket saling membocorkan bila kunci yang satu (sedikitnya dua kata) muncul di batang soal yang lain,
+ * mis. "Risiko operasional adalah ...." dan "Risiko akibat kegagalan proses internal ... disebut ...." (kunci: risiko operasional).
+ */
+export function salingBocor(a: Soal | undefined, b: Soal | undefined): boolean {
+  const x = teksPg(a), y = teksPg(b);
+  if (!x || !y) return false;
+  const muat = (k: string, t: string) => k.split(' ').length >= 2 && k.length >= 10 && t.includes(k);
+  return muat(x.kunci, y.batang) || muat(y.kunci, x.batang);
+}
+
+/**
+ * Pisahkan pasangan soal yang saling membocorkan di dalam satu paket: tukar salah satunya dengan slot chapter, label, dan
+ * tingkat yang sama di paket lain sekelompok, tanpa menimbulkan kebocoran atau deret tiga kunci baru.
+ */
+function pisahkanBocor(kelompok: Paket[], soal: Map<string, Soal>, cadangan: Map<string, Calon[]>) {
+  const ambil = (x: SlotPaket) => (x.uid ? soal.get(x.uid) : undefined);
+  const bocorDi = (p: Paket, s: SlotPaket, kecuali?: SlotPaket) =>
+    p.bagian.some((b) => b.slot.some((t) => t !== s && t !== kecuali && salingBocor(ambil(s), ambil(t))));
+  for (const p of kelompok) {
+    for (const b of p.bagian) {
+      for (let i = 0; i < b.slot.length; i++) {
+        const a = b.slot[i];
+        if (!a.uid || a.bacaan || !bocorDi(p, a)) continue;
+        // coba dulu pasangan bertingkat sama (keseimbangan tetap), lalu boleh beda tingkat bila itu satu-satunya jalan
+        let beres = false;
+        cari: for (const tingkatSama of [true, false]) {
+          for (const q of kelompok) {
+            if (q === p) continue;
+            const bq = q.bagian.find((x) => x.subtes === b.subtes);
+            if (!bq) continue;
+            for (let j = 0; j < bq.slot.length; j++) {
+              const c = bq.slot[j];
+              if (!c.uid || c.bacaan || c.chapterId !== a.chapterId || c.label !== a.label || (tingkatSama && c.tingkat !== a.tingkat)) continue;
+              if (membuatDeret(b.slot, i, hurufKunci(c)) || membuatDeret(bq.slot, j, hurufKunci(a))) continue;
+              if (bocorDi(p, c, a) || bocorDi(q, a, c)) continue;
+              [b.slot[i], bq.slot[j]] = [c, a];
+              beres = true;
+              break cari;
+            }
+          }
+        }
+        if (beres) continue;
+        // tanpa pasangan tukar (mis. hanya satu atau dua paket): ganti dengan calon cadangan chapter yang sama yang belum terpakai
+        const sisa = cadangan.get(a.chapterId) ?? [];
+        const urut = [...sisa].sort((x, y) => Number(x.family.label !== a.label) - Number(y.family.label !== a.label) || Number(tingkatSoal(x.soal) !== a.tingkat) - Number(tingkatSoal(y.soal) !== a.tingkat));
+        for (const x of urut) {
+          if (x.bacaan) continue;
+          const baru = slotDari(chapterById(a.chapterId), x);
+          soal.set(x.soal.uid, x.soal);
+          if (membuatDeret(b.slot, i, hurufKunci(baru)) || bocorDi(p, baru, a)) continue;
+          b.slot[i] = baru;
+          sisa.splice(sisa.indexOf(x), 1);
+          break;
+        }
+      }
+    }
+  }
+}
+
+/** Jumlah pasangan soal yang saling membocorkan di dalam paket (untuk laporan pemeriksaan; harus 0 bila dapat dihindari). */
+export function hitungBocor(h: HasilSusun, soal: (s: SlotPaket) => Soal | undefined): number {
+  let n = 0;
+  for (const p of h.paket) {
+    const isi = p.bagian.flatMap((b) => b.slot).filter((x) => x.uid && !x.bacaan);
+    for (let i = 0; i < isi.length; i++) for (let j = i + 1; j < isi.length; j++) if (salingBocor(soal(isi[i]), soal(isi[j]))) n++;
+  }
+  return n;
+}
+
 /**
  * Penyeimbangan akhir antarpaket sekelompok (mis. 10 tryout): tukar dua slot dari chapter yang sama di dua paket supaya
  * jumlah soal SHL, soal menantang, dan soal dasar per bagian berselisih paling banyak satu, lalu pecah deret tiga kunci
@@ -337,6 +414,9 @@ export function* langkahSusun(families: Family<any, any>[], rencana: RencanaPake
     bagian: r.bagian.map((b) => ({ subtes: b.subtes, nama: b.nama, menit: b.menit, slot: [] as SlotPaket[] })),
   }));
   const dipakai = CHAPTERS.filter((c) => rencana.some((r) => r.bagian.some((b) => b.subtes === c.subtes && (b.isi[c.id] ?? 0) > 0)));
+  const terpilih = new Map<string, Soal>();
+  /** Calon yang tidak terpakai per chapter: cadangan pengganti soal yang saling membocorkan. */
+  const cadangan = new Map<string, Calon[]>();
   let selesai = 0;
   for (const c of dipakai) {
     const fams = families.filter((f) => f.chapter.id === c.id);
@@ -347,7 +427,7 @@ export function* langkahSusun(families: Family<any, any>[], rencana: RencanaPake
     const calon = fams.length ? kumpulkanCalon(c, fams, butuh, benih, bobot) : [];
     const tulis = (p: Paket, n: number, pilih: Calon[]) => {
       const bag = p.bagian.find((b) => b.subtes === c.subtes)!;
-      for (const x of pilih) bag.slot.push(slotDari(c, x));
+      for (const x of pilih) { bag.slot.push(slotDari(c, x)); terpilih.set(x.soal.uid, x.soal); }
       for (let i = pilih.length; i < n; i++) bag.slot.push({ chapterId: c.id, uid: null, alasan: fams.length ? 'kapasitas struktur habis' : c.catatan ?? 'belum ada family' });
     };
     if (calon.some((x) => x.bacaan)) {
@@ -358,9 +438,10 @@ export function* langkahSusun(families: Family<any, any>[], rencana: RencanaPake
       const bagian = bagiRata(calon, sasaran.map((s) => s.n), riwayat, CHAPTERS.indexOf(c) * 7);
       sasaran.forEach(({ p, n }, k) => tulis(p, n, bagian[k]));
     }
+    cadangan.set(c.id, calon.filter((x) => !terpilih.has(x.soal.uid)));
     yield { selesai: ++selesai, total: dipakai.length, chapter: c.nama };
   }
-  for (const k of seimbang) seimbangkan(k.map((i) => paket[i]));
+  for (const k of seimbang) { seimbangkan(k.map((i) => paket[i])); pisahkanBocor(k.map((i) => paket[i]), terpilih, cadangan); }
   return { dibuat: new Date().toISOString().slice(0, 10), benih, paket };
 }
 

@@ -86,10 +86,14 @@ function memenuhiDasar(item: RoomItem, k: KendalaRuang, a: Alokasi): boolean {
   }
 }
 
-const dalamKapasitas = (item: RoomItem, a: Alokasi) => item.ruang.every((r) => Object.values(a).filter((x) => x === r.id).length <= item.kapasitas);
+/**
+ * QC T05 (19 November 2026): batas hunian ruangan (`kapasitas`) adalah kendali internal penyusun, bukan petunjuk peserta.
+ * Solver tidak memakainya, jadi petunjuk yang terlihat harus sendiri menghasilkan satu penempatan; validator setiap family
+ * lalu menolak soal yang jawabannya menempatkan lebih dari `kapasitas` orang dalam satu ruangan.
+ */
+export const dalamKapasitas = (item: RoomItem, a: Alokasi) => item.ruang.every((r) => Object.values(a).filter((x) => x === r.id).length <= item.kapasitas);
 
 export function memenuhiSemua(item: RoomItem, kendala: KendalaRuang[], a: Alokasi): boolean {
-  if (!dalamKapasitas(item, a)) return false;
   const dasar = kendala.filter((k) => k.jenis !== 'ruang-cadangan');
   if (!dasar.every((k) => memenuhiDasar(item, k, a))) return false;
   for (const k of kendala) {
@@ -101,7 +105,7 @@ export function memenuhiSemua(item: RoomItem, kendala: KendalaRuang[], a: Alokas
       const ruangBiasa = item.ruang.filter((r) => r.id !== k.ruang);
       const adaAlternatif = ruangBiasa.some((r) => {
         const b = { ...a, [o]: r.id };
-        return dalamKapasitas(item, b) && dasar.every((x) => memenuhiDasar(item, x, b));
+        return dasar.every((x) => memenuhiDasar(item, x, b));
       });
       if (adaAlternatif) return false;
     }
@@ -109,7 +113,7 @@ export function memenuhiSemua(item: RoomItem, kendala: KendalaRuang[], a: Alokas
   return true;
 }
 
-/** Enumerasi penuh |ruang|^|orang| penempatan; kembalikan semua yang memenuhi kapasitas dan seluruh kendala. */
+/** Enumerasi penuh |ruang|^|orang| penempatan; kembalikan semua yang memenuhi seluruh kendala yang terlihat peserta. */
 export function semuaAlokasi(item: RoomItem, kendala: KendalaRuang[] = item.kendala): Alokasi[] {
   const hasil: Alokasi[] = [];
   const n = item.orang.length;

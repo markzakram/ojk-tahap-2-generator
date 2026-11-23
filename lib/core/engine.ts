@@ -1,4 +1,5 @@
 import { rng } from './rng';
+import { pelanggaranAtribusi } from './teks-peserta';
 import type { Family, Soal } from './types';
 
 export const MAKS_PERCOBAAN = 400;
@@ -53,6 +54,8 @@ export function periksaKandidat<I, A>(family: Family<I, A>, item: I, jawaban: A)
   if (masalah.length) return { ok: false, alasan: masalah[0] };
   const pembahasan = family.bahas(item, jawaban);
   if (!pembahasan) return { ok: false, alasan: 'pembahasan tidak dapat diturunkan' };
+  const atribusi = pelanggaranAtribusi(family, item, pembahasan);
+  if (atribusi) return { ok: false, alasan: atribusi };
   return { ok: true, pembahasan };
 }
 

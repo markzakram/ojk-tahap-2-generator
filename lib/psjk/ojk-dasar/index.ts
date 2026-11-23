@@ -61,9 +61,9 @@ export const psjkPkKasus = familyKurasi({
 }, BUTIR_PK_KASUS);
 
 export const psjkPkRelasi = familyRelasiKalimat({
-  id: 'PSJK-PK-RELASI', versi: 2, nama: 'Relasi SMART dan rasio keuangan', chapter: PK, label: 'VARIASI',
+  id: 'PSJK-PK-RELASI', versi: 2, nama: 'Relasi rasio kesehatan keuangan', chapter: PK, label: 'VARIASI',
   sumber: `${SLK9}, Bab 2 (SMART, Tabel 5 Rasio Kesehatan Keuangan); ${BSC}, Bab II`,
-  ringkas: 'Relasi dua arah: unsur SMART ↔ makna, rasio kesehatan keuangan ↔ yang diukur, rasio ↔ standar sehat.',
+  ringkas: 'Relasi dua arah: rasio kesehatan keuangan ↔ yang diukur, rasio ↔ standar sehat. Unsur SMART dikeluarkan (QC F01: tidak diuraikan materi folder).',
 }, TABEL_PK);
 
 export const PSJK_OJK_DASAR: Family<any, any>[] = [

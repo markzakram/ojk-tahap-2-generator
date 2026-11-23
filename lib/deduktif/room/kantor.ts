@@ -89,7 +89,7 @@ function bangun(r: Rng): { item: RoomItem; jawaban: Alokasi } | null {
       'Tempatkan kelima karyawan ke ruangan sesuai denah dan keterangan pada kartu.',
       'Karyawan dari divisi berbeda tidak boleh berbagi ruangan.',
       `Ruang Pertemuan hanya boleh dipakai divisi ${cadangan}, dan hanya jika tidak ada Ruang 1–3 yang memenuhi seluruh ketentuan untuk orang tersebut.`,
-      'Mesin Fotokopi dan Koridor bukan tempat penempatan; setiap ruangan menampung maksimal tiga orang.',
+      'Mesin Fotokopi dan Koridor bukan tempat penempatan.',
     ],
     ruang: RUANG,
     fasilitas: FASILITAS,
@@ -167,7 +167,7 @@ function bahas(item: RoomItem, jawaban: Alokasi) {
   if (tetap.size !== ids.length || ids.some((id) => tetap.get(id) !== jawaban[id])) return null;
   if (!memenuhiSemua(item, item.kendala, Object.fromEntries(tetap))) return null;
   const isi = item.ruang.map((r) => ({ r, anggota: ids.filter((id) => jawaban[id] === r.id).map(nama) }));
-  langkah.push({ teks: `Periksa: ${isi.map(({ r, anggota }) => `${r.nama} ${anggota.length ? daftarKata(anggota) : 'kosong'}`).join('; ')}. Tidak ada divisi yang bercampur, tidak ada ruangan melebihi tiga orang, dan Mesin Fotokopi serta Koridor tidak ditempati.` });
+  langkah.push({ teks: `Periksa: ${isi.map(({ r, anggota }) => `${r.nama} ${anggota.length ? daftarKata(anggota) : 'kosong'}`).join('; ')}. Setiap orang ditempatkan tepat sekali, tidak ada divisi yang bercampur, seluruh petunjuk terpenuhi, dan Mesin Fotokopi serta Koridor tidak ditempati.` });
   return {
     jawaban: isi.filter((x) => x.anggota.length).map(({ r, anggota }) => `${r.nama}: ${daftarKata(anggota)}`).join('; '),
     langkah,
@@ -177,7 +177,7 @@ function bahas(item: RoomItem, jawaban: Alokasi) {
 
 export const roomKantor: Family<RoomItem, Alokasi> = {
   id: 'RA-KANTOR',
-  versi: 1,
+  versi: 2, // v2: QC T05, kalimat batas hunian dihapus dari soal dan pembahasan
   nama: 'Alokasi kantor menurut divisi dan denah',
   chapter: chapterById('room-allocations'),
   label: 'SHL',

@@ -38,7 +38,7 @@ const FAKTA: ButirKurasi[] = [
       P('UU Nomor 7 Tahun 1992 tentang Perbankan', 'Undang-undang ini mengatur perbankan, bukan usaha perasuransian.'),
     ],
     konsep: 'Dasar hukum perasuransian', kataKunci: 'landasan usaha perasuransian',
-    alasan: ['E-book menyebut UU Nomor 40 Tahun 2014 tentang Perasuransian sebagaimana diubah melalui UU Nomor 4 Tahun 2023 sebagai landasan.'],
+    alasan: ['Landasan hukumnya adalah UU Nomor 40 Tahun 2014 tentang Perasuransian sebagaimana diubah melalui UU Nomor 4 Tahun 2023.'],
     caraCepat: 'Perasuransian = UU 40/2014; pasar modal = UU 8/1995; perbankan syariah = UU 21/2008.',
   },
   {
@@ -174,20 +174,6 @@ const FAKTA: ButirKurasi[] = [
     caraCepat: 'Tanya: siapa yang wajib ikut dan atas dasar aturan apa?',
   },
   {
-    id: 'asuransi-sosial', tingkat: 'menengah', topik: 'program-wajib', sumber: SUMBER.buku4Bab1,
-    pertanyaan: 'Pada asuransi sosial, tertanggung membayar iuran wajib kepada penyelenggara. Besarnya santunan yang diberikan bila terjadi kerugian ditetapkan oleh ....',
-    jawaban: 'ketentuan peraturan perundang-undangan',
-    pengecoh: [
-      P('kesepakatan agen dengan tertanggung', 'Pada asuransi sosial besaran santunan tidak dinegosiasikan dengan agen.'),
-      P('hasil investasi pada polis unit link', 'Hasil investasi berkaitan dengan PAYDI, bukan santunan asuransi sosial.'),
-      P('keputusan pialang asuransi tertanggung', 'Pialang adalah perantara, bukan penentu santunan.'),
-      P('jumlah premi pilihan tertanggung', 'Iuran asuransi sosial bersifat wajib dan santunannya ditetapkan aturan.'),
-    ],
-    konsep: 'Asuransi sosial', kataKunci: 'iuran wajib, santunan',
-    alasan: ['Buku 4 OJK: pada asuransi sosial, tertanggung membayar iuran wajib dan penyelenggara memberikan santunan yang besarnya telah ditetapkan peraturan perundang-undangan.'],
-    caraCepat: 'Asuransi sosial = iuran wajib, santunan menurut undang-undang.',
-  },
-  {
     id: 'hukum-bilangan-besar', tingkat: 'menengah', topik: 'teori', sumber: `${B4} (Law of Large Number)`,
     pertanyaan: 'Perusahaan asuransi berupaya agar suatu produk diikuti banyak tertanggung dengan risiko sejenis supaya besarnya kerugian dapat diprediksi lebih akurat dan premi dapat ditetapkan secara wajar. Dasar pemikiran ini dikenal sebagai ....',
     jawaban: 'hukum bilangan besar (law of large numbers)',
@@ -213,7 +199,7 @@ const FAKTA: ButirKurasi[] = [
       P('menggantikan peran agen dalam memasarkan produk asuransi', 'Pemasaran adalah peran agen atau saluran pemasaran lain.'),
     ],
     konsep: 'Manfaat reasuransi', kataKunci: 'manfaat reasuransi bagi perusahaan asuransi',
-    alasan: ['Buku 4 menyebut manfaat reasuransi antara lain meningkatkan kapasitas penerimaan risiko, menjaga stabilitas usaha, dan membantu menghadapi risiko katastrofik.'],
+    alasan: ['Manfaat reasuransi antara lain meningkatkan kapasitas penerimaan risiko, menjaga stabilitas usaha, dan membantu menghadapi risiko katastrofik.'],
     caraCepat: 'Reasuransi menolong perusahaan asuransi, bukan mengubah hubungan nasabah dengan polisnya.',
   },
   {
@@ -290,7 +276,7 @@ const KASUS: ButirKurasi[] = [
       P('tidak menerima manfaat karena kepemilikan dua polis melanggar prinsip subrogasi', 'Subrogasi tidak berkaitan dengan kepemilikan dua polis dan tidak berlaku pada asuransi jiwa.'),
     ],
     konsep: 'Penerapan prinsip pada asuransi jiwa', kataKunci: 'dua polis asuransi jiwa',
-    alasan: ['Menurut Buku 4, prinsip kontribusi berlaku pada asuransi umum, tetapi tidak pada asuransi jiwa.', 'Pemilik lebih dari satu polis asuransi jiwa menerima manfaat dari setiap polis karena jiwa seseorang tidak dapat ditentukan nilainya.'],
+    alasan: ['Prinsip kontribusi berlaku pada asuransi umum, tetapi tidak pada asuransi jiwa.', 'Pemilik lebih dari satu polis asuransi jiwa menerima manfaat dari setiap polis karena jiwa seseorang tidak dapat ditentukan nilainya.'],
     caraCepat: 'Asuransi jiwa: tidak ada indemnity, subrogasi, dan kontribusi.',
   },
   {
@@ -687,7 +673,7 @@ const HITUNG: TemplateHitung[] = [
   {
     id: 'proporsional', topik: 'prinsip-indemnity', tingkat: 'menantang', sumber: `${B4} (Contoh Penerapan Prinsip Indemnity)`,
     set: [{ V: 100, S: 70, L: 50 }, { V: 200, S: 150, L: 80 }, { V: 500, S: 400, L: 100 }, { V: 80, S: 60, L: 40 }],
-    pertanyaan: (p) => `Rumah yang nilai sebenarnya ${rp(p.V * JT)} hanya dipertanggungkan ${rp(p.S * JT)} terhadap risiko kebakaran. Terjadi kebakaran sebagian dengan kerugian ${rp(p.L * JT)}. Jika ganti rugi dihitung proporsional sesuai prinsip indemnity, pembayaran perusahaan asuransi adalah ....`,
+    pertanyaan: (p) => `Rumah yang nilai sebenarnya ${rp(p.V * JT)} hanya dipertanggungkan ${rp(p.S * JT)} terhadap risiko kebakaran. Terjadi kebakaran sebagian dengan kerugian ${rp(p.L * JT)}. Polis menerapkan klausul pertanggungan di bawah harga dengan ganti rugi proporsional (nilai pertanggungan ÷ nilai sebenarnya × kerugian); abaikan risiko sendiri dan biaya lain. Pembayaran perusahaan asuransi adalah ....`,
     hitung: (p) => (p.S / p.V) * p.L * JT, format: rp,
     salah: [
       { nilai: (p) => p.L * JT, alasan: () => 'Kerugian diganti penuh, padahal rumah hanya dipertanggungkan sebagian dari nilainya.' },

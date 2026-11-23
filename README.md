@@ -4,22 +4,22 @@ Generator soal Tes Kemampuan Umum (TKU) Tahap 2 PCAM 10 OJK 2026. Bahan riset, b
 
 ```bash
 npm install
-npm run dev -- -p 3100      # Ringkasan di http://localhost:3100, Studio di /studio, Tahap 1 di /tahap-1
+npm run dev -- -p 3100      # generator di http://localhost:3100, Pustaka soal di /studio, Tahap 1 di /tahap-1
 npm run verify              # 300 seed per family; `npm run verify -- 1000 FS-` untuk family tertentu
 npm run generate            # daftar family
 npm run generate -- CDS-A0 abc123   # cetak satu soal + kunci + pembahasan
 npm run paket               # susun 10 tryout + latsol ke lib/data/paket.json
+npm run siadu               # Word SiAdu paket resmi ke output/siadu/ (atau: npm run siadu -- TO-01)
 ```
 
-Tampilan mengikuti generator Tahap 1 (`tahap-1/css/style.css`): bilah atas 50 px dengan judul, tab **Tahap 1 | Tahap 2**, menu halaman, dan *Cara pakai*; latar terang, panel putih bertepi tipis, huruf sistem (Segoe UI), dan aksen biru yang sama.
-- **Generator (`/`, halaman utama; `/paket` membuka halaman yang sama)**: alur dan langkah 1–7 sama dengan generator Tahap 1, dan tab **Tahap 2** di Tahap 1 serta Portal membuka halaman ini. Panel kiri: *Mode generate* (Tryout, Latsol, atau Per Chapter); langkah 1 subtes (Induktif, Deduktif, Bahasa Inggris, Sektor Jasa Keuangan, atau Semua), kelompok latsol, atau materi; langkah 2 soal tiap chapter, terbuka dan dapat diubah (tombol *Baku* = Mapping); langkah 3 tingkat kesulitan (campur sebaran bank, perbandingan dasar : menengah : menantang, atau satu tingkat; berlaku untuk Badges, Bahasa Inggris selain Reading, dan PSJK); langkah 4 jumlah paket dan benih; lalu tombol **Generate paket**. Panel tengah, langkah 5: soal paket per subtes, dapat dikerjakan, dengan kunci dan pembahasan bila dicentang. Panel kanan: langkah 6, hasil pemeriksaan (soal terisi, kembar, sebaran label, tingkat, kunci, bacaan utuh), dan langkah 7, unduhan JSON dan CSV. Lihat [Paket tryout dan latsol](#paket-tryout-dan-latsol).
-- **Studio (`/studio?f=…&s=…`)**: satu layar tiga panel seperti Tahap 1. Panel kiri berisi langkah 1, pilih family dari daftar chapter yang bisa dicari. Panel tengah berisi langkah 2, seed, lalu soal interaktif. Panel kanan berisi langkah 3, kunci dan pembahasan, serta langkah 4, kapasitas family.
-- **Ringkasan (`/ringkasan`)**: berisi
-  - target 1.440 soal dan jumlah soal yang sudah punya generator;
-  - kebutuhan per subtes dan kapasitas per chapter;
-  - slot paket dan daftar hal yang perlu diputuskan.
+Tampilan mengikuti **UTBK Generator** dan **SKD Generator**: menu samping (Dasbor, Buat paket, Hasil paket, Ekspor, Pustaka soal) dan kartu bernomor, dengan aksen biru Tahap 1 agar kedua tahap serasi. Tab **Tahap 2** di Tahap 1 dan Portal membuka halaman utama (`/`).
+- **Buat paket** (`/`): kartu 1 jenis paket (Paket resmi Mapping, Tryout, Latsol, Per chapter); 2 jumlah paket dan subtes/kelompok/materi; 3 soal per chapter dalam tabel Subtes › Category › Lesson (nama dan Bentuk Soal dari Mapping, struktur unik, kebutuhan, tanda ⚠ bila melebihi stok); 4 tingkat kesulitan dan benih. Panel kanan meringkas jumlah soal, kesiapan per subtes, dan tombol **Buat N paket**.
+- **Hasil paket** (`/?v=hasil`, juga `/paket`): matriks paket × subtes (klik sel), pembaca soal per nomor atau semua soal, kunci dan pembahasan, serta hasil pemeriksaan (soal terisi, struktur kembar, soal saling membocorkan, bacaan Reading utuh, deret kunci, sebaran label/tingkat/kunci).
+- **Ekspor** (`/?v=ekspor`): Word SiAdu (lihat [Ekspor SiAdu](#ekspor-siadu)), JSON lengkap, dan CSV daftar soal; satu berkas diunduh langsung, beberapa berkas dalam ZIP.
+- **Dasbor** (`/?v=dasbor`, juga `/ringkasan`): target 1.440 soal, family aktif, struktur unik, kesiapan per subtes, kapasitas per chapter (Category › Lesson › Chapter), dan hal yang perlu diputuskan. Angka kapasitas dari [`lib/data/kapasitas.json`](lib/data/kapasitas.json) yang ditulis `npm run verify`.
+- **Pustaka soal** (`/studio?f=…&s=…`): Studio tiga panel di dalam kerangka yang sama — pilih family, atur seed, kerjakan soal, lihat kunci/pembahasan dan kapasitas family.
 
-  Semua angka dihitung dari Mapping, daftar family, dan [`lib/data/kapasitas.json`](lib/data/kapasitas.json). Berkas itu ditulis otomatis oleh `npm run verify` dan digabung per family; hasil untuk versi family yang lama diabaikan.
+Nama **Tes, Category, Lesson, Chapter, dan Bentuk Soal** mengikuti Mapping Tahap 2 PCAM OJK 2026 (`lib/data/chapters.ts`: `category`, `lesson`, `chapter`, `bentuk`), termasuk Lesson **Reading Comprehension** dengan Chapter **4 Option**, serta Navigation/Urutan Soal per subtes (`NAVIGASI`).
 
 ## Situs gabungan dengan Tahap 1
 
@@ -119,6 +119,24 @@ Ketiga kelompok sudah ditelaah QC independen terhadap e-book dan bahan resmi (ku
 - Soal setiap chapter dibagi **merata** ke semua paket: campuran SHL/VARIASI dan tingkat dasar/menengah/menantang sebanding antartryout, huruf kunci setiap bagian seimbang (cadangan ±25% calon dipakai untuk itu), dan tiga kunci sama berturut-turut dihindari.
 - Paket hanya menyimpan `uid` soal; halaman Paket membangkitkan ulang isi lengkap (soal, kunci, pembahasan) saat ditampilkan dan diunduh. Jalankan ulang `npm run paket` setelah family bertambah atau versinya naik; halaman Paket memperingatkan bila ada slot dari versi lama.
 - Halaman Paket memakai perakit yang sama (`langkahSusun` dengan rencana dari `rencanaTryout`/`rencanaLatsol`) untuk paket lain: jumlah 1–20 paket, komposisi chapter dapat diubah, set bebas per chapter (`rencanaSet`), bobot tingkat opsional (kuota per tingkat + cadangan 25%; Reading tetap satu bacaan utuh), dan benih bebas. Tingkat yang strukturnya kurang meninggalkan slot kosong yang dilaporkan per chapter. Pengaturan baku dengan benih `pcam-10` menampilkan paket resmi dari `paket.json`; pengaturan lain disusun di peramban (10 tryout ±10 detik) dan hanya tersimpan bila diunduh. Satu struktur tetap hanya dipakai sekali di dalam satu hasil.
+
+## QC 1 PCAM Tahap 2 (19 November 2026)
+
+Hasil QC TO-01 diterapkan pada family, jadi berlaku untuk semua soal yang dibangkitkan, bukan hanya TO-01:
+- **T09 SJK**: pembahasan peserta tidak lagi memuat baris "Sumber" maupun atribusi e-book/buku ("E-book menyebut…", "Buku 9:"); stimulus tanpa pengantar "Menurut Buku …"; soal tentang publikasi (LSPI dan tabel publikasi perbankan) dikeluarkan. Sumber penyusunan tetap di `item.data.sumber` (JSON/Studio). Penjaga [`lib/core/teks-peserta.ts`](lib/core/teks-peserta.ts) menolak soal SJK yang teks pesertanya masih menyebut buku, e-book, materi tim, atau LSPI.
+- **F01** SMART (Attainable vs Realistic) dikeluarkan; kasus tujuan keuangan dijawab dari fakta stimulus. **F02** fidusia tidak disamakan dengan sertifikat tanah. **F03** perakit memisahkan dua soal satu paket yang saling membocorkan (kunci yang satu muncul di batang soal lain): tukar antarpaket, lalu ganti dengan calon cadangan bila perlu; `npm run paket` melaporkan jumlahnya (harus 0). **F07** asumsi bunga bulanan dan klausul pertanggungan di bawah harga dinyatakan di soal. **F08** alasan opsi salah Reading dibatasi pada isi bacaan.
+- **PENGAYAAN**: butir susunan KSSK, istilah market confidence, LCR/NSFR, santunan asuransi sosial, pihak kontrak KIK, sekuritisasi/true sale, profesi penunjang/ASPM, dan nama mudharabah muqayyadah dikeluarkan. Finance lease/sale and leaseback tetap (inti chapter Perusahaan Pembiayaan) dan dicatat untuk pengayaan materi.
+- **F04** Timeline: "Demo Aplikasi Klien" hanya disebut bila kegiatan itu ada di kalender. **T05** Room: batas tiga orang per ruangan menjadi kendali internal — tidak ditulis di soal/pembahasan; solver tidak memakainya, validator menolak jawaban yang melebihinya, dan RA-DURASI membuktikan pembagian 3–2 dari durasi.
+- **T02** Drag the Line: tata letak diulang sampai setiap ruas jalur jawaban berjarak ≥ jari-jari simpul + 0,35 dari simpul lain. **T03** family berbasis deret (DL-SELANG, DL-BERTINGKAT, DL-SISIP, DL-OPERASI, DL-SIKLIS) dikeluarkan; Drag the Line 2 Character memakai DL-DOMINO (karakter bersama) dan DL-SAMBUNG-UJUNG (akhir–awal). **F05** DL-SIMBOL mengunci tiga simpul. **F06** kode simpul memakai font sans standar.
+- Belum dikerjakan: visual pembahasan per objek Fill Shape (T01), visual jalur Drag the Line (T04), dan visual langkah Deduktif (T07); lihat [Catatan Telaah Editor](bahan/Catatan%20Telaah%20Editor.md).
+
+## Ekspor SiAdu
+
+Naskah Word mengikuti template Auto Input SiAdu yang juga dipakai Tahap 1, SKD, dan UTBK ([`lib/ekspor/siadu.ts`](lib/ekspor/siadu.ts)): `Soal N`, `Category`, `Lesson`, `Chapter` (tebal, dari Mapping), `Tingkat Kesulitan` (dasar → Mudah, menengah → Sedang, menantang → Sulit), `Bentuk Soal`, teks soal, pilihan `A.`–`E.`, `Jawaban`, dan `Pembahasan`; Times New Roman 12 pt, spasi 1,5. Satu berkas = satu paket × satu subtes, karena importir membaca semua teks setelah "Pembahasan:" sampai "Soal N" berikutnya.
+- **Option New** (Bahasa Inggris dan PSJK, 820 soal): bacaan Reading diulang per soal; fragmen Sentence Arrangement ditulis "(A) …" agar tidak terbaca sebagai pilihan.
+- **Logical Ranking** (Badges): tabel Nama | Deskripsi | Gambar | Posisi Urut dengan foto tersemat; kartu tanpa petunjuk diberi deskripsi netral karena SiAdu menolak deskripsi kosong.
+- **Enam bentuk interaktif lain** (Fill Shape, Node Arrow Navigation, Calendar Date Selection, Place and Room Allocations, Timeline Scheduling, Timeslot Scheduling) belum punya template importir. Bentuk ini ditulis ke berkas `…-usulan.docx` terpisah: teks soal, baris Pengaturan, tabel data, dan kunci, untuk input manual sampai format resmi SiAdu diketahui.
+- Impor ke SiAdu sungguhan belum diuji; struktur berkas diperiksa dengan membaca ulang XML Word.
 
 ## Foto orang
 

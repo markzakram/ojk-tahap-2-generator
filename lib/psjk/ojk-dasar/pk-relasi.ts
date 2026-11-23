@@ -12,28 +12,12 @@ const S9_T5 = `${SLK9}, Bab 2 Tahap 2 (Tabel 5 Rasio Kesehatan Keuangan)`;
 
 export const TABEL_PK: TabelKalimat[] = [
   {
-    id: 'smart', topik: 'tujuan',
-    kalimat: (b) => `Unsur ${b.subjek} berarti tujuan ${b.nilai}.`,
-    tanyaNilai: (s) => `Dalam perumusan tujuan keuangan SMART, unsur "${s}" berarti tujuan ....`,
-    tanyaSubjek: (n) => `Tujuan keuangan yang ${n} memenuhi unsur SMART ....`,
-    alasanSalah: salah('makna unsur', (x) => `Unsur ${x.subjek} berarti tujuan ${x.nilai}.`),
-    konsep: 'SMART: Specific, Measurable, Attainable, Realistic, Timely.',
-    caraCepat: 'Lugas → Specific; angka → Measurable; prioritas → Attainable; sesuai kemampuan → Realistic; tenggat → Timely.',
-    baris: [
-      { id: 'specific', subjek: 'Specific', nilai: 'dirumuskan dengan kata-kata lugas tanpa makna ganda', tingkat: 'dasar', sumber: `${SLK9}, Bab 2 Tahap 1` },
-      { id: 'measurable', subjek: 'Measurable', nilai: 'hasilnya terukur dalam angka dan mata uang yang jelas', tingkat: 'dasar', sumber: `${SLK9}, Bab 2 Tahap 1` },
-      { id: 'attainable', subjek: 'Attainable', nilai: 'dapat dicapai dengan skala prioritas bila ada beberapa tujuan sekaligus', tingkat: 'menengah', sumber: `${SLK9}, Bab 2 Tahap 1` },
-      { id: 'realistic', subjek: 'Realistic', nilai: 'tidak terlalu muluk dan mempertimbangkan kemampuan yang ada', tingkat: 'menengah', sumber: `${SLK9}, Bab 2 Tahap 1` },
-      { id: 'timely', subjek: 'Timely', nilai: 'memiliki batas waktu pencapaian yang jelas', tingkat: 'dasar', sumber: `${SLK9}, Bab 2 Tahap 1` },
-    ],
-  },
-  {
     id: 'makna-rasio', topik: 'rasio',
     kalimat: (b) => `${kapital(b.subjek)} mengukur ${b.nilai}.`,
     tanyaNilai: (s) => `Dalam pemeriksaan kesehatan keuangan pribadi, ${s} digunakan untuk mengukur ....`,
     tanyaSubjek: (n) => `Rasio kesehatan keuangan yang mengukur ${n} adalah ....`,
     alasanSalah: salah('fungsi', (x) => `${kapital(x.subjek)} mengukur ${x.nilai}.`),
-    konsep: 'Rasio kesehatan keuangan (FPSB Indonesia, Buku 9): likuiditas, lancar, tabungan, utang, pelunasan utang, solvensi, dan investasi.',
+    konsep: 'Rasio kesehatan keuangan (FPSB Indonesia): likuiditas, lancar, tabungan, utang, pelunasan utang, solvensi, dan investasi.',
     caraCepat: 'Cocokkan pembilang rasio: kas → likuiditas/lancar; tabungan → tabungan; utang → utang/pelunasan; kekayaan bersih → solvensi; aset investasi → investasi.',
     baris: [
       { id: 'likuiditas', subjek: 'rasio likuiditas', nilai: 'kecukupan aset lancar untuk kebutuhan mendadak atau keadaan darurat', tingkat: 'menengah', sumber: S9_T5 },
@@ -48,12 +32,12 @@ export const TABEL_PK: TabelKalimat[] = [
   {
     id: 'standar-rasio', topik: 'rasio',
     kalimat: (b) => `Standar sehat ${b.subjek} adalah ${b.nilai}.`,
-    tanyaNilai: (s) => `Menurut buku Seri Literasi Keuangan OJK, standar ${s} yang sehat adalah ....`,
-    tanyaSubjek: (n) => `Menurut buku Seri Literasi Keuangan OJK, standar sehat "${n}" berlaku untuk ....`,
+    tanyaNilai: (s) => `Standar ${s} yang sehat adalah ....`,
+    tanyaSubjek: (n) => `Standar sehat "${n}" berlaku untuk ....`,
     alasanSalah: (benar, x, arah) => arah === 'nilai'
       ? `"${x.nilai}" adalah standar ${x.subjek}, bukan ${benar.subjek}.`
       : `Standar ${x.subjek} adalah ${x.nilai}.`,
-    konsep: 'Standar rasio (Buku 9, Tabel 5): likuiditas 3–6 kali pengeluaran bulanan; lancar > 1; tabungan > 10% pendapatan; utang < 50% aset; cicilan < 30% penghasilan.',
+    konsep: 'Standar rasio: likuiditas 3–6 kali pengeluaran bulanan; lancar > 1; tabungan > 10% pendapatan; utang < 50% aset; cicilan < 30% penghasilan.',
     caraCepat: 'Bulan → likuiditas; "> 1" → lancar; 10% → tabungan; 30% → cicilan; 50% → utang terhadap aset.',
     baris: [
       { id: 'likuiditas', subjek: 'rasio likuiditas (dana darurat)', nilai: '3–6 kali pengeluaran bulanan', tingkat: 'menengah', sumber: `${S9_T5}; ${BSC}, Bab II` },
