@@ -124,12 +124,12 @@ function penjelasan(item: ItemBentuk): { konsep: string; alasan: string; caraCep
       alasan: PENGUAT.has(p1)
         ? `${kapital(p2)} berfungsi sebagai linking verb dan ${p1} adalah adverb penguat; kata sesudahnya menerangkan keadaan subjek, jadi diperlukan adjective.`
         : `${kapital(p1)} berfungsi sebagai linking verb; kata sesudahnya menerangkan keadaan subjek, jadi diperlukan adjective.`,
-      caraCepat: 'Setelah be, remain, seem, prove, atau stay yang menyatakan keadaan, pilih adjective — bukan adverb.',
+      caraCepat: `Pada soal ini, ${p1} menghubungkan subjek dengan keadaannya. Dari opsi yang tersedia, pilih adjective yang menerangkan subjek.`,
     };
     case 'adj-penguat': return {
       konsep: 'Bentuk kata: adjective di antara adverb penguat dan noun',
       alasan: `Adverb ${p1} menerangkan kata berikutnya, dan kata itu menerangkan noun ${n1}; posisi ini membutuhkan adjective.`,
-      caraCepat: 'Pola a/the + very/highly + ____ + noun menuntut adjective.',
+      caraCepat: `Pada soal ini, bagian kosong menerangkan noun ${n1} dan dikuatkan oleh ${p1}. Dari opsi yang tersedia, pilih adjective.`,
     };
     case 'adv-cara': return {
       konsep: 'Bentuk kata: adverb cara',
@@ -139,12 +139,12 @@ function penjelasan(item: ItemBentuk): { konsep: string; alasan: string; caraCep
     case 'adv-aux': return {
       konsep: 'Bentuk kata: adverb di antara auxiliary dan verb',
       alasan: `Bagian kosong berada di antara auxiliary ${p1} dan verb ${n1}; kata yang menerangkan verb di posisi ini adalah adverb.`,
-      caraCepat: 'Auxiliary + ____ + V3/V-ing: posisi di tengah rangkaian verb diisi adverb.',
+      caraCepat: `Pada soal ini, bagian kosong menerangkan verb ${n1}. Dari opsi yang tersedia, pilih adverb yang menerangkan verb itu.`,
     };
     case 'adv-adj': return {
       konsep: 'Bentuk kata: adverb yang menerangkan adjective',
       alasan: `Bagian kosong menerangkan adjective ${n1}; kata yang menerangkan adjective adalah adverb.`,
-      caraCepat: 'Jika kata sesudah bagian kosong adalah adjective, bagian kosong diisi adverb.',
+      caraCepat: `Pada soal ini, bagian kosong menerangkan adjective ${n1}. Dari opsi yang tersedia, pilih adverb.`,
     };
     case 'v-modal': return {
       konsep: 'Bentuk kata: verb bentuk dasar setelah modal',
@@ -163,7 +163,7 @@ export function familyBentuk(kerangka: KerangkaBentuk[]): Family<ItemBentuk, Jaw
   const id = 'SC-BENTUK';
   return {
     id,
-    versi: 1,
+    versi: 2, // QC 2 R05: cara cepat menjelaskan fungsi kata pada kalimat ini, bukan rumus mutlak
     nama: 'Bentuk kata (word form)',
     chapter: chapterById('sentence-completion'),
     label: 'VARIASI',

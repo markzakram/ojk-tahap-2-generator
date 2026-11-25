@@ -268,7 +268,7 @@ function rasioCicilan(r: Rng, nama: string): Rancangan | null {
     jenis: 'rasio-cicilan', varian: dua ? '2cicilan' : '1cicilan', tingkat: dua ? 'menengah' : 'dasar', satuan: 'persen',
     pertanyaan: `Penghasilan bulanan ${nama} ${rp(pendapatan)}, pengeluaran pokoknya ${rp(pokok)}, dan ia membayar ${cicilanTeks} setiap bulan. Rasio cicilan terhadap penghasilan ${nama} (dibulatkan ke persen terdekat) adalah ....`,
     angka, benar: rasio, salah,
-    konsep: 'Rasio cicilan = total cicilan per bulan ÷ pendapatan bulanan × 100%; batas yang lazim dipakai maksimal 30%. Rasio ini indikator, bukan keputusan akhir.',
+    konsep: 'Rasio cicilan = total cicilan per bulan ÷ pendapatan bulanan × 100%. Rasio ini indikator beban utang, bukan bukti tunggal kelayakan.',
     kataKunci: 'rasio cicilan terhadap penghasilan',
     langkah: [
       ...(dua ? [`Total cicilan = ${rp(c1)} + ${rp(c2)} = ${rp(total)}.`] : []),
@@ -393,8 +393,11 @@ function rasioUtangAset(r: Rng, nama: string): Rancangan | null {
 }
 
 const PEMBANGUN: ((r: Rng, nama: string) => Rancangan | null)[] = [
-  arusKas, kekuranganTabungan, kekayaanBersih, targetDarurat, waktuDarurat, rasioCicilan, fvInflasi, setoranBulanan, porsiSisihkan, rasioUtangAset,
+  arusKas, kekuranganTabungan, kekayaanBersih, targetDarurat, waktuDarurat, rasioCicilan, fvInflasi, setoranBulanan,
 ];
+// QC 2 R01: porsi "sisihkan 10–20–30–40" dan rasio utang terhadap aset tidak diajarkan di materi folder, jadi tidak dibangkitkan.
+void porsiSisihkan;
+void rasioUtangAset;
 
 // ---------- family ----------
 

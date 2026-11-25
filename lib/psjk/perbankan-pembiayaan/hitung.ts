@@ -1,7 +1,8 @@
-import type { Family, Label } from '../../core/types';
+import type { Label } from '../../core/types';
 import { bahasPg, HURUF, periksaFormatPg, type JawabanPg, type PilihanGandaItem, type Tingkat } from '../../core/pilihan-ganda';
 import { chapterById } from '../../data/chapters';
-import { INSTRUKSI_PSJK } from '../umum';
+import { dalamCakupan } from '../cakupan';
+import { INSTRUKSI_PSJK, type FamilyPsjk } from '../umum';
 
 // Family hitungan sederhana PSJK (bunga flat, rasio, margin, taksiran, porsi saham, dst.). Berbeda dari familyKurasi,
 // kunci tidak diambil dari bank: parameter soal disimpan di item dan solver menghitung ulang jawabannya dengan rumus
@@ -87,9 +88,10 @@ interface InfoFamily {
   ringkas: string;
 }
 
-export function familyHitung(info: InfoFamily, templates: TemplateHitung[]): Family<ItemHitung, JawabanPg> {
+export function familyHitung(info: InfoFamily, bank: TemplateHitung[]): FamilyPsjk<ItemHitung> {
   const ids = new Set<string>();
-  for (const t of templates) {
+  const templates = bank.filter((t) => dalamCakupan(info.chapter, `${info.id}|${t.id}`, t.sumber)); // QC 2 R01
+  for (const t of bank) {
     if (ids.has(t.id)) throw new Error(`${info.id}: id template ganda ${t.id}`);
     ids.add(t.id);
     if (!t.parameter.length) throw new Error(`${info.id}/${t.id}: tidak ada parameter sah`);
@@ -98,6 +100,7 @@ export function familyHitung(info: InfoFamily, templates: TemplateHitung[]): Fam
   const teks = (t: TemplateHitung, n: number) => (t.format ?? rp)(n);
   return {
     id: info.id, versi: info.versi ?? 1, nama: info.nama, chapter: chapterById(info.chapter), label: info.label, sumber: info.sumber, ringkas: info.ringkas,
+    kosong: templates.length === 0,
     bangun(r) {
       const t = r.pick(templates);
       const p = r.pick(t.parameter);

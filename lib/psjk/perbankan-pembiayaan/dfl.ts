@@ -14,8 +14,8 @@ const POJK_PK = 'POJK 22/2023';
 const ISTILAH: TabelRelasi = {
   id: 'istilah-dfl',
   topik: 'istilah keamanan digital',
-  tanyaNilai: (s) => `Dalam materi Digital Financial Literacy, yang dimaksud dengan ${s} adalah ...`,
-  tanyaSubjek: (n) => `Dalam materi Digital Financial Literacy, istilah untuk ${n} adalah ...`,
+  tanyaNilai: (s) => `Dalam layanan keuangan digital, yang dimaksud dengan ${s} adalah ...`,
+  tanyaSubjek: (n) => `Dalam layanan keuangan digital, istilah untuk ${n} adalah ...`,
   alasanSalah: alasanRelasi('adalah'),
   kalimat: kalimatRelasi('adalah'),
   konsep: 'Literasi keuangan digital: memeriksa penyedia dan biaya total, lalu menjaga kode otorisasi, data, dan akses akun.',

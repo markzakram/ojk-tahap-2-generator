@@ -14,6 +14,7 @@ export const SUMBER = {
   ebMv: 'E-book PSJK "Perbankan dan Pembiayaan – Perusahaan Modal Ventura" (materi tim, Nov 2026)',
   ebDfl: 'E-book PSJK "Perbankan dan Pembiayaan – Digital Financial Literacy" (materi tim, Nov 2026)',
   ebFintech: 'E-book PSJK "Perbankan dan Pembiayaan – Fintech" (materi tim, Nov 2026)',
+  ebPm: 'E-book tim PCAM/MLE OJK 2026 "Investasi dan Proteksi – Pasar Modal"',
   bpi: 'Booklet Perbankan Indonesia 2024 (OJK)',
   bsc: 'Buku Saku Cerdas Mengelola Keuangan (OJK, 2021)',
   buku2: 'Seri Literasi Keuangan Perguruan Tinggi, Buku 2 – Perbankan (OJK, 2019)',

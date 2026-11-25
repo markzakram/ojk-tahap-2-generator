@@ -1,7 +1,8 @@
-import type { Family, Label } from '../../core/types';
+import type { Label } from '../../core/types';
 import { bahasPg, periksaFormatPg, susunOpsi, type JawabanPg, type PilihanGandaItem, type Tingkat } from '../../core/pilihan-ganda';
 import { chapterById } from '../../data/chapters';
-import { INSTRUKSI_PSJK, type SumberFakta } from '../umum';
+import { dalamCakupan } from '../cakupan';
+import { INSTRUKSI_PSJK, type FamilyPsjk, type SumberFakta } from '../umum';
 
 // Family hitungan sederhana PSJK (kelompok Investasi dan Proteksi): risiko sendiri, kontribusi, kupon, NAB/UP, margin
 // murabahah, bagi hasil, manfaat pensiun, dst. Bentuk tetap PilihanGandaItem 5 opsi. Kunci dihitung ulang oleh solver dari
@@ -79,9 +80,10 @@ export function angka(v: number): string {
 export const rp = (v: number) => (v < 0 ? `−Rp${angka(-v)}` : `Rp${angka(v)}`);
 export const persen = (v: number) => `${angka(v)}%`;
 
-export function familyHitung(info: InfoHitung, templates: TemplateHitung[]): Family<ItemHitung, JawabanPg> {
+export function familyHitung(info: InfoHitung, bank: TemplateHitung[]): FamilyPsjk<ItemHitung> {
   const ids = new Set<string>();
-  for (const t of templates) {
+  const templates = bank.filter((t) => dalamCakupan(info.chapter, `${info.id}|${t.id}`, t.sumber)); // QC 2 R01
+  for (const t of bank) {
     if (ids.has(t.id)) throw new Error(`${info.id}: id template ganda ${t.id}`);
     ids.add(t.id);
     if (t.salah.length < 4) throw new Error(`${info.id}/${t.id}: jalur salah kurang dari empat`);
@@ -110,6 +112,7 @@ export function familyHitung(info: InfoHitung, templates: TemplateHitung[]): Fam
 
   return {
     id: info.id, versi: info.versi ?? 1, nama: info.nama, chapter: chapterById(info.chapter), label: info.label, sumber: info.sumber, ringkas: info.ringkas,
+    kosong: struktur.length === 0,
     bangun(r) {
       const { t, p, i } = r.pick(struktur);
       const benar = t.format(t.hitung(p), p);

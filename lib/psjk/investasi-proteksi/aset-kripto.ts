@@ -322,8 +322,8 @@ const TABEL: TabelRelasi[] = [
   },
   {
     id: 'istilah', topik: 'istilah',
-    tanyaNilai: (s) => `Dalam materi aset kripto, istilah ${s} berarti ....`,
-    tanyaSubjek: (n) => `Dalam materi aset kripto, ${n} disebut ....`,
+    tanyaNilai: (s) => `Dalam ekosistem aset kripto, istilah ${s} berarti ....`,
+    tanyaSubjek: (n) => `Dalam ekosistem aset kripto, ${n} disebut ....`,
     alasanSalah: alasanRelasi, kalimat: kalimatRelasi, konsep: 'Istilah teknologi dan regulasi aset kripto',
     caraCepat: 'Pisahkan istilah teknologi (blockchain, kunci), jenis token (stablecoin, NFT), kontrak (derivatif), dan regulasi (DAKD, whitelist, knowledge test).',
     baris: [

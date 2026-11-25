@@ -29,6 +29,8 @@ const CARA: TabelRelasi = {
   ],
 };
 
+// QC 2 R01: cara pembiayaan (finance lease, sale and leaseback, factoring, fasilitas dana) dan sewa operasi tidak
+// diajarkan di materi folder; tabel CARA disaring otomatis karena sumbernya bukan e-book. Tabel di bawah memakai §3.1.1–3.1.21.
 const KEGIATAN: TabelRelasi = {
   id: 'kegiatan-usaha',
   topik: 'kegiatan usaha perusahaan pembiayaan',
@@ -36,22 +38,61 @@ const KEGIATAN: TabelRelasi = {
   tanyaSubjek: (n) => `Kegiatan usaha pembiayaan berupa ${n} disebut ...`, // QC F03: tanpa nama lembaga yang menjadi kunci soal lain di chapter ini
   alasanSalah: alasanRelasi('adalah'),
   kalimat: kalimatRelasi('adalah'),
-  konsep: 'Kegiatan usaha perusahaan pembiayaan: pembiayaan investasi, modal kerja, multiguna, kegiatan pembiayaan lain dengan persetujuan OJK, serta sewa operasi dan kegiatan berbasis imbal jasa.',
-  caraCepat: 'Klasifikasikan dari TUJUAN dana: barang modal usaha → investasi; habis dalam satu siklus usaha → modal kerja; konsumsi → multiguna.',
+  konsep: 'Kegiatan usaha perusahaan pembiayaan diklasifikasikan menurut tujuan dana: investasi, modal kerja, multiguna, dan kegiatan lain dengan persetujuan OJK. Pembiayaan infrastruktur dijalankan lembaga yang dibentuk khusus.',
+  caraCepat: 'Klasifikasikan dari TUJUAN dana: barang modal usaha → investasi; habis dalam satu siklus usaha → modal kerja; konsumsi → multiguna; proyek jalan, air, energi → infrastruktur.',
   baris: [
-    baris('investasi', 'pembiayaan investasi', 'pembiayaan barang modal beserta jasa untuk aktivitas usaha, rehabilitasi, modernisasi, ekspansi, atau relokasi tempat usaha', 'dasar', `${S.buku5}, Bab 2 (hlm. 47); ${S.ebPp}, §3.1.10`, POJK_PP),
-    baris('modal-kerja', 'pembiayaan modal kerja', 'pembiayaan pengeluaran yang habis dalam satu siklus aktivitas usaha debitur', 'dasar', `${S.buku5}, Bab 2 (hlm. 47); ${S.ebPp}, §3.1.10`, POJK_PP),
-    baris('multiguna', 'pembiayaan multiguna', 'pembiayaan barang atau jasa untuk pemakaian atau konsumsi, bukan untuk keperluan usaha', 'dasar', `${S.buku5}, Bab 2 (hlm. 48); ${S.bsc}, Bab VI (hlm. 87)`, POJK_PP),
-    baris('lain', 'kegiatan usaha pembiayaan lain', 'pembiayaan yang tidak termasuk kategori investasi, modal kerja, atau multiguna dan wajib memperoleh persetujuan OJK', 'menengah', `${S.buku5}, Bab 2 (hlm. 49); ${S.ebPp}, §3.1.10`, POJK_PP),
-    baris('sewa-operasi', 'sewa operasi (operating lease)', 'penyewaan barang seperti kendaraan yang dikenal masyarakat sebagai usaha rental', 'menengah', `${S.buku5}, Bab 2 (hlm. 49)`, POJK_PP),
+    baris('investasi', 'pembiayaan investasi', 'pendanaan barang modal dan jasa pendukung usaha, seperti mesin, modernisasi, ekspansi, atau relokasi', 'dasar', `${S.ebPp}, §3.1.10 dan §3.1.17`, POJK_PP_BARU),
+    baris('modal-kerja', 'pembiayaan modal kerja', 'pendanaan pengeluaran yang habis dalam satu siklus usaha, seperti bahan baku', 'dasar', `${S.ebPp}, §3.1.10 dan §3.1.17`, POJK_PP_BARU),
+    baris('multiguna', 'pembiayaan multiguna', 'pendanaan barang atau jasa konsumsi yang tidak ditujukan bagi kegiatan usaha produktif', 'dasar', `${S.ebPp}, §3.1.10 dan §3.1.17`, POJK_PP_BARU),
+    baris('lain', 'kegiatan pembiayaan lain', 'kegiatan di luar tiga kategori utama yang dijalankan dengan persetujuan OJK', 'menengah', `${S.ebPp}, §3.1.10`, POJK_PP_BARU),
+    baris('infrastruktur', 'pembiayaan infrastruktur', 'pendanaan proyek seperti jalan, pengelolaan air, energi, dan telekomunikasi', 'dasar', `${S.ebPp}, §3.1.12 dan §3.1.21`, POJK_PP_BARU),
+  ],
+};
+
+const LEMBAGA_PP: TabelRelasi = {
+  id: 'lembaga',
+  topik: 'kelembagaan pembiayaan',
+  tanyaNilai: (s) => `Dalam sistem keuangan, ${s} adalah ...`,
+  tanyaSubjek: (n) => `Dalam sistem keuangan, ${n} disebut ...`,
+  alasanSalah: alasanRelasi('adalah'),
+  kalimat: kalimatRelasi('adalah'),
+  konsep: 'Lembaga pembiayaan menyediakan dana atau barang modal dan mencakup perusahaan pembiayaan serta perusahaan pembiayaan infrastruktur; keduanya bukan penghimpun giro dan tabungan seperti bank.',
+  caraCepat: 'Menghimpun simpanan → bank; barang/jasa tanpa simpanan → perusahaan pembiayaan; proyek infrastruktur → PPI; seluruhnya syariah → perusahaan pembiayaan syariah; unit di dalam perusahaan → UUS.',
+  baris: [
+    baris('lp', 'lembaga pembiayaan', 'kelompok badan usaha yang menyediakan dana atau barang modal untuk kebutuhan pembiayaan', 'menengah', `${S.ebPp}, §3.1.9 dan §3.1.16`),
+    baris('pp', 'perusahaan pembiayaan', 'badan usaha yang membiayai barang dan/atau jasa tanpa menghimpun giro atau tabungan', 'dasar', `${S.ebPp}, §3.1.1 dan §3.1.9`),
+    baris('pp-syariah', 'perusahaan pembiayaan syariah', 'badan usaha pembiayaan yang seluruh kegiatannya berdasarkan prinsip syariah', 'dasar', `${S.ebPp}, §3.1.9, §3.1.11, dan §3.1.18`),
+    baris('uus', 'UUS perusahaan pembiayaan', 'unit kerja di dalam perusahaan induk konvensional yang mengelola pembiayaan syariah', 'menengah', `${S.ebPp}, §3.1.9, §3.1.11, dan §3.1.18`),
+    baris('ppi', 'perusahaan pembiayaan infrastruktur', 'badan usaha yang dibentuk khusus untuk membiayai proyek seperti jalan, air, dan energi', 'dasar', `${S.ebPp}, §3.1.12 dan §3.1.16`),
+    baris('bank', 'bank', 'badan usaha yang menghimpun simpanan masyarakat dan menyalurkan kredit atau pembiayaan', 'dasar', `${S.ebPp}, §3.1.1; ${S.ebBank}, §3.1.1`),
+  ],
+};
+
+const BIAYA: TabelRelasi = {
+  id: 'istilah-biaya',
+  topik: 'istilah biaya dan akad',
+  tanyaNilai: (s) => `Dalam perjanjian pembiayaan, ${s} adalah ...`,
+  tanyaSubjek: (n) => `Dalam perjanjian pembiayaan, ${n} disebut ...`,
+  alasanSalah: alasanRelasi('adalah'),
+  kalimat: kalimatRelasi('adalah'),
+  konsep: 'Pokok = harga − uang muka; bunga flat memakai pokok awal, bunga efektif memakai sisa pokok; pada akad syariah imbalannya margin (jual beli) atau ujrah (jasa).',
+  caraCepat: 'Harga − DP → pokok; basis pokok awal → flat; basis sisa pokok → efektif; pokok + bunga + biaya → total kewajiban; jual beli → margin; jasa → ujrah.',
+  baris: [
+    baris('pokok', 'pokok pembiayaan', 'harga barang dikurangi uang muka', 'dasar', `${S.ebPp}, §3.1.3`),
+    baris('flat', 'bunga flat', 'bunga setiap periode yang dihitung dari pokok awal', 'dasar', `${S.ebPp}, §3.1.20`),
+    baris('efektif', 'bunga efektif', 'bunga periode yang dihitung dari saldo pokok yang belum lunas', 'dasar', `${S.ebPp}, §3.1.3 dan §3.1.20`),
+    baris('total', 'total kewajiban konsumen', 'seluruh pokok, bunga atau margin, dan biaya sah yang harus dibayar', 'dasar', `${S.ebPp}, §3.1.3`),
+    baris('tenor', 'tenor', 'jangka waktu pembayaran angsuran menurut perjanjian', 'dasar', `${S.ebPp}, §3.1.1, §3.1.3, dan §3.1.7`),
+    baris('margin', 'margin', 'keuntungan jual beli yang diketahui dan disepakati kedua pihak', 'menengah', `${S.ebPp}, §3.1.5 dan §3.1.18`),
+    baris('ujrah', 'ujrah', 'imbalan jasa sesuai akad terkait', 'menengah', `${S.ebPp}, §3.1.5 dan §3.1.18`),
   ],
 };
 
 export const ppIstilah = familyRelasi({
-  id: 'PSJK-PP-ISTILAH', nama: 'Cara pembiayaan dan kegiatan usaha', chapter: 'perusahaan-pembiayaan', label: 'SHL',
-  sumber: `${S.buku5}; ${S.ebPp}; ${S.bsc}`,
-  ringkas: 'Relasi dua arah untuk lima cara pembiayaan (finance lease, sale and leaseback, factoring, angsuran, fasilitas dana) dan lima kegiatan usaha perusahaan pembiayaan.',
-}, [CARA, KEGIATAN]);
+  id: 'PSJK-PP-ISTILAH', nama: 'Kegiatan usaha, kelembagaan, dan istilah biaya', chapter: 'perusahaan-pembiayaan', label: 'SHL',
+  sumber: `${S.ebPp}, §3.1.1–3.1.21`,
+  ringkas: 'Relasi dua arah untuk kegiatan usaha menurut tujuan dana, kelembagaan pembiayaan, serta istilah biaya dan akad.',
+}, [CARA, KEGIATAN, LEMBAGA_PP, BIAYA]);
 
 const ALASAN_PPI_BOLEH = 'Kegiatan ini tercantum sebagai kegiatan perusahaan pembiayaan infrastruktur, jadi bukan jawaban.';
 const ALASAN_BIAYA = 'Biaya ini tercantum sebagai biaya dalam produk pembiayaan, jadi bukan jawaban.';
@@ -81,11 +122,11 @@ export const ppKasus = familyKurasi({
     salah: [
       ['Pembiayaan modal kerja', 'Modal kerja membiayai pengeluaran yang habis dalam satu siklus usaha, bukan barang modal.'],
       ['Pembiayaan multiguna', 'Multiguna untuk pemakaian atau konsumsi, bukan untuk keperluan usaha.'],
-      ['Anjak piutang', 'Anjak piutang adalah pembelian piutang usaha, bukan pembiayaan barang modal.'],
-      ['Sewa operasi (operating lease)', 'Sewa operasi adalah penyewaan barang seperti rental kendaraan, bukan pembiayaan pembelian bus.'],
+      ['Pembiayaan infrastruktur', 'Pembiayaan infrastruktur ditujukan untuk proyek seperti jalan, air, dan energi.'],
+      ['Pembiayaan jasa syariah', 'Pembiayaan jasa menyediakan manfaat barang atau pelayanan sesuai akad, bukan pembelian armada.'],
     ],
     konsep: 'Klasifikasi tujuan pembiayaan', kunci: 'bus, menambah armada usaha',
-    alasan: 'Pembiayaan investasi membiayai barang modal untuk aktivitas usaha atau ekspansi; contoh barang yang disebut OJK antara lain traktor, bus, dan mesin.',
+    alasan: 'Pembiayaan investasi membiayai barang modal untuk usaha atau ekspansi; bus yang menjadi armada usaha termasuk barang modal.',
     cepat: 'Barang modal untuk usaha → investasi.',
     sumber: `${S.buku5}, Bab 2 (hlm. 47); ${S.ebPp}, §3.1.10`, berlaku: POJK_PP,
   }),
@@ -272,7 +313,7 @@ export const ppKasus = familyKurasi({
     sumber: `${S.ebPp}, §3.1.13, §3.1.21, contoh soal 4.17`,
   }),
   butir('ppi-kecuali', 'menantang', 'pembiayaan infrastruktur', {
-    tanya: 'Kegiatan berikut merupakan bentuk kegiatan perusahaan pembiayaan infrastruktur menurut referensi OJK, KECUALI ...',
+    tanya: 'Kegiatan berikut merupakan bentuk kegiatan perusahaan pembiayaan infrastruktur, KECUALI ...',
     jawab: 'Menghimpun tabungan dari masyarakat',
     salah: [
       ['Pinjaman langsung (direct lending) untuk proyek', ALASAN_PPI_BOLEH],
@@ -346,9 +387,9 @@ export const ppKasus = familyKurasi({
     tanya: 'Konsumen membeli sepeda motor melalui perusahaan pembiayaan syariah. Perusahaan menegaskan harga perolehan barang, lalu konsumen membayar harga yang lebih tinggi sebagai laba yang disepakati. Akad yang digunakan adalah ...',
     jawab: 'Murabahah',
     salah: [
-      ['Ijarah muntahiya bittamlik', 'IMBT adalah sewa yang disertai janji pemindahan kepemilikan setelah masa sewa.'],
-      ['Mudharabah', 'Mudharabah adalah kerja sama pemilik dana dan pengelola dengan bagi hasil.'],
-      ['Qardh', 'Qardh adalah pinjaman yang hanya wajib dikembalikan pokoknya.'],
+      ['Ijarah', 'Ijarah adalah akad pemanfaatan atau sewa jasa dan manfaat.'],
+      ['Mudharabah', 'Mudharabah adalah kerja sama pemilik dana dan pengelola dengan pembagian keuntungan.'],
+      ['Musyarakah', 'Musyarakah adalah kerja sama penyertaan modal dari para pihak.'],
       ['Wadiah', 'Wadiah adalah akad titipan.'],
     ],
     konsep: 'Akad pembiayaan jual beli syariah', kunci: 'harga perolehan, laba disepakati',
@@ -414,6 +455,132 @@ export const ppKasus = familyKurasi({
     alasan: ['(1), (3), dan (4) benar: hak konsumen antara lain rincian seluruh biaya dan denda, pelindungan kerahasiaan data, serta informasi produk yang lengkap dan jelas.', '(2) salah: memelihara barang yang dibiayai sampai angsuran selesai adalah kewajiban konsumen.'],
     cepat: 'Cari pernyataan yang menghapus kewajiban konsumen.',
     sumber: `${S.bsc}, Bab VI (hlm. 91)`,
+  }),
+  butir('urutan-analisis', 'menengah', 'hak konsumen', {
+    tanya: 'Dalam menilai kasus pembiayaan konsumen, urutan analisis yang paling runtut adalah ...',
+    jawab: 'Izin kegiatan, kecocokan produk, transparansi kontrak, risiko, hak konsumen',
+    salah: [
+      ['Hak konsumen, risiko, transparansi kontrak, izin kegiatan, kecocokan produk', 'Izin kegiatan diperiksa paling awal, sebelum produk dan kontraknya.'],
+      ['Risiko, izin kegiatan, hak konsumen, kecocokan produk, transparansi kontrak', 'Risiko dinilai setelah izin, produk, dan kontraknya jelas.'],
+      ['Transparansi kontrak, kecocokan produk, izin kegiatan, hak konsumen, risiko', 'Kontrak baru dinilai setelah izin dan kecocokan produk.'],
+      ['Kecocokan produk, hak konsumen, izin kegiatan, risiko, transparansi kontrak', 'Produk dinilai setelah izin kegiatan dipastikan.'],
+    ],
+    konsep: 'Urutan analisis pembiayaan', kunci: 'izin kegiatan lebih dahulu',
+    alasan: 'Analisis dimulai dari izin kegiatan, lalu kecocokan produk, transparansi kontrak, risiko, dan terakhir hak konsumen.',
+    cepat: 'Mulai dari izin, akhiri dengan hak konsumen.',
+    sumber: `${S.ebPp}, §3.1.15`,
+  }),
+  butir('tertulis-kecuali', 'menengah', 'hak konsumen', {
+    tanya: 'Sebelum menyetujui perjanjian pembiayaan, konsumen perlu mengonfirmasi hal berikut secara tertulis, KECUALI ...',
+    jawab: 'Daftar nasabah lain yang memakai perusahaan itu',
+    salah: [
+      ['Total kewajiban dan tanggal jatuh tempo', 'Keduanya perlu dikonfirmasi tertulis, jadi bukan jawaban.'],
+      ['Sanksi keterlambatan pembayaran', 'Sanksi keterlambatan perlu dikonfirmasi tertulis, jadi bukan jawaban.'],
+      ['Ketentuan pelunasan dipercepat', 'Ketentuan pelunasan dipercepat perlu dikonfirmasi tertulis, jadi bukan jawaban.'],
+      ['Agunan dan mekanisme pengaduan', 'Agunan dan mekanisme pengaduan perlu dikonfirmasi tertulis, jadi bukan jawaban.'],
+    ],
+    konsep: 'Hal yang dikonfirmasi tertulis', kunci: 'KECUALI',
+    alasan: 'Yang perlu dikonfirmasi adalah harga, uang muka, biaya, bunga atau margin, total kewajiban, jatuh tempo, sanksi, pelunasan dipercepat, agunan, dan pengaduan; data nasabah lain tidak termasuk.',
+    cepat: 'Cari hal yang tidak menyangkut kontrak konsumen sendiri.',
+    sumber: `${S.ebPp}, §3.1.4`,
+  }),
+  butir('direktori-statistik', 'menengah', 'legalitas', {
+    tanya: 'Untuk memastikan apakah sebuah perusahaan pembiayaan masih berizin, sumber yang paling tepat adalah ...',
+    jawab: 'Direktori atau layanan resmi OJK dengan tanggal pembaruan terbaru',
+    salah: [
+      ['Statistik industri pembiayaan pada suatu periode', 'Statistik menggambarkan industri secara agregat, bukan izin satu perusahaan.'],
+      ['Logo OJK pada brosur pemasaran perusahaan', 'Logo di materi pemasaran bukan bukti izin.'],
+      ['Daftar jaringan kantor dari beberapa tahun lalu', 'Daftar lama adalah potret historis, bukan bukti izin terkini.'],
+      ['Kerja sama perusahaan dengan dealer kendaraan', 'Kerja sama dengan dealer tidak identik dengan izin usaha.'],
+    ],
+    konsep: 'Direktori dan statistik', kunci: 'masih berizin',
+    alasan: 'Direktori atau layanan OJK bertanggal terbaru dipakai untuk memeriksa status izin; statistik hanya memberi gambaran industri.',
+    cepat: 'Status izin → direktori; gambaran industri → statistik.',
+    sumber: `${S.ebPp}, §3.1.14 dan §3.1.22`,
+  }),
+  butir('risiko-reputasi', 'dasar', 'risiko', {
+    tanya: 'Keluhan konsumen ditangani buruk sehingga kepercayaan masyarakat kepada perusahaan pembiayaan menurun. Risiko yang paling tepat menggambarkan keadaan itu adalah ...',
+    jawab: 'Risiko reputasi',
+    salah: [
+      ['Risiko kredit', 'Risiko kredit terjadi ketika penerima pembiayaan gagal memenuhi kewajiban.'],
+      ['Risiko operasional', 'Risiko operasional berasal dari kegagalan prosedur atau sistem.'],
+      ['Risiko hukum', 'Risiko hukum berasal dari ketidaksesuaian kontrak dan pelaksanaannya.'],
+      ['Risiko pasar', 'Risiko pasar berkaitan dengan perubahan harga, bukan penanganan keluhan.'],
+    ],
+    konsep: 'Jenis risiko perusahaan pembiayaan', kunci: 'pengaduan ditangani buruk',
+    alasan: 'Risiko reputasi dapat muncul dari penanganan pengaduan yang buruk.',
+    cepat: 'Pengaduan buruk → reputasi.',
+    sumber: `${S.ebPp}, §3.1.23`,
+  }),
+  butir('risiko-hukum', 'dasar', 'risiko', {
+    tanya: 'Pelaksanaan pembiayaan di lapangan tidak sesuai dengan isi kontrak yang ditandatangani. Risiko yang paling langsung muncul adalah ...',
+    jawab: 'Risiko hukum',
+    salah: [
+      ['Risiko kredit', 'Risiko kredit terjadi ketika penerima pembiayaan gagal memenuhi kewajiban.'],
+      ['Risiko operasional', 'Risiko operasional berasal dari kegagalan prosedur atau sistem.'],
+      ['Risiko reputasi', 'Risiko reputasi muncul dari penanganan pengaduan yang buruk.'],
+      ['Risiko likuiditas', 'Risiko likuiditas berkaitan dengan ketersediaan dana, bukan isi kontrak.'],
+    ],
+    konsep: 'Jenis risiko perusahaan pembiayaan', kunci: 'tidak sesuai kontrak',
+    alasan: 'Risiko hukum berasal dari ketidaksesuaian kontrak dan pelaksanaan.',
+    cepat: 'Kontrak vs pelaksanaan → hukum.',
+    sumber: `${S.ebPp}, §3.1.23`,
+  }),
+  butir('risiko-kredit', 'dasar', 'risiko', {
+    tanya: 'Seorang debitur tidak mampu lagi membayar angsuran sesuai perjanjian. Bagi perusahaan pembiayaan, keadaan ini merupakan ...',
+    jawab: 'Risiko kredit',
+    salah: [
+      ['Risiko operasional', 'Risiko operasional berasal dari kegagalan prosedur atau sistem.'],
+      ['Risiko hukum', 'Risiko hukum berasal dari ketidaksesuaian kontrak dan pelaksanaannya.'],
+      ['Risiko reputasi', 'Risiko reputasi muncul dari penanganan pengaduan yang buruk.'],
+      ['Risiko konsentrasi', 'Risiko konsentrasi berkaitan dengan pembiayaan yang menumpuk pada satu pihak.'],
+    ],
+    konsep: 'Jenis risiko perusahaan pembiayaan', kunci: 'tidak mampu membayar angsuran',
+    alasan: 'Risiko kredit atau pembiayaan terjadi ketika penerima pembiayaan gagal memenuhi kewajiban.',
+    cepat: 'Gagal bayar → kredit.',
+    sumber: `${S.ebPp}, §3.1.23`,
+  }),
+  butir('risiko-operasional', 'dasar', 'risiko', {
+    tanya: 'Gangguan sistem membuat tagihan angsuran terkirim dua kali kepada konsumen. Risiko yang paling langsung tampak adalah ...',
+    jawab: 'Risiko operasional',
+    salah: [
+      ['Risiko kredit', 'Risiko kredit terjadi ketika penerima pembiayaan gagal memenuhi kewajiban.'],
+      ['Risiko hukum', 'Risiko hukum berasal dari ketidaksesuaian kontrak dan pelaksanaannya.'],
+      ['Risiko pasar', 'Risiko pasar berkaitan dengan perubahan harga.'],
+      ['Risiko konsentrasi', 'Risiko konsentrasi berkaitan dengan pembiayaan yang menumpuk pada satu pihak.'],
+    ],
+    konsep: 'Jenis risiko perusahaan pembiayaan', kunci: 'gangguan sistem',
+    alasan: 'Risiko operasional dapat berasal dari kegagalan prosedur atau sistem.',
+    cepat: 'Prosedur/sistem gagal → operasional.',
+    sumber: `${S.ebPp}, §3.1.23`,
+  }),
+  butir('jual-beli-syariah', 'menengah', 'pembiayaan syariah', {
+    tanya: 'Perusahaan pembiayaan syariah menyediakan mesin jahit bagi konsumen dengan harga dan margin yang diperjanjikan. Jenis pembiayaan syariah ini adalah ...',
+    jawab: 'Pembiayaan jual beli',
+    salah: [
+      ['Pembiayaan investasi bagi hasil', 'Pembiayaan investasi memberi modal usaha produktif dengan pembagian keuntungan.'],
+      ['Pembiayaan jasa', 'Pembiayaan jasa menyediakan manfaat barang atau pelayanan dengan atau tanpa imbal jasa.'],
+      ['Pembiayaan multiguna konvensional', 'Akadnya jual beli syariah, bukan pembiayaan konvensional.'],
+      ['Pembiayaan infrastruktur', 'Pembiayaan infrastruktur ditujukan untuk proyek seperti jalan dan energi.'],
+    ],
+    konsep: 'Jenis pembiayaan syariah', kunci: 'harga dan margin diperjanjikan',
+    alasan: 'Pada pembiayaan jual beli, barang disediakan melalui jual beli dengan harga dan margin yang diperjanjikan.',
+    cepat: 'Harga + margin → jual beli; bagi keuntungan → investasi; manfaat/pelayanan → jasa.',
+    sumber: `${S.ebPp}, §3.1.11 dan §3.1.18`,
+  }),
+  butir('jasa-syariah', 'menengah', 'pembiayaan syariah', {
+    tanya: 'Perusahaan pembiayaan syariah membiayai layanan pendidikan konsumen sebesar Rp12 juta dengan biaya jasa yang disepakati. Jenis pembiayaan syariah ini adalah ...',
+    jawab: 'Pembiayaan jasa',
+    salah: [
+      ['Pembiayaan jual beli', 'Pembiayaan jual beli menyediakan barang dengan harga dan margin yang diperjanjikan.'],
+      ['Pembiayaan investasi bagi hasil', 'Pembiayaan investasi memberi modal usaha produktif dengan pembagian keuntungan.'],
+      ['Pembiayaan modal kerja', 'Modal kerja membiayai pengeluaran dalam satu siklus usaha, bukan layanan pendidikan.'],
+      ['Pembiayaan multijasa bank syariah', 'Multijasa adalah produk bank syariah, sedangkan kasus ini dilakukan perusahaan pembiayaan.'],
+    ],
+    konsep: 'Jenis pembiayaan syariah', kunci: 'layanan, biaya jasa disepakati',
+    alasan: 'Penyediaan manfaat atau layanan dengan imbal jasa yang disepakati termasuk pembiayaan jasa.',
+    cepat: 'Layanan + imbal jasa → pembiayaan jasa.',
+    sumber: `${S.ebPp}, §3.1.11 dan §3.1.18`,
   }),
   butir('uus-pp', 'dasar', 'pembiayaan syariah', {
     tanya: 'Unit Usaha Syariah (UUS) pada perusahaan pembiayaan adalah ...',

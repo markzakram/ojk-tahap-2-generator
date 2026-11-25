@@ -131,7 +131,7 @@ const biner: Kelas = {
 
 // ── rantai penghubung ────────────────────────────────────────────────────────────────────────────────────
 const kayaKarakter = (kode: string[]) => kode.every(alnum) && kode.every((k) => k.length >= 2) && new Set(kode.join('')).size >= 6;
-function karakterSama(a: string, b: string): string[] {
+export function karakterSama(a: string, b: string): string[] {
   const sisa = [...b];
   const sama: string[] = [];
   for (const c of a) { const i = sisa.indexOf(c); if (i >= 0) { sama.push(c); sisa.splice(i, 1); } }
@@ -199,7 +199,7 @@ const lubang: Kelas = {
 
 // ── selisih angka menggeser huruf (hlm. 26) ──────────────────────────────────────────────────────────────
 const POLA_GESER = /^\d[A-Z]\d$/;
-const geserBerikut = (a: string) => HURUF(a.charCodeAt(1) - 65 + Number(a[2]) - Number(a[0]));
+export const geserBerikut = (a: string) => HURUF(a.charCodeAt(1) - 65 + Number(a[2]) - Number(a[0]));
 const geser = kelasLokal('geser', 'Selisih angka menggeser huruf', (kode) => kode.every((k) => POLA_GESER.test(k)),
   (a, b) => geserBerikut(a) === b[1],
   (urut) => [

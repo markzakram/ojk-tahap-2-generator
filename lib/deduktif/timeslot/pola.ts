@@ -120,6 +120,43 @@ const kalimatKendala = (k: KendalaSlot, nama: (id: string) => string, tetap: (id
   }
 };
 
+/** QC 2 R07: cara cepat memakai sisa waktu dan celah yang benar-benar ada pada soal ini, bukan kalimat bersyarat umum. */
+function caraCepat(item: TimeslotItem, jawaban: Susunan): string {
+  const o = (id: string) => item.opsi.find((x) => x.id === id)!;
+  const tetap = (id: string) => item.tetap.find((t) => t.id === id)!;
+  const tenggat = item.kendala.find((k) => k.jenis === 'tenggat') as Extract<KendalaSlot, { jenis: 'tenggat' }> | undefined;
+  const celah = celahKosong(item, tenggat?.batas);
+  const diCelah = (m: number, p: number) => { const c = celah.find((x) => x.mulai <= m && m + p <= x.mulai + x.panjang); return c ? `celah ${rentang(c.mulai, c.panjang)}` : `rentang ${rentang(m, p)}`; };
+  const bagian: string[] = [];
+  const terikat = new Set<string>();
+  if (tenggat) {
+    const sisa = celah.reduce((s, c) => s + c.panjang, 0) - item.opsi.reduce((s, x) => s + x.durasi, 0);
+    bagian.push(sisa > 0 ? `Ada sisa ${menit(sisa)} dari celah sebelum ${jam(tenggat.batas)}.` : `Total celah sebelum ${jam(tenggat.batas)} sama dengan total durasi, jadi setiap celah terpakai penuh.`);
+  }
+  for (const k of item.kendala) {
+    if (k.jenis === 'jeda-tepat') {
+      const p = o(k.a).durasi + k.jeda + o(k.b).durasi;
+      terikat.add(k.a); terikat.add(k.b);
+      bagian.push(`Pasangan ${o(k.a).nama}–${o(k.b).nama} membutuhkan ${o(k.a).durasi * 30} + ${k.jeda * 30} + ${o(k.b).durasi * 30} = ${menit(p)} sebagai rentang; cocokkan dengan ${diCelah(jawaban[k.a], p)}.`);
+    }
+    if (k.jenis === 'langsung-setelah') {
+      const p = o(k.a).durasi + o(k.b).durasi;
+      terikat.add(k.a); terikat.add(k.b);
+      bagian.push(`${o(k.a).nama} dan ${o(k.b).nama} menyambung, jadi butuh ${o(k.a).durasi * 30} + ${o(k.b).durasi * 30} = ${menit(p)} tanpa putus; cocokkan dengan ${diCelah(jawaban[k.a], p)}.`);
+    }
+    if (k.jenis === 'langsung-setelah-tetap') { terikat.add(k.a); bagian.push(`${o(k.a).nama} menempel sesudah ${tetap(k.tetap).nama}: ${rentang(jawaban[k.a], o(k.a).durasi)}.`); }
+    if (k.jenis === 'langsung-sebelum-tetap') { terikat.add(k.a); bagian.push(`${o(k.a).nama} menempel sebelum ${tetap(k.tetap).nama}: ${rentang(jawaban[k.a], o(k.a).durasi)}.`); }
+    if (k.jenis === 'jendela') { terikat.add(k.a); bagian.push(`${o(k.a).nama} hanya boleh di antara ${jam(k.mulai)} dan ${jam(k.selesai)}: ${rentang(jawaban[k.a], o(k.a).durasi)}.`); }
+  }
+  const sisaOpsi = item.opsi.filter((x) => !terikat.has(x.id)).sort((x, y) => jawaban[x.id] - jawaban[y.id]);
+  if (sisaOpsi.length) {
+    const urut = item.kendala.some((k) => k.jenis === 'sebelum' || k.jenis === 'setelah-tetap' || k.jenis === 'terakhir' || k.jenis === 'pertama');
+    const daftar = sisaOpsi.map((x) => `${x.nama} (${menit(x.durasi)}) di ${diCelah(jawaban[x.id], x.durasi)}`);
+    bagian.push(`${bagian.length > (tenggat ? 1 : 0) ? 'Lalu tempatkan' : 'Tempatkan'} ${daftar.length > 1 ? `${daftar.slice(0, -1).join(', ')}, dan ${daftar[daftar.length - 1]}` : daftar[0]}${urut ? ' menurut urutannya' : ''}.`);
+  }
+  return bagian.join(' ');
+}
+
 function bahas(item: TimeslotItem, jawaban: Susunan): Pembahasan | null {
   const o = (id: string) => item.opsi.find((x) => x.id === id)!;
   const nama = (id: string) => o(id).nama;
@@ -154,9 +191,7 @@ function bahas(item: TimeslotItem, jawaban: Susunan): Pembahasan | null {
   return {
     jawaban: urut.map((x) => `${x.nama} ${rentang(jawaban[x.id], x.durasi)}`).join('; '),
     langkah,
-    caraCepat: tenggat
-      ? 'Hitung celah kosong sebelum tenggat; jika totalnya sama dengan total durasi, cocokkan setiap kegiatan dengan celah yang panjangnya pas.'
-      : 'Tempatkan dulu kegiatan yang terikat langsung pada jadwal tetap, lalu isi celah yang panjangnya pas dengan durasi kegiatan lain sesuai urutan.',
+    caraCepat: caraCepat(item, jawaban),
   };
 }
 
@@ -180,7 +215,8 @@ interface DefPola {
 
 function family(p: DefPola): Family<TimeslotItem, Susunan> {
   return {
-    id: p.id, versi: 1, nama: p.nama, label: p.label, sumber: p.sumber, ringkas: p.ringkas,
+    id: p.id, versi: 2, nama: p.nama, // v2: QC 2 R07, cara cepat dari celah soal ini
+    label: p.label, sumber: p.sumber, ringkas: p.ringkas,
     chapter: chapterById('timeslot-scheduling'),
     bangun(r) { const rc = p.rancang(r); return rc ? bangunDari(r, rc) : null; },
     pecahkan: pecahkanTimeslot,

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { JARI_JARI, type DragLineItem } from '@/lib/induktif/drag-line/pola';
+import { JARI_JARI, TAMPILAN_DL, fontKode, type DragLineItem } from '@/lib/induktif/drag-line/pola';
 
 // Drag the Line (SIADU: Node Arrow Navigation). Simpul berkoordinat (x, y) dengan jari-jari 0,5 satuan.
 // Garis awalan dikunci. Tarik dari simpul ujung ke simpul lain (atau klik simpul tujuan) untuk menyambung;
@@ -29,7 +29,7 @@ export default function DragLineSoal({ item, kunci, tampilKunci }: { item: DragL
   const lepas = (e: React.PointerEvent) => {
     if (!tarik) return;
     const p = titik(e);
-    const kena = item.simpul.find((s) => Math.hypot(s.x - p.x, s.y - p.y) <= JARI_JARI);
+    const kena = item.simpul.find((s) => Math.hypot(s.x - p.x, s.y - p.y) <= TAMPILAN_DL.areaSentuh);
     if (kena && kena.id !== ujung.id) sambung(kena.id);
     setTarik(null);
   };
@@ -40,7 +40,8 @@ export default function DragLineSoal({ item, kunci, tampilKunci }: { item: DragL
     const ux = (q.x - p.x) / d, uy = (q.y - p.y) / d;
     return (
       <line key={`${a}-${b}-${k}`} x1={p.x + ux * JARI_JARI} y1={p.y + uy * JARI_JARI} x2={q.x - ux * (JARI_JARI + 0.04)} y2={q.y - uy * (JARI_JARI + 0.04)}
-        className={kunciGaris ? 'dl-garis kunci' : k < item.awalan.length - 1 ? 'dl-garis awalan' : 'dl-garis'} markerEnd={kunciGaris ? 'url(#dl-panah-kunci)' : 'url(#dl-panah)'} />
+        className={kunciGaris ? 'dl-garis kunci' : k < item.awalan.length - 1 ? 'dl-garis awalan' : 'dl-garis'}
+        style={kunciGaris ? undefined : { strokeWidth: k < item.awalan.length - 1 ? TAMPILAN_DL.tebalGarisAwalan : TAMPILAN_DL.tebalGaris }} markerEnd={kunciGaris ? 'url(#dl-panah-kunci)' : 'url(#dl-panah)'} />
     );
   };
 
@@ -76,8 +77,8 @@ export default function DragLineSoal({ item, kunci, tampilKunci }: { item: DragL
               onPointerDown={(e) => { if (s.id === ujung.id) { (e.target as Element).releasePointerCapture?.(e.pointerId); setTarik({ x: s.x, y: s.y }); } }}
               onClick={() => !tarik && s.id !== ujung.id && sambung(s.id)}
               onDoubleClick={() => s.id === ujung.id && sambung(s.id)}>
-              <circle cx={s.x} cy={s.y} r={JARI_JARI} />
-              <text x={s.x} y={s.y} dominantBaseline="central" textAnchor="middle" style={{ fontSize: s.kode.length > 4 ? 0.24 : 0.3 }}>{s.kode}</text>
+              <circle cx={s.x} cy={s.y} r={JARI_JARI} style={{ strokeWidth: s.id === ujung.id ? TAMPILAN_DL.tebalTepiUjung : TAMPILAN_DL.tebalTepiSimpul }} />
+              <text x={s.x} y={s.y} dominantBaseline="central" textAnchor="middle" style={{ fontSize: fontKode(s.kode) }}>{s.kode}</text>
               {tampilKunci && <text x={s.x + 0.42} y={s.y - 0.42} className="dl-nomor">{kunci.indexOf(s.id) + 1}</text>}
             </g>
           );

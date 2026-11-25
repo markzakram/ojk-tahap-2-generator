@@ -4,7 +4,8 @@ import type { Family } from './types';
 // menguji pengetahuan, bukan isi buku. Stimulus tidak memakai pengantar "Menurut Buku …", tidak menanyakan isi/nama
 // publikasi (mis. LSPI), dan pembahasan tidak menyebut e-book atau materi tim sebagai alasan. Sumber penyusunan tetap
 // tersimpan di metadata internal (`item.data.sumber`, `family.sumber`) untuk QC dan tidak ditampilkan kepada peserta.
-export const POLA_ATRIBUSI = /\be-?book\b|materi tim|\btim (PCAM|JadiOJK|MLE)\b|\bBuku Saku\b|\bSeri Literasi\b|\bBuku \d+\b|menurut (uraian )?buku|\bLSPI\b|Surveillance Perbankan/i;
+// QC 2 (R03, R06): stem juga tidak memakai "Dalam materi …"/"menurut materi …", dan klaim CPD dihapus.
+export const POLA_ATRIBUSI = /\be-?book\b|materi tim|\btim (PCAM|JadiOJK|MLE)\b|\bBuku Saku\b|\bSeri Literasi\b|\bBuku \d+\b|menurut (uraian )?buku|\bLSPI\b|Surveillance Perbankan|(dalam|menurut) (kriteria umum dalam )?materi\b|menurut (referensi|sumber)\b|\bCPD\b/i;
 
 /** Semua string di dalam nilai (rekursif), kecuali kunci metadata internal. */
 function kumpulkan(v: unknown, keluar: string[], kunci = ''): void {

@@ -5,7 +5,7 @@
     "lolos": 300,
     "sidik": 286,
     "percobaanRata": 5.7,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "BDG-SHL-KANTOR": {
     "versi": 2,
@@ -13,7 +13,7 @@
     "lolos": 300,
     "sidik": 262,
     "percobaanRata": 1.2,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "BDG-SHL-TIBA": {
     "versi": 2,
@@ -21,7 +21,7 @@
     "lolos": 300,
     "sidik": 140,
     "percobaanRata": 1.5,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "BDG-V-DASAR": {
     "versi": 2,
@@ -29,7 +29,7 @@
     "lolos": 300,
     "sidik": 297,
     "percobaanRata": 2.8,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "BDG-V-MENANTANG": {
     "versi": 2,
@@ -37,7 +37,7 @@
     "lolos": 300,
     "sidik": 300,
     "percobaanRata": 4.5,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "BDG-V-MENENGAH": {
     "versi": 2,
@@ -45,7 +45,7 @@
     "lolos": 300,
     "sidik": 300,
     "percobaanRata": 2.9,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "CDS-A0": {
     "versi": 1,
@@ -53,7 +53,7 @@
     "lolos": 300,
     "sidik": 300,
     "percobaanRata": 2.5,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "CDS-A1": {
     "versi": 1,
@@ -61,7 +61,7 @@
     "lolos": 300,
     "sidik": 300,
     "percobaanRata": 2.5,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "CDS-A2": {
     "versi": 1,
@@ -69,7 +69,7 @@
     "lolos": 300,
     "sidik": 300,
     "percobaanRata": 2.6,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "CDS-A3": {
     "versi": 1,
@@ -77,7 +77,7 @@
     "lolos": 300,
     "sidik": 300,
     "percobaanRata": 22.9,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "CDS-B0": {
     "versi": 1,
@@ -85,7 +85,7 @@
     "lolos": 300,
     "sidik": 286,
     "percobaanRata": 27,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "CDS-B1": {
     "versi": 1,
@@ -93,7 +93,7 @@
     "lolos": 300,
     "sidik": 281,
     "percobaanRata": 27.6,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "CDS-B2": {
     "versi": 1,
@@ -101,7 +101,7 @@
     "lolos": 300,
     "sidik": 291,
     "percobaanRata": 25.2,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "CDS-B3": {
     "versi": 1,
@@ -109,7 +109,7 @@
     "lolos": 300,
     "sidik": 286,
     "percobaanRata": 27.3,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "CDS-C0": {
     "versi": 1,
@@ -117,7 +117,7 @@
     "lolos": 300,
     "sidik": 284,
     "percobaanRata": 124.6,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "CDS-C1": {
     "versi": 1,
@@ -125,7 +125,7 @@
     "lolos": 300,
     "sidik": 279,
     "percobaanRata": 120,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "CDS-C2": {
     "versi": 1,
@@ -133,7 +133,7 @@
     "lolos": 300,
     "sidik": 288,
     "percobaanRata": 123,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "CDS-C3": {
     "versi": 1,
@@ -141,7 +141,7 @@
     "lolos": 300,
     "sidik": 283,
     "percobaanRata": 130.7,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "DL-AKHIR-AWAL": {
     "versi": 2,
@@ -149,7 +149,7 @@
     "lolos": 300,
     "sidik": 300,
     "percobaanRata": 1.3,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "DL-ARAH": {
     "versi": 2,
@@ -157,7 +157,7 @@
     "lolos": 300,
     "sidik": 171,
     "percobaanRata": 9.8,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "DL-ARAH-LEBAR": {
     "versi": 2,
@@ -165,7 +165,7 @@
     "lolos": 300,
     "sidik": 296,
     "percobaanRata": 1.6,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "DL-BERTINGKAT": {
     "versi": 1,
@@ -181,7 +181,7 @@
     "lolos": 300,
     "sidik": 14,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "DL-DOMINO": {
     "versi": 2,
@@ -189,7 +189,7 @@
     "lolos": 300,
     "sidik": 300,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "DL-GESER": {
     "versi": 2,
@@ -197,7 +197,7 @@
     "lolos": 300,
     "sidik": 300,
     "percobaanRata": 2.2,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "DL-HITUNG": {
     "versi": 2,
@@ -205,7 +205,7 @@
     "lolos": 300,
     "sidik": 276,
     "percobaanRata": 1.1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "DL-HITUNG-CAMPUR": {
     "versi": 2,
@@ -213,7 +213,7 @@
     "lolos": 300,
     "sidik": 300,
     "percobaanRata": 1.1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "DL-LUBANG": {
     "versi": 2,
@@ -221,7 +221,7 @@
     "lolos": 300,
     "sidik": 300,
     "percobaanRata": 2.3,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "DL-OPERASI": {
     "versi": 1,
@@ -237,7 +237,7 @@
     "lolos": 300,
     "sidik": 300,
     "percobaanRata": 1.8,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "DL-ROTASI": {
     "versi": 2,
@@ -245,7 +245,7 @@
     "lolos": 300,
     "sidik": 300,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "DL-SAMBUNG-UJUNG": {
     "versi": 2,
@@ -253,7 +253,7 @@
     "lolos": 300,
     "sidik": 300,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "DL-SELANG": {
     "versi": 1,
@@ -277,7 +277,7 @@
     "lolos": 300,
     "sidik": 48,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "DL-SISIP": {
     "versi": 1,
@@ -288,140 +288,140 @@
     "diuji": "2026-11-10"
   },
   "FS-HEX-JALUR": {
-    "versi": 1,
+    "versi": 2,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 284,
+    "percobaanRata": 7.8,
+    "diuji": "2026-11-25"
+  },
+  "FS-HEX-KECEPATAN": {
+    "versi": 2,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 246,
+    "percobaanRata": 3.2,
+    "diuji": "2026-11-25"
+  },
+  "FS-HEX-PUTAR-TUKAR": {
+    "versi": 2,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 300,
+    "percobaanRata": 1.1,
+    "diuji": "2026-11-25"
+  },
+  "FS-HEX-TUKAR": {
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
     "sidik": 280,
-    "percobaanRata": 7.7,
-    "diuji": "2026-11-23"
-  },
-  "FS-HEX-KECEPATAN": {
-    "versi": 1,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 240,
-    "percobaanRata": 2.7,
-    "diuji": "2026-11-23"
-  },
-  "FS-HEX-PUTAR-TUKAR": {
-    "versi": 1,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 299,
-    "percobaanRata": 1.1,
-    "diuji": "2026-11-23"
-  },
-  "FS-HEX-TUKAR": {
-    "versi": 1,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 283,
-    "percobaanRata": 1.3,
-    "diuji": "2026-11-23"
+    "percobaanRata": 1.2,
+    "diuji": "2026-11-25"
   },
   "FS-PENTA-KOSONG": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
-    "sidik": 105,
-    "percobaanRata": 1.3,
-    "diuji": "2026-11-23"
+    "sidik": 98,
+    "percobaanRata": 1.4,
+    "diuji": "2026-11-25"
   },
   "FS-PENTA-LAPIS": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
     "sidik": 8,
-    "percobaanRata": 2.1,
-    "diuji": "2026-11-23"
+    "percobaanRata": 2.2,
+    "diuji": "2026-11-25"
   },
   "FS-PENTA-PUSAT": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
-    "sidik": 238,
+    "sidik": 236,
     "percobaanRata": 1.1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "FS-PENTA-TIGA": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
     "sidik": 18,
-    "percobaanRata": 2,
-    "diuji": "2026-11-23"
+    "percobaanRata": 1.9,
+    "diuji": "2026-11-25"
   },
   "FS-SQ-BERGANTIAN": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
-    "sidik": 64,
-    "percobaanRata": 3.7,
-    "diuji": "2026-11-23"
+    "sidik": 63,
+    "percobaanRata": 3.5,
+    "diuji": "2026-11-25"
   },
   "FS-SQ-KECEPATAN": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
-    "sidik": 283,
-    "percobaanRata": 2.9,
-    "diuji": "2026-11-23"
+    "sidik": 282,
+    "percobaanRata": 3,
+    "diuji": "2026-11-25"
   },
   "FS-SQ-LANGKAH": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
     "sidik": 16,
     "percobaanRata": 3,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "FS-SQ-LINTAS": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
     "sidik": 56,
     "percobaanRata": 1.2,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "FS-SQ-PUTAR-TUKAR": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
     "sidik": 300,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "percobaanRata": 1.1,
+    "diuji": "2026-11-25"
   },
   "FS-SQ-TUKAR": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
     "sidik": 300,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "percobaanRata": 1.1,
+    "diuji": "2026-11-25"
   },
   "FS-TRI-KOSONG": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
-    "sidik": 143,
+    "sidik": 136,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "FS-TRI-PANTUL": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
-    "sidik": 75,
+    "sidik": 76,
     "percobaanRata": 1.1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "FS-TRI-SIKLUS": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
-    "sidik": 168,
+    "sidik": 162,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "GCS-KUANTIFIER": {
     "versi": 3,
@@ -429,7 +429,7 @@
     "lolos": 300,
     "sidik": 12,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "GCS-MODAL-PASIF": {
     "versi": 1,
@@ -437,7 +437,7 @@
     "lolos": 300,
     "sidik": 14,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "GCS-NOUN-CLAUSE": {
     "versi": 2,
@@ -445,7 +445,7 @@
     "lolos": 300,
     "sidik": 13,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "GCS-PRONOMINA": {
     "versi": 3,
@@ -453,7 +453,7 @@
     "lolos": 300,
     "sidik": 17,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "GCS-SVA-WAKTU": {
     "versi": 2,
@@ -461,7 +461,7 @@
     "lolos": 300,
     "sidik": 69,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "GCS-WAKTU": {
     "versi": 1,
@@ -469,479 +469,479 @@
     "lolos": 300,
     "sidik": 14,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-ASR-FAKTA": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 14,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-ASR-HITUNG": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 28,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-ASR-KASUS": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 20,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-ASR-RELASI": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 59,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-BANK-HITUNG": {
     "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 10,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
+  },
+  "PSJK-ASR-HITUNG": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 20,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-ASR-KASUS": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 10,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-ASR-RELASI": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 44,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-BANK-HITUNG": {
+    "versi": 4,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 8,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
   },
   "PSJK-BANK-ISTILAH": {
-    "versi": 3,
+    "versi": 4,
     "seed": 300,
     "lolos": 300,
     "sidik": 52,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-BANK-KASUS": {
-    "versi": 3,
+    "versi": 4,
     "seed": 300,
     "lolos": 300,
-    "sidik": 38,
+    "sidik": 18,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-BANK-LEMBAGA": {
-    "versi": 3,
+    "versi": 4,
     "seed": 300,
     "lolos": 300,
-    "sidik": 38,
+    "sidik": 56,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-BULION-FAKTA": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 8,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-BULION-HITUNG": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 12,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-BULION-KASUS": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 10,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-BULION-RELASI": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 12,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-DAPEN-FAKTA": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 10,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-DAPEN-HITUNG": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
-    "sidik": 12,
+    "sidik": 4,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-DAPEN-KASUS": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
-    "sidik": 14,
+    "sidik": 11,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-DAPEN-RELASI": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
-    "sidik": 30,
+    "sidik": 10,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-DFL-HITUNG": {
-    "versi": 3,
+    "versi": 4,
     "seed": 300,
     "lolos": 300,
     "sidik": 3,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-DFL-ISTILAH": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 26,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-DFL-KASUS": {
-    "versi": 3,
+    "versi": 4,
     "seed": 300,
     "lolos": 300,
     "sidik": 17,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-FINTECH-HITUNG": {
-    "versi": 3,
+    "versi": 4,
     "seed": 300,
     "lolos": 300,
     "sidik": 4,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-FINTECH-ISTILAH": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 28,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-FINTECH-KASUS": {
-    "versi": 3,
+    "versi": 4,
     "seed": 300,
     "lolos": 300,
-    "sidik": 22,
+    "sidik": 20,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "PSJK-GADAI-HITUNG": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 6,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-GADAI-ISTILAH": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 26,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-GADAI-KASUS": {
-    "versi": 3,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 18,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-JAMIN-HITUNG": {
     "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 3,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
-  "PSJK-JAMIN-ISTILAH": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 26,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-JAMIN-KASUS": {
-    "versi": 3,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 18,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-KRIPTO-FAKTA": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 8,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-KRIPTO-HITUNG": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 8,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-KRIPTO-KASUS": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 12,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-KRIPTO-RELASI": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 44,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-LKM-HITUNG": {
-    "versi": 3,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 4,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-LKM-ISTILAH": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 24,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-LKM-KASUS": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 18,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-MV-HITUNG": {
-    "versi": 3,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 6,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-MV-ISTILAH": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 26,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-MV-KASUS": {
-    "versi": 3,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 12,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-OJK-KASUS": {
-    "versi": 3,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 33,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-OJK-KONSUMEN": {
-    "versi": 3,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 33,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-OJK-LEMBAGA": {
-    "versi": 3,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 33,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-OJK-RELASI-KONSUMEN": {
-    "versi": 3,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 48,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-OJK-RELASI-LEMBAGA": {
-    "versi": 3,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 61,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-PK-HITUNG": {
-    "versi": 3,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 19,
-    "percobaanRata": 1.5,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-PK-KASUS": {
-    "versi": 3,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 20,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-PK-KONSEP": {
-    "versi": 3,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 31,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-PK-RELASI": {
+  "PSJK-GADAI-ISTILAH": {
     "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 24,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
-  "PSJK-PM-FAKTA": {
-    "versi": 2,
+  "PSJK-GADAI-KASUS": {
+    "versi": 4,
     "seed": 300,
     "lolos": 300,
     "sidik": 13,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
-  "PSJK-PM-HITUNG": {
-    "versi": 2,
+  "PSJK-JAMIN-HITUNG": {
+    "versi": 4,
     "seed": 300,
     "lolos": 300,
-    "sidik": 24,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "sidik": 3,
+    "percobaanRata": 1.1,
+    "diuji": "2026-11-25"
   },
-  "PSJK-PM-ISTILAH": {
-    "versi": 2,
+  "PSJK-JAMIN-ISTILAH": {
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
-    "sidik": 54,
+    "sidik": 26,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
-  "PSJK-PM-KASUS": {
-    "versi": 2,
+  "PSJK-JAMIN-KASUS": {
+    "versi": 4,
     "seed": 300,
     "lolos": 300,
     "sidik": 17,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
-  "PSJK-PM-PELAKU": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 28,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-PP-HITUNG": {
+  "PSJK-KRIPTO-FAKTA": {
     "versi": 3,
     "seed": 300,
     "lolos": 300,
-    "sidik": 7,
+    "sidik": 8,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
-  "PSJK-PP-ISTILAH": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 20,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-PP-KASUS": {
+  "PSJK-KRIPTO-HITUNG": {
     "versi": 3,
     "seed": 300,
     "lolos": 300,
-    "sidik": 28,
+    "sidik": 8,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
-  "PSJK-SYARIAH-FAKTA": {
-    "versi": 2,
+  "PSJK-KRIPTO-KASUS": {
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
-    "sidik": 14,
+    "sidik": 12,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
-  "PSJK-SYARIAH-HITUNG": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 20,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-SYARIAH-KASUS": {
-    "versi": 2,
-    "seed": 300,
-    "lolos": 300,
-    "sidik": 18,
-    "percobaanRata": 1,
-    "diuji": "2026-11-23"
-  },
-  "PSJK-SYARIAH-RELASI": {
-    "versi": 2,
+  "PSJK-KRIPTO-RELASI": {
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 44,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
+  },
+  "PSJK-LKM-HITUNG": {
+    "versi": 4,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 4,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-LKM-ISTILAH": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 24,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-LKM-KASUS": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 18,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-MV-HITUNG": {
+    "versi": 4,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 6,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-MV-ISTILAH": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 26,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-MV-KASUS": {
+    "versi": 4,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 12,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-OJK-KASUS": {
+    "versi": 4,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 26,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-OJK-KONSUMEN": {
+    "versi": 4,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 17,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-OJK-LEMBAGA": {
+    "versi": 4,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 23,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-OJK-RELASI-KONSUMEN": {
+    "versi": 4,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 43,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-OJK-RELASI-LEMBAGA": {
+    "versi": 4,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 56,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-PK-HITUNG": {
+    "versi": 4,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 13,
+    "percobaanRata": 1.7,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-PK-KASUS": {
+    "versi": 4,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 15,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-PK-KONSEP": {
+    "versi": 4,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 17,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-PK-RELASI": {
+    "versi": 4,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 28,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-PM-FAKTA": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 14,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-PM-HITUNG": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 24,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-PM-ISTILAH": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 50,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-PM-KASUS": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 19,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-PM-PELAKU": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 20,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-PP-HITUNG": {
+    "versi": 4,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 7,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-PP-ISTILAH": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 36,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-PP-KASUS": {
+    "versi": 4,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 26,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-SYARIAH-FAKTA": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 12,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-SYARIAH-HITUNG": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 20,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-SYARIAH-KASUS": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 14,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
+  },
+  "PSJK-SYARIAH-RELASI": {
+    "versi": 3,
+    "seed": 300,
+    "lolos": 300,
+    "sidik": 32,
+    "percobaanRata": 1,
+    "diuji": "2026-11-25"
   },
   "RA-DURASI": {
     "versi": 2,
@@ -949,7 +949,7 @@
     "lolos": 300,
     "sidik": 27,
     "percobaanRata": 22.4,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "RA-KANTOR": {
     "versi": 2,
@@ -957,7 +957,7 @@
     "lolos": 300,
     "sidik": 180,
     "percobaanRata": 19.3,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "RA-SAMA-BEDA": {
     "versi": 3,
@@ -965,7 +965,7 @@
     "lolos": 300,
     "sidik": 25,
     "percobaanRata": 1.9,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "RC-OJK": {
     "versi": 5,
@@ -973,7 +973,7 @@
     "lolos": 300,
     "sidik": 40,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "RC-SHL": {
     "versi": 4,
@@ -981,7 +981,7 @@
     "lolos": 300,
     "sidik": 26,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "RC-VAR": {
     "versi": 5,
@@ -989,7 +989,7 @@
     "lolos": 300,
     "sidik": 28,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "SA-FRASA": {
     "versi": 3,
@@ -997,7 +997,7 @@
     "lolos": 300,
     "sidik": 12,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "SA-INFINITIF": {
     "versi": 3,
@@ -1005,7 +1005,7 @@
     "lolos": 300,
     "sidik": 12,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "SA-KLAUSA": {
     "versi": 3,
@@ -1013,7 +1013,7 @@
     "lolos": 300,
     "sidik": 12,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "SC-ADJ": {
     "versi": 3,
@@ -1021,15 +1021,15 @@
     "lolos": 300,
     "sidik": 23,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "SC-BENTUK": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
     "sidik": 23,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "SC-KONEKTOR": {
     "versi": 2,
@@ -1037,7 +1037,7 @@
     "lolos": 300,
     "sidik": 14,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "SC-NOUN": {
     "versi": 3,
@@ -1045,7 +1045,7 @@
     "lolos": 300,
     "sidik": 20,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "SC-VERB": {
     "versi": 3,
@@ -1053,7 +1053,7 @@
     "lolos": 300,
     "sidik": 21,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "SC-VERBA": {
     "versi": 3,
@@ -1061,7 +1061,7 @@
     "lolos": 300,
     "sidik": 18,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "SI-AGREEMENT": {
     "versi": 2,
@@ -1069,7 +1069,7 @@
     "lolos": 300,
     "sidik": 34,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "SI-GER-PREP": {
     "versi": 2,
@@ -1077,7 +1077,7 @@
     "lolos": 300,
     "sidik": 75,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "SI-GER-TO": {
     "versi": 1,
@@ -1085,7 +1085,7 @@
     "lolos": 300,
     "sidik": 47,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "SI-KOMPLEMEN": {
     "versi": 1,
@@ -1093,7 +1093,7 @@
     "lolos": 300,
     "sidik": 82,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "SI-PARALEL": {
     "versi": 2,
@@ -1101,7 +1101,7 @@
     "lolos": 300,
     "sidik": 50,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "SI-TENSE": {
     "versi": 1,
@@ -1109,126 +1109,126 @@
     "lolos": 300,
     "sidik": 28,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "TL-PETUGAS": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 65,
     "percobaanRata": 1.3,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "TL-PETUGAS-AMBANG": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
-    "sidik": 53,
-    "percobaanRata": 10.7,
-    "diuji": "2026-11-23"
+    "sidik": 52,
+    "percobaanRata": 10.4,
+    "diuji": "2026-11-25"
   },
   "TL-PETUGAS-BEBAS": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 300,
-    "percobaanRata": 39,
-    "diuji": "2026-11-23"
+    "percobaanRata": 38.7,
+    "diuji": "2026-11-25"
   },
   "TL-RAPAT": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 300,
-    "percobaanRata": 3.4,
-    "diuji": "2026-11-23"
+    "percobaanRata": 3.8,
+    "diuji": "2026-11-25"
   },
   "TL-RAPAT-AKHIR": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 300,
-    "percobaanRata": 3.2,
-    "diuji": "2026-11-23"
+    "percobaanRata": 3.9,
+    "diuji": "2026-11-25"
   },
   "TL-RAPAT-PANJANG": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 300,
-    "percobaanRata": 1.4,
-    "diuji": "2026-11-23"
+    "percobaanRata": 1.5,
+    "diuji": "2026-11-25"
   },
   "TL-RUANG": {
-    "versi": 2,
+    "versi": 3,
     "seed": 300,
     "lolos": 300,
     "sidik": 300,
-    "percobaanRata": 8.5,
-    "diuji": "2026-11-23"
+    "percobaanRata": 7.6,
+    "diuji": "2026-11-25"
   },
   "TS-D1": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
-    "sidik": 253,
-    "percobaanRata": 1.5,
-    "diuji": "2026-11-23"
+    "sidik": 250,
+    "percobaanRata": 1.4,
+    "diuji": "2026-11-25"
   },
   "TS-D2": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
-    "sidik": 293,
+    "sidik": 287,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "TS-D3": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
-    "sidik": 152,
+    "sidik": 157,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "TS-D4": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
-    "sidik": 207,
+    "sidik": 205,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "TS-D5": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
-    "sidik": 126,
+    "sidik": 134,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "TS-P1": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
-    "sidik": 221,
+    "sidik": 230,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "TS-P2": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
-    "sidik": 269,
+    "sidik": 266,
     "percobaanRata": 1,
-    "diuji": "2026-11-23"
+    "diuji": "2026-11-25"
   },
   "TS-P3": {
-    "versi": 1,
+    "versi": 2,
     "seed": 300,
     "lolos": 300,
-    "sidik": 229,
-    "percobaanRata": 2.1,
-    "diuji": "2026-11-23"
+    "sidik": 234,
+    "percobaanRata": 2,
+    "diuji": "2026-11-25"
   }
 }

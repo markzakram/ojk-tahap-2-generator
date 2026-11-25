@@ -1,6 +1,8 @@
 import { bangkitkan } from '../core/engine';
 import { familyById, FAMILIES } from '../core/registry';
 import type { Soal } from '../core/types';
+import { geometriTampilan, type DragLineItem } from '../induktif/drag-line/pola';
+import { gambarPembahasan } from '../visual';
 import { CHAPTERS, chapterById, NAMA_SUBTES } from '../data/chapters';
 import DATA from '../data/paket.json';
 import { hitungBocor, ringkasPaket, type HasilSusun, type Paket, type SlotPaket } from './susun';
@@ -28,6 +30,16 @@ export function bangunSlot(s: SlotPaket): Soal | null {
 
 export const huruf = (s: SlotPaket) => (s.kunci && /^[A-E]$/.test(s.kunci) ? s.kunci : undefined);
 
+/** Soal lengkap untuk JSON: pembahasan memuat visual (SVG) dan Drag the Line memuat geometri tampilannya (QC 2 R02, T02/T08). */
+function soalJson(soal: Soal) {
+  const gambar = gambarPembahasan(soal);
+  return {
+    ...soal,
+    ...((soal.item as { jenis: string }).jenis === 'drag-line' ? { tampilan: geometriTampilan(soal.item as DragLineItem, soal.jawaban as string[]) } : {}),
+    pembahasan: gambar.length ? { ...soal.pembahasan, gambar } : soal.pembahasan,
+  };
+}
+
 /** Isi lengkap satu paket untuk JSON. */
 export function isiLengkap(p: Paket) {
   return {
@@ -38,7 +50,7 @@ export function isiLengkap(p: Paket) {
         const c = chapterById(s.chapterId);
         const soal = bangunSlot(s);
         const mapping = { category: c.category, lesson: c.lesson, chapter: c.chapter, bentukSoal: c.bentuk, siadu: c.siadu };
-        return soal ? { nomor: i + 1, ...mapping, ...soal } : { nomor: i + 1, ...mapping, kosong: s.alasan ?? 'gagal dibangkitkan' };
+        return soal ? { nomor: i + 1, ...mapping, ...soalJson(soal) } : { nomor: i + 1, ...mapping, kosong: s.alasan ?? 'gagal dibangkitkan' };
       }),
     })),
   };

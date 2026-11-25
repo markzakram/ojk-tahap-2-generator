@@ -1,6 +1,7 @@
 import type { Family, Label } from '../core/types';
 import { bahasPg, periksaFormatPg, susunOpsi, type JawabanPg, type PilihanGandaItem, type Tingkat } from '../core/pilihan-ganda';
 import { chapterById } from '../data/chapters';
+import { dalamCakupan } from './cakupan';
 
 // Mesin bersama soal Pengetahuan Sektor Jasa Keuangan (PSJK): pilihan ganda 5 opsi (A–E, mengikuti e-book materi tim).
 // Pengetahuan faktual tidak dapat "dipecahkan" dari isi soal seperti soal logika, jadi kebenarannya bersandar pada bank
@@ -103,16 +104,21 @@ interface InfoFamily {
   ringkas: string;
 }
 
-/** Family dari soal kurasi. */
-export function familyKurasi(info: InfoFamily, butir: ButirKurasi[]): Family<ItemPsjk, JawabanPg> {
+/** Family PSJK yang seluruh isinya di luar cakupan materi folder (QC 2 R01); tidak didaftarkan di index. */
+export type FamilyPsjk<I = ItemPsjk> = Family<I, JawabanPg> & { kosong?: boolean };
+
+/** Family dari soal kurasi. Butir di luar cakupan materi folder tidak ikut dibangkitkan (lib/psjk/cakupan.ts). */
+export function familyKurasi(info: InfoFamily, bank: ButirKurasi[]): FamilyPsjk {
   const ids = new Set<string>();
-  for (const b of butir) {
+  const butir = bank.filter((b) => dalamCakupan(info.chapter, `${info.id}|${b.id}`, b.sumber));
+  for (const b of bank) {
     if (ids.has(b.id)) throw new Error(`${info.id}: id butir ganda ${b.id}`);
     ids.add(b.id);
     if (b.pengecoh.length < 4) throw new Error(`${info.id}/${b.id}: pengecoh kurang dari empat`);
   }
   return {
     id: info.id, versi: info.versi ?? 1, nama: info.nama, chapter: chapterById(info.chapter), label: info.label, sumber: info.sumber, ringkas: info.ringkas,
+    kosong: butir.length === 0,
     bangun(r) {
       const b = r.pick(butir);
       const peng = r.sample(b.pengecoh, 4);
@@ -161,10 +167,14 @@ export interface TabelRelasi {
 
 /**
  * Family dari tabel relasi: setiap baris menjadi soal (dua arah bila `tanyaSubjek` ada), pengecoh dari baris lain.
- * Syarat tabel: subjek unik dan nilai unik (relasi satu-satu), sedikitnya lima baris.
+ * Syarat tabel: subjek unik dan nilai unik (relasi satu-satu), sedikitnya lima baris. Baris di luar cakupan materi folder
+ * dibuang; tabel yang tersisa kurang dari lima baris tidak dipakai (lib/psjk/cakupan.ts).
  */
-export function familyRelasi(info: InfoFamily, tabel: TabelRelasi[]): Family<ItemPsjk, JawabanPg> {
-  for (const t of tabel) {
+export function familyRelasi(info: InfoFamily, bank: TabelRelasi[]): FamilyPsjk {
+  const tabel = bank
+    .map((t) => ({ ...t, baris: t.baris.filter((b) => dalamCakupan(info.chapter, `${info.id}|${t.id}|${b.id}`, b.sumber)) }))
+    .filter((t) => t.baris.length >= 5);
+  for (const t of bank) {
     if (t.baris.length < 5) throw new Error(`${info.id}/${t.id}: tabel relasi perlu sedikitnya lima baris`);
     if (new Set(t.baris.map((b) => norm(b.subjek))).size !== t.baris.length) throw new Error(`${info.id}/${t.id}: subjek tidak unik`);
     if (new Set(t.baris.map((b) => norm(b.nilai))).size !== t.baris.length) throw new Error(`${info.id}/${t.id}: nilai tidak unik`);
@@ -172,6 +182,7 @@ export function familyRelasi(info: InfoFamily, tabel: TabelRelasi[]): Family<Ite
   const soal = tabel.flatMap((t) => t.baris.flatMap((b) => [{ t, b, arah: 'nilai' as const }, ...(t.tanyaSubjek ? [{ t, b, arah: 'subjek' as const }] : [])]));
   return {
     id: info.id, versi: info.versi ?? 1, nama: info.nama, chapter: chapterById(info.chapter), label: info.label, sumber: info.sumber, ringkas: info.ringkas,
+    kosong: soal.length === 0,
     bangun(r) {
       const { t, b, arah } = r.pick(soal);
       const lain = r.sample(t.baris.filter((x) => x.id !== b.id), 4);

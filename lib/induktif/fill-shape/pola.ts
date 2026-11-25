@@ -1,7 +1,7 @@
 import type { Rng } from '../../core/rng';
 import type { Family, Label } from '../../core/types';
 import { chapterById } from '../../data/chapters';
-import { ramalkan, terapkanOp, type JenisAturan } from './aturan';
+import { ramalkan, terapkanOp, type JenisAturan, type Ramalan } from './aturan';
 import {
   H, U, W, geometri, kunciFrame, opDenganKode, samaFrame, uraiFrame,
   type Frame, type Geometri, type GeometriId, type Warna,
@@ -46,9 +46,20 @@ interface CfgFS {
   caraCepat?: string;
 }
 
+/** Jenis aturan utama per family, dibaca visual pembahasan (lib/visual/fill-shape.ts). */
+const JENIS_UTAMA = new Map<string, JenisAturan[]>();
+const aturanUtama = (jenis: JenisAturan[], semua: Ramalan[], jawaban: Frame) => semua.find((x) => jenis.includes(x.jenis) && samaFrame(x.g5, jawaban));
+/** Aturan yang dipakai pembahasan satu soal Fill Shape; null bila family tidak dikenal. */
+export function aturanPembahasan(familyId: string, item: FillShapeItem, jawaban: Frame): Ramalan | null {
+  const jenis = JENIS_UTAMA.get(familyId);
+  return (jenis && aturanUtama(jenis, ramalkan(geometri(item.geometri), item.frame), jawaban)) ?? null;
+}
+
 function buat(cfg: CfgFS): Family<FillShapeItem, Frame> {
+  JENIS_UTAMA.set(cfg.id, cfg.jenis);
   return {
-    id: cfg.id, versi: 1, nama: cfg.nama, chapter: chapterById(cfg.chapter), label: cfg.label, sumber: cfg.sumber, ringkas: cfg.ringkas,
+    // v2: QC 2 R02/R07, label "Gambar 1…5", nama unsur konsisten, klaim ketunggalan dibatasi pada keluarga aturan yang diperiksa
+    id: cfg.id, versi: 2, nama: cfg.nama, chapter: chapterById(cfg.chapter), label: cfg.label, sumber: cfg.sumber, ringkas: cfg.ringkas,
     maksPercobaan: 600,
     bangun(r) {
       const geo = geometri(cfg.geometri);
@@ -76,14 +87,14 @@ function buat(cfg: CfgFS): Family<FillShapeItem, Frame> {
     bahas(item, jawaban) {
       const geo = geometri(item.geometri);
       const semua = ramalkan(geo, item.frame);
-      const utama = semua.find((x) => cfg.jenis.includes(x.jenis) && samaFrame(x.g5, jawaban));
+      const utama = aturanUtama(cfg.jenis, semua, jawaban);
       if (!utama) return null;
       const lainnya = [...new Set(semua.filter((x) => x !== utama).map((x) => x.jenis))];
       const langkah = [
         ...utama.uraian.map((teks) => ({ teks })),
-        { teks: `G5 — ${uraiFrame(geo, jawaban)}.` },
+        { teks: `Gambar 5 (jawaban) — ${uraiFrame(geo, jawaban)}.` },
       ];
-      if (lainnya.length) langkah.push({ teks: `Aturan lain yang juga cocok dengan G1–G4 (${lainnya.join(', ')}) menghasilkan G5 yang sama, jadi jawabannya tunggal.` });
+      if (lainnya.length) langkah.push({ teks: 'Dalam keluarga aturan sederhana yang diperiksa, kandidat lain yang lolos menghasilkan gambar jawaban yang sama.' });
       return { jawaban: uraiFrame(geo, jawaban), langkah, caraCepat: cfg.caraCepat };
     },
     sidik(item, jawaban) {
@@ -232,7 +243,7 @@ export const fsPersegiTukar = buat({
   sumber: 'Blueprint Fill Shape D · induktif.pdf hlm. 7',
   ringkas: 'Delapan sektor luar + delapan sektor dalam terisi hijau/ungu. A = tukar isi pasangan luar–dalam; B = cermin terhadap sumbu vertikal; A–B–A–B.',
   geometri: 'persegi-16', jenis: ['operasi'],
-  caraCepat: 'Kedua operasi membatalkan dirinya setelah dua penerapan dan dapat dipertukarkan, sehingga G5 = G1.',
+  caraCepat: 'Kedua operasi membatalkan dirinya setelah dua penerapan dan dapat dipertukarkan, sehingga Gambar 5 sama dengan Gambar 1.',
   bangun(r, geo) {
     const A = opDenganKode(geo, 'tukar');
     const B = opDenganKode(geo, 'cermin:7');

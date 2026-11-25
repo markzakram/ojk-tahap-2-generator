@@ -1,5 +1,5 @@
 import { familyKurasi, familyRelasi, type TabelRelasi } from '../umum';
-import { alasanRelasi, baris, butir, kalimatRelasi, SUMBER as S } from './bantu';
+import { alasanRelasi, baris, butir, kalimatRelasi, kapital, SUMBER as S } from './bantu';
 import { bulat, familyHitung, kombinasi, miliar, persen2, rp, type Param, type TemplateHitung } from './hitung';
 
 // Chapter Perbankan (kebutuhan 85). Empat family:
@@ -13,26 +13,24 @@ const UU_OJK = 'UU 21/2011 jo. UU 4/2023 (P2SK)';
 
 // ---------------------------------------------------------------- relasi
 
+// QC 2 R01: tabel produk, rasio, kewenangan, dan risiko disusun ulang hanya dari materi Perbankan (§3.1.1–3.1.23);
+// inkaso, L/C, bank garansi, safe deposit box, LCR/NSFR, leverage, dan risiko hukum/reputasi/stratejik dikeluarkan.
 const PRODUK: TabelRelasi = {
   id: 'produk-jasa',
-  topik: 'produk dan jasa bank',
+  topik: 'produk bank',
   tanyaNilai: (s) => `${s} dalam layanan perbankan adalah ...`,
-  tanyaSubjek: (n) => `Produk atau jasa bank berupa ${n} disebut ...`,
+  tanyaSubjek: (n) => `Produk bank berupa ${n} disebut ...`,
   alasanSalah: alasanRelasi('adalah'),
   kalimat: kalimatRelasi('adalah'),
-  konsep: 'Produk simpanan (tabungan, giro, deposito) dan jasa bank (transfer, kliring, inkaso, L/C, bank garansi, penyimpanan barang berharga).',
-  caraCepat: 'Cari ciri pembeda: ditarik dengan cek → giro; ATM/mobile banking untuk konsumen → tabungan; jatuh tempo → deposito; menagih warkat di tempat lain → inkaso; jaminan bila wanprestasi → bank garansi; dokumen dagang → L/C.',
+  konsep: 'Simpanan bank: tabungan, giro, dan deposito. Penyaluran dana: kredit konsumtif, kredit produktif, dan pembiayaan sesuai akad.',
+  caraCepat: 'Tarik fleksibel → tabungan; lalu lintas pembayaran usaha → giro; berjangka → deposito; dana untuk konsumsi → konsumtif; dana untuk usaha → produktif; jasa dengan ujrah → multijasa.',
   baris: [
-    baris('tabungan', 'Tabungan', 'simpanan konsumen yang dapat ditarik setiap saat melalui kartu ATM/debit atau mobile banking sesuai ketentuan bank', 'dasar', `${S.bsc}, Bab III (hlm. 30–32)`),
-    baris('giro', 'Giro', 'simpanan untuk kepentingan usaha yang dananya dapat ditarik dengan cek', 'dasar', `${S.bsc}, Bab III (hlm. 33)`),
-    baris('deposito', 'Deposito berjangka', 'simpanan yang pencairannya dilakukan setelah jangka waktu tertentu sesuai perjanjian', 'dasar', `${S.buku2}, Bab 5 (hlm. 109–110)`),
-    baris('bank-garansi', 'Bank garansi', 'jaminan tertulis dari bank untuk membayar pihak penerima jaminan apabila nasabah yang dijamin wanprestasi', 'menengah', `${S.buku2}, Bab 5 (hlm. 132)`),
-    baris('inkaso', 'Inkaso', 'kuasa nasabah kepada bank untuk menagih surat berharga yang pembayarnya berada di tempat lain', 'menengah', `${S.buku2}, Bab 5 (hlm. 132–133)`),
-    baris('lc', 'Letter of credit (L/C)', 'janji tertulis bank penerbit untuk membayar penerima apabila dokumen yang diserahkan sesuai syarat', 'menengah', `${S.buku2}, Bab 5 (hlm. 127)`),
-    baris('kliring', 'Kliring', 'perhitungan utang piutang antarpeserta secara terpusat dengan saling menyerahkan warkat', 'menengah', `${S.buku2}, Bab 5 (hlm. 133)`),
-    baris('sdb', 'Safe deposit box', 'kotak penyimpanan barang berharga yang disewakan bank kepada nasabah', 'dasar', `${S.buku2}, Bab 4 (hlm. 94)`),
-    baris('kartu-kredit', 'Kartu kredit', 'pinjaman dari bank yang sekaligus menjadi alat pembayaran pengganti uang tunai di merchant', 'dasar', `${S.bsc}, Bab III (hlm. 36)`),
-    baris('pemindahbukuan', 'Pemindahbukuan', 'transfer dana ke rekening penerima di bank yang sama', 'dasar', `${S.bsc}, Bab III (hlm. 39)`),
+    baris('tabungan', 'Tabungan', 'simpanan yang penarikannya relatif fleksibel melalui kanal seperti ATM dan mobile banking', 'dasar', `${S.ebBank}, §3.1.3`),
+    baris('giro', 'Giro', 'simpanan untuk lalu lintas pembayaran usaha melalui sarana yang ditentukan bank', 'dasar', `${S.ebBank}, §3.1.3 dan contoh soal 4.1`),
+    baris('deposito', 'Deposito berjangka', 'simpanan dengan syarat pencairan dan jatuh tempo sebagaimana perjanjian', 'dasar', `${S.ebBank}, §3.1.3 dan contoh soal 4.2`),
+    baris('kredit-konsumtif', 'Kredit konsumtif', 'penyaluran dana yang dipakai untuk kebutuhan konsumsi', 'dasar', `${S.ebBank}, §3.1.4`),
+    baris('kredit-produktif', 'Kredit produktif', 'penyaluran dana yang menunjang kegiatan usaha, investasi, atau modal kerja', 'dasar', `${S.ebBank}, §3.1.4 dan contoh soal 4.4`),
+    baris('multijasa', 'Pembiayaan multijasa', 'pendanaan syariah untuk kebutuhan jasa tertentu dengan pembayaran ujrah yang disepakati', 'menengah', `${S.ebBank}, §3.1.11 dan contoh soal 4.17`),
   ],
 };
 
@@ -61,8 +59,8 @@ const AKAD: TabelRelasi = {
   tanyaSubjek: (n) => `Dalam perbankan syariah, akad yang pada intinya merupakan ${n} adalah akad ...`,
   alasanSalah: alasanRelasi('merupakan', 'akad'),
   kalimat: kalimatRelasi('merupakan', 'akad'),
-  konsep: 'Akad bank syariah: titipan (wadiah), bagi hasil (mudharabah, musyarakah), jual beli (murabahah), sewa (ijarah), pengambilalihan utang (hawalah), pinjaman (qardh).',
-  caraCepat: 'Titip → wadiah; pemilik dana + pengelola → mudharabah; sama-sama menyetor modal → musyarakah; jual beli dengan margin → murabahah; sewa/ujrah → ijarah; ambil alih utang → hawalah; pinjam kembali pokok → qardh.',
+  konsep: 'Akad bank syariah: titipan (wadiah), bagi hasil (mudharabah, musyarakah), jual beli (murabahah), dan sewa jasa atau manfaat (ijarah).',
+  caraCepat: 'Titip → wadiah; pemilik dana + pengelola → mudharabah; sama-sama menyetor modal → musyarakah; jual beli dengan margin → murabahah; sewa/ujrah → ijarah.',
   baris: [
     baris('wadiah', 'wadiah', 'titipan dana atau barang dari nasabah', 'dasar', `${S.ebBank}, §3.1.2 dan §3.1.19`),
     baris('mudharabah', 'mudharabah', 'kerja sama pemilik dana dan pengelola dengan pembagian keuntungan sesuai nisbah', 'dasar', `${S.ebBank}, §3.1.10 dan §3.1.19`),
@@ -81,54 +79,107 @@ const RASIO: TabelRelasi = {
   tanyaSubjek: (n) => `Indikator bank yang mengukur ${n} adalah ...`,
   alasanSalah: alasanRelasi('mengukur'),
   kalimat: kalimatRelasi('mengukur'),
-  konsep: 'Rasio bank menilai sisi berbeda: permodalan (CAR, leverage), kualitas aset (NPL), efisiensi (BOPO), dan likuiditas (LDR, LCR, NSFR).',
-  caraCepat: 'Modal/ATMR → CAR; kredit bermasalah → NPL; biaya/pendapatan operasional → BOPO; kredit/DPK → LDR; aset likuid 30 hari → LCR; pendanaan stabil jangka panjang → NSFR; modal inti/eksposur tanpa bobot → leverage.',
+  konsep: 'Rasio bank menilai sisi yang berbeda: permodalan (CAR/KPMM), kualitas kredit (NPL) atau pembiayaan (NPF), efisiensi (BOPO), dan likuiditas. Satu rasio tidak ditafsirkan sendirian.',
+  caraCepat: 'Modal/ATMR → CAR; kredit bermasalah → NPL; pembiayaan bermasalah → NPF; biaya/pendapatan operasional → BOPO; kemampuan memenuhi penarikan dana → likuiditas.',
   baris: [
     baris('car', 'CAR (KPMM)', 'kecukupan modal dibandingkan aset tertimbang menurut risiko (ATMR)', 'dasar', `${S.ebBank}, §3.1.22 dan §3.1.23`),
-    baris('npl', 'NPL', 'porsi kredit bermasalah terhadap total kredit', 'dasar', `${S.ebBank}, §3.1.22 dan contoh soal 4.18`),
-    baris('bopo', 'BOPO', 'perbandingan biaya operasional terhadap pendapatan operasional', 'menengah', `${S.ebBank}, §3.1.22; ${S.buku2}, Bab 6 (hlm. 198)`),
-    baris('ldr', 'LDR', 'perbandingan kredit yang disalurkan terhadap dana pihak ketiga', 'menengah', `${S.buku2}, Bab 6 (hlm. 198); ${S.ebBank}, §3.1.17`),
-    baris('leverage', 'rasio pengungkit (leverage ratio)', 'modal inti relatif terhadap total eksposur tanpa pembobotan risiko', 'menantang', `${S.bpi}, Bab III.B (Kerangka Leverage)`),
+    baris('npl', 'NPL', 'kredit bermasalah terhadap total kredit', 'dasar', `${S.ebBank}, §3.1.22 dan contoh soal 4.18`),
+    baris('npf', 'NPF', 'pembiayaan bermasalah terhadap total pembiayaan', 'menengah', `${S.ebBank}, §3.1.22`),
+    baris('bopo', 'BOPO', 'biaya operasional terhadap pendapatan operasional', 'menengah', `${S.ebBank}, §3.1.22`),
+    baris('likuiditas', 'rasio likuiditas', 'kemampuan bank memenuhi penarikan simpanan dan kewajiban yang jatuh tempo', 'menengah', `${S.ebBank}, §3.1.17 dan §3.1.22`),
   ],
 };
 
 const KEWENANGAN: TabelRelasi = {
   id: 'kewenangan-ojk',
   topik: 'kewenangan OJK di perbankan',
-  tanyaNilai: (s) => `Kewenangan OJK terhadap industri perbankan yang disebut ${s} adalah kewenangan untuk ...`,
-  tanyaSubjek: (n) => `Kewenangan OJK terhadap industri perbankan untuk ${n} disebut ...`,
-  alasanSalah: alasanRelasi('adalah kewenangan untuk'),
-  kalimat: kalimatRelasi('adalah kewenangan untuk'),
-  konsep: 'Enam kewenangan OJK terhadap perbankan: perizinan, pengaturan, pengawasan, pengenaan sanksi, penyidikan, dan pelindungan konsumen.',
-  caraCepat: 'License → izin; regulate → aturan; supervise → on-site/off-site; impose sanction → sanksi; investigate → penyidikan; protect → pelindungan konsumen.',
+  tanyaNilai: (s) => `Di sektor perbankan, kewenangan OJK berupa ${s} tampak ketika OJK ...`,
+  tanyaSubjek: (n) => `Di sektor perbankan, OJK ${n}. Tindakan ini termasuk kewenangan ...`,
+  alasanSalah: (b, x, arah) => (arah === 'nilai' ? `Tindakan itu termasuk kewenangan ${x.subjek}, bukan ${b.subjek}.` : `Kewenangan ${x.subjek} tampak ketika OJK ${x.nilai}.`),
+  kalimat: (b) => `Ketika OJK ${b.nilai}, kewenangan yang dijalankan adalah ${b.subjek}.`,
+  konsep: 'Enam kelompok kewenangan OJK di perbankan: perizinan, pengaturan, pengawasan (langsung dan tidak langsung), sanksi administratif, penyidikan, dan pelindungan konsumen.',
+  caraCepat: 'Izin → perizinan; membuat aturan → pengaturan; datang ke lokasi → pengawasan langsung; membaca laporan → tidak langsung; menghukum pelanggaran → sanksi; dugaan tindak pidana → penyidikan; hak nasabah → pelindungan konsumen.',
   baris: [
-    baris('license', 'right to license', 'menetapkan tata cara perizinan dan pendirian bank, termasuk memberi dan mencabut izin usaha', 'dasar', `${S.bpi}, Bab II.A`, UU_OJK),
-    baris('regulate', 'right to regulate', 'menetapkan ketentuan yang menyangkut aspek usaha dan kegiatan perbankan', 'dasar', `${S.bpi}, Bab II.A`, UU_OJK),
-    baris('supervise', 'right to supervise', 'mengawasi bank secara langsung (on-site) dan tidak langsung (off-site)', 'dasar', `${S.bpi}, Bab II.A`, UU_OJK),
-    baris('sanction', 'right to impose sanction', 'menjatuhkan sanksi kepada bank yang kurang atau tidak memenuhi ketentuan', 'dasar', `${S.bpi}, Bab II.A`, UU_OJK),
-    baris('investigate', 'right to investigate', 'melakukan penyidikan di sektor jasa keuangan, termasuk perbankan', 'dasar', `${S.bpi}, Bab II.A`, UU_OJK),
-    baris('protect', 'right to protect', 'melindungi konsumen melalui pencegahan kerugian, pelayanan pengaduan, dan pembelaan hukum', 'dasar', `${S.bpi}, Bab II.A`, UU_OJK),
+    baris('izin', 'perizinan (right to license)', 'memutuskan boleh tidaknya sebuah bank beroperasi', 'dasar', `${S.ebBank}, §3.1.12`, UU_OJK),
+    baris('atur', 'pengaturan (right to regulate)', 'menetapkan ketentuan yang wajib dipatuhi bank', 'dasar', `${S.ebBank}, §3.1.12`, UU_OJK),
+    baris('langsung', 'pengawasan langsung', 'memeriksa catatan dan praktik operasional di lokasi bank', 'dasar', `${S.ebBank}, §3.1.12, §3.1.21, dan contoh soal 4.16`, UU_OJK),
+    baris('tidak-langsung', 'pengawasan tidak langsung', 'menganalisis laporan berkala, profil risiko, dan indikator kesehatan bank', 'dasar', `${S.ebBank}, §3.1.12 dan §3.1.21`, UU_OJK),
+    baris('sanksi', 'sanksi administratif', 'menindak bank yang melanggar ketentuan', 'menengah', `${S.ebBank}, §3.1.12`, UU_OJK),
+    baris('penyidikan', 'penyidikan', 'mengusut dugaan tindak pidana di sektor jasa keuangan', 'menengah', `${S.ebBank}, §3.1.12`, UU_OJK),
+    baris('konsumen', 'pelindungan konsumen', 'memastikan nasabah memperoleh informasi dan kanal pengaduan yang patut', 'menengah', `${S.ebBank}, §3.1.6 dan §3.1.12`, UU_OJK),
   ],
 };
 
 const RISIKO: TabelRelasi = {
   id: 'jenis-risiko',
   topik: 'jenis risiko bank',
-  tanyaNilai: (s) => `Dalam pengawasan bank berbasis risiko, ${s} adalah risiko yang disebabkan oleh ...`,
-  tanyaSubjek: (n) => `Dalam pengawasan bank berbasis risiko, risiko yang disebabkan oleh ${n} disebut ...`,
-  alasanSalah: alasanRelasi('disebabkan oleh'),
-  kalimat: kalimatRelasi('disebabkan oleh'),
-  konsep: 'Jenis risiko dalam Risk Based Supervision perbankan: kredit, pasar, likuiditas, operasional, hukum, reputasi, stratejik, dan kepatuhan.',
-  caraCepat: 'Pihak lawan gagal bayar → kredit; suku bunga/kurs → pasar; tak mampu bayar kewajiban jatuh tempo → likuiditas; proses/orang/sistem → operasional; yuridis → hukum; publikasi negatif → reputasi; keputusan strategis → stratejik; tidak patuh aturan → kepatuhan.',
+  tanyaNilai: (s) => `Dalam kegiatan bank, ${s} tampak pada keadaan ...`,
+  tanyaSubjek: (n) => `Dalam kegiatan bank, keadaan "${n}" paling dekat dengan ...`,
+  alasanSalah: (b, x, arah) => (arah === 'nilai' ? `Keadaan itu menggambarkan ${x.subjek}, bukan ${b.subjek}.` : `${kapital(x.subjek)} tampak pada keadaan ${x.nilai}.`),
+  kalimat: (b) => `Keadaan "${b.nilai}" menggambarkan ${b.subjek}.`,
+  konsep: 'Risiko perbankan mencakup risiko kredit, likuiditas, pasar, operasional, dan kepatuhan.',
+  caraCepat: 'Peminjam tidak membayar → kredit; dana ditarik saat dana masih tersalur → likuiditas; harga pasar berubah → pasar; prosedur/sistem gagal → operasional; ketentuan tidak dijalankan → kepatuhan.',
   baris: [
-    baris('kredit', 'risiko kredit', 'kegagalan pihak lawan (counterparty) memenuhi kewajibannya', 'dasar', `${S.bpi}, Bab II.B (Gambar 2.1)`),
-    baris('pasar', 'risiko pasar', 'pergerakan suku bunga, nilai tukar, atau variabel lain yang merugikan portofolio bank', 'dasar', `${S.bpi}, Bab II.B (Gambar 2.1)`),
-    baris('likuiditas', 'risiko likuiditas', 'ketidakmampuan bank memenuhi kewajiban yang telah jatuh tempo', 'dasar', `${S.bpi}, Bab II.B (Gambar 2.1)`),
-    baris('operasional', 'risiko operasional', 'proses internal yang tidak memadai, kesalahan manusia, kegagalan sistem, atau masalah eksternal', 'menengah', `${S.bpi}, Bab II.B (Gambar 2.1)`),
-    baris('hukum', 'risiko hukum', 'kelemahan aspek yuridis, seperti adanya tuntutan atau lemahnya perikatan', 'menengah', `${S.bpi}, Bab II.B (Gambar 2.1)`),
-    baris('reputasi', 'risiko reputasi', 'publikasi negatif terkait kegiatan usaha bank atau persepsi negatif terhadap bank', 'menengah', `${S.bpi}, Bab II.B (Gambar 2.1)`),
-    baris('stratejik', 'risiko stratejik', 'ketidaktepatan keputusan arah usaha bank dan kegagalan mengantisipasi perubahan lingkungan bisnis', 'menengah', `${S.bpi}, Bab II.B (Gambar 2.1)`),
-    baris('kepatuhan', 'risiko kepatuhan', 'bank tidak mematuhi atau tidak melaksanakan peraturan perundang-undangan dan ketentuan yang berlaku', 'menengah', `${S.bpi}, Bab II.B (Gambar 2.1)`),
+    baris('kredit', 'risiko kredit', 'peminjam gagal membayar kewajibannya', 'dasar', `${S.ebBank}, §3.1.6 dan §3.1.17`),
+    baris('likuiditas', 'risiko likuiditas', 'simpanan jatuh tempo lebih dahulu daripada kredit yang disalurkan', 'menengah', `${S.ebBank}, §3.1.6 dan §3.1.17`),
+    baris('pasar', 'risiko pasar', 'nilai surat berharga milik bank turun mengikuti perubahan harga', 'menengah', `${S.ebBank}, §3.1.6; ${S.ebPm}, subbab 3.1.14`),
+    baris('operasional', 'risiko operasional', 'layanan terganggu karena prosedur atau sistem bank gagal', 'dasar', `${S.ebBank}, §3.1.6; ${S.ebPp}, §3.1.23`),
+    baris('kepatuhan', 'risiko kepatuhan', 'bank tidak menjalankan ketentuan yang berlaku baginya', 'dasar', `${S.ebBank}, §3.1.6`),
+  ],
+};
+
+const JENIS_BANK: TabelRelasi = {
+  id: 'jenis-bank',
+  topik: 'jenis lembaga bank',
+  tanyaNilai: (s) => `Dalam struktur perbankan Indonesia, ${s} adalah ...`,
+  tanyaSubjek: (n) => `Dalam struktur perbankan Indonesia, ${n} disebut ...`,
+  alasanSalah: alasanRelasi('adalah'),
+  kalimat: kalimatRelasi('adalah'),
+  konsep: 'Jenis bank dibedakan dari cara usaha (konvensional/syariah) dan layanan giral: bank umum melayani giral, BPR dan BPRS tidak; UUS adalah unit kerja, bukan bank tersendiri.',
+  caraCepat: 'Tanyakan dua hal: konvensional atau syariah, lalu menyediakan layanan giral atau tidak. Unit di dalam bank konvensional → UUS.',
+  baris: [
+    baris('buk', 'Bank Umum Konvensional (BUK)', 'bank yang memakai perjanjian berbasis bunga dan dapat menerima simpanan giro', 'dasar', `${S.ebBank}, §3.1.2, §3.1.9–3.1.10`, P2SK),
+    baris('bus', 'Bank Umum Syariah (BUS)', 'bank yang berusaha menurut prinsip syariah dan menyediakan layanan lalu lintas pembayaran', 'dasar', `${S.ebBank}, §3.1.10`, P2SK),
+    baris('bpr', 'Bank Perekonomian Rakyat (BPR)', 'bank berlingkup lebih terbatas yang tidak menerima giro dan memakai perjanjian berbasis bunga', 'menengah', `${S.ebBank}, §3.1.1, §3.1.9, dan §3.1.18`, P2SK),
+    baris('bprs', 'Bank Perekonomian Rakyat Syariah (BPRS)', 'bank yang berusaha menurut prinsip syariah tanpa layanan giral secara langsung', 'menengah', `${S.ebBank}, §3.1.10 dan §3.1.18`, P2SK),
+    baris('uus', 'Unit Usaha Syariah (UUS)', 'unit kerja bank umum konvensional yang menjadi induk kantor berprinsip syariah', 'dasar', `${S.ebBank}, §3.1.10 dan contoh soal 4.14`, P2SK),
+  ],
+};
+
+const BASEL: TabelRelasi = {
+  id: 'basel',
+  topik: 'kerangka Basel',
+  tanyaNilai: (s) => `Dalam kerangka permodalan bank, ${s} ...`,
+  tanyaSubjek: (n) => `Dalam kerangka permodalan bank, yang ${n} adalah ...`,
+  alasanSalah: (b, x, arah) => (arah === 'nilai' ? `Uraian itu menggambarkan ${x.subjek}, bukan ${b.subjek}.` : `${kapital(x.subjek)} ${x.nilai}.`),
+  kalimat: (b) => `${kapital(b.subjek)} ${b.nilai}.`,
+  konsep: 'BCBS mengembangkan standar internasional: Basel I (kecukupan modal), Basel II (pendekatan risiko dan tiga pilar), Basel III (kualitas modal, likuiditas, leverage); ATMR membobot aset menurut risikonya.',
+  caraCepat: 'Komite → BCBS; modal → Basel I; tiga pilar → Basel II; kualitas modal dan likuiditas → Basel III; bobot risiko → ATMR; pengungkapan → disiplin pasar.',
+  baris: [
+    baris('bcbs', 'BCBS', 'mengembangkan standar pengawasan perbankan internasional sejak 1974', 'menengah', `${S.ebBank}, §3.1.15 dan §3.1.23`),
+    baris('basel-1', 'Basel I', 'menekankan kecukupan modal sebagai perkembangan pertama', 'menengah', `${S.ebBank}, §3.1.23`),
+    baris('basel-2', 'Basel II', 'mengembangkan pendekatan risiko dan memperkenalkan tiga pilar', 'menengah', `${S.ebBank}, §3.1.23`),
+    baris('basel-3', 'Basel III', 'memperkuat kualitas modal, likuiditas, dan leverage setelah krisis keuangan', 'menengah', `${S.ebBank}, §3.1.15 dan §3.1.23`),
+    baris('atmr', 'ATMR', 'menghubungkan eksposur aset dengan bobot risikonya', 'menengah', `${S.ebBank}, §3.1.15 dan contoh soal 4.25`),
+    baris('disiplin-pasar', 'disiplin pasar', 'mendorong ketahanan bank melalui pengungkapan informasi', 'menantang', `${S.ebBank}, §3.1.23`),
+  ],
+};
+
+const USAHA: TabelRelasi = {
+  id: 'model-bisnis',
+  topik: 'intermediasi dan pendapatan bank',
+  tanyaNilai: (s) => `Dalam kegiatan usaha bank, ${s} adalah ...`,
+  tanyaSubjek: (n) => `Dalam kegiatan usaha bank, ${n} disebut ...`,
+  alasanSalah: alasanRelasi('adalah'),
+  kalimat: kalimatRelasi('adalah'),
+  konsep: 'Bank menghimpun DPK lalu menyalurkannya (intermediasi). Pendapatan bank konvensional antara lain dari bunga dan biaya layanan (fee-based income); bank syariah memakai margin, ujrah, atau bagi hasil sesuai akad.',
+  caraCepat: 'Menghimpun lalu menyalurkan → intermediasi; giro + tabungan + deposito → DPK; biaya layanan → fee-based income; imbalan jasa syariah → ujrah; keuntungan jual beli → margin.',
+  baris: [
+    baris('intermediasi', 'intermediasi', 'penghimpunan dana penabung untuk disalurkan kepada pihak yang membutuhkan pendanaan', 'dasar', `${S.ebBank}, §3.1.1 dan §3.1.17`),
+    baris('dpk', 'dana pihak ketiga (DPK)', 'dana masyarakat yang terutama mencakup giro, tabungan, dan deposito', 'dasar', `${S.ebBank}, §3.1.17 dan contoh soal 4.21`),
+    baris('fbi', 'fee-based income', 'pendapatan bank yang berasal dari biaya layanan', 'menengah', `${S.ebBank}, §3.1.17`),
+    baris('margin', 'margin', 'keuntungan yang disepakati di atas harga perolehan pada jual beli murabahah', 'menengah', `${S.ebBank}, §3.1.10, §3.1.19, dan contoh soal 4.23`),
+    baris('ujrah', 'ujrah', 'imbalan atas jasa atau pemanfaatan aset sesuai akad syariah', 'menengah', `${S.ebBank}, §3.1.2, §3.1.10, dan §3.1.11`),
   ],
 };
 
@@ -172,15 +223,15 @@ const PUBLIKASI: TabelRelasi = {
 
 export const bankIstilah = familyRelasi({
   id: 'PSJK-BANK-ISTILAH', versi: 2, nama: 'Istilah perbankan (produk, 5C, akad, rasio)', chapter: 'perbankan', label: 'SHL',
-  sumber: `${S.ebBank}; ${S.bpi}; ${S.buku2}; ${S.bsc}`,
-  ringkas: 'Definisi → istilah dan istilah → definisi untuk produk dan jasa bank, aspek 5C, akad bank syariah, serta rasio bank. Pengecoh adalah istilah atau uraian lain dari tabel yang sama.',
-}, [PRODUK, LIMA_C, AKAD, RASIO]);
+  sumber: `${S.ebBank}, §3.1.1–3.1.22`,
+  ringkas: 'Definisi → istilah dan istilah → definisi untuk produk bank, aspek 5C, akad bank syariah, rasio bank, serta intermediasi dan pendapatan bank. Pengecoh adalah istilah atau uraian lain dari tabel yang sama.',
+}, [PRODUK, LIMA_C, AKAD, RASIO, USAHA]);
 
 export const bankLembaga = familyRelasi({
   id: 'PSJK-BANK-LEMBAGA', versi: 2, nama: 'Kewenangan, risiko, dan lembaga perbankan', chapter: 'perbankan', label: 'SHL',
-  sumber: `${S.bpi}; ${S.ebBank}; ${S.ebDfl}`,
-  ringkas: 'Relasi dua arah untuk enam kewenangan OJK, delapan jenis risiko bank, peran OJK/BI/LPS/LAPS SJK/Satgas PASTI, dan jenis publikasi perbankan.',
-}, [KEWENANGAN, RISIKO, LEMBAGA]); // PUBLIKASI dikeluarkan: QC T09 melarang soal tentang isi/nama publikasi
+  sumber: `${S.ebBank}, §3.1.5–3.1.23; ${S.ebDfl}`,
+  ringkas: 'Relasi dua arah untuk kewenangan OJK, lima jenis risiko bank, peran OJK/BI/LPS/LAPS SJK/Satgas PASTI, jenis lembaga bank, dan kerangka Basel.',
+}, [KEWENANGAN, RISIKO, LEMBAGA, JENIS_BANK, BASEL]); // PUBLIKASI dikeluarkan: QC T09 melarang soal tentang isi/nama publikasi
 
 // ---------------------------------------------------------------- kasus
 
@@ -492,8 +543,8 @@ export const bankKasus = familyKurasi({
     sumber: `${S.bpi}, Bab III.B (Kerangka Permodalan); ${S.ebBank}, §3.1.15`, berlaku: 'POJK 11/POJK.03/2016 jo. POJK 27/2022',
   }),
   butir('basel-pilar', 'menengah', 'Basel dan permodalan', {
-    tanya: 'Basel II (2004) memperkenalkan tiga pilar kerangka Basel, yaitu ...',
-    jawab: 'Modal minimum, proses reviu pengawasan, dan disiplin pasar',
+    tanya: 'Basel II memperkenalkan tiga pilar kerangka Basel, yaitu ...',
+    jawab: 'Modal minimum, proses penilaian pengawas, dan disiplin pasar',
     salah: [
       ['Risiko kredit, risiko pasar, dan risiko operasional', 'Ketiganya jenis risiko yang diperhitungkan dalam ATMR, bukan tiga pilar Basel.'],
       ['Perizinan, pengaturan, dan penyidikan', 'Ketiganya termasuk kewenangan OJK, bukan pilar Basel.'],
@@ -501,9 +552,9 @@ export const bankKasus = familyKurasi({
       ['Likuiditas, leverage, dan buffer modal', 'Ketiganya tambahan dalam Basel III, bukan tiga pilar Basel II.'],
     ],
     konsep: 'Tiga pilar Basel', kunci: 'tiga pilar, Basel II',
-    alasan: 'BCBS memperkenalkan tiga pilar Basel: Minimum Capital Requirement, Supervisory Review Process, dan Market Discipline.',
+    alasan: 'Tiga pilar Basel meliputi persyaratan modal minimum, proses penilaian pengawas, dan disiplin pasar melalui pengungkapan.',
     cepat: 'Pilar 1 modal, Pilar 2 pengawasan, Pilar 3 keterbukaan (disiplin pasar).',
-    sumber: `${S.bpi}, Bab III.B (Evolusi Kerangka Permodalan Basel); ${S.ebBank}, §3.1.23`,
+    sumber: `${S.ebBank}, §3.1.23`,
   }),
   butir('slik', 'dasar', 'informasi debitur', {
     tanya: 'Sejak 2 Januari 2018, layanan informasi debitur yang sebelumnya dikenal sebagai BI Checking dilaksanakan OJK melalui ...',

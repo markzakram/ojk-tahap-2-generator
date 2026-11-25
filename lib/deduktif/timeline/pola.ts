@@ -98,6 +98,8 @@ function bangunRapat(r: Rng, tanya: 'lebih-awal' | 'paling-akhir', pilihanDurasi
     const terpakai = kosong();
     const jaga = kosong();
     for (let i = t; i < t + d; i++) jaga[i] = true;
+    // QC 2 R04: rapat semula sudah disepakati, jadi ketiga peserta harus kosong pada waktu semula
+    for (let i = S; i < S + d; i++) jaga[i] = true;
     const kegiatan: KegiatanTL[] = [];
     const nama = r.shuffle(kel.kegiatan);
     if (mode[p] === 'geser') {
@@ -106,6 +108,7 @@ function bangunRapat(r: Rng, tanya: 'lebih-awal' | 'paling-akhir', pilihanDurasi
       const m = maju ? t + d - 1 : t + 1 - g;
       const tujuan = maju ? m + g : m - 1;
       if (m < 0 || m + g > KOTAK_TL || tujuan < 0 || tujuan >= KOTAK_TL) return null;
+      if (m < S + d && S < m + g) return null; // kegiatan yang digeser tidak menimpa waktu rapat semula (QC 2 R04)
       tandai(terpakai, m, g);
       jaga[tujuan] = true;
       kegiatan.push({ id: idBaru(), nama: nama.shift()!, mulai: m, durasi: g, bisaGeser: true });
@@ -129,8 +132,8 @@ function bangunRapat(r: Rng, tanya: 'lebih-awal' | 'paling-akhir', pilihanDurasi
     judul: kel.judul,
     paragraf: [
       tanya === 'lebih-awal'
-        ? `${kel.target} saat ini dijadwalkan pukul ${rentangTL(S, d)} di Kalender Anda, tetapi perlu dimajukan ke waktu yang lebih awal${durasiTeks}.`
-        : `${kel.target} semula dijadwalkan pukul ${rentangTL(S, d)}, tetapi harus dipindahkan agar selesai paling lambat pukul ${jamTL(batas!)}${durasiTeks}.`,
+        ? `${kel.target} saat ini dijadwalkan pukul ${rentangTL(S, d)} ketika semua peserta kosong, tetapi perlu dimajukan ke waktu yang lebih awal${durasiTeks}.`
+        : `${kel.target} semula dijadwalkan pukul ${rentangTL(S, d)} ketika semua peserta kosong, tetapi harus dipindahkan agar selesai paling lambat pukul ${jamTL(batas!)}${durasiTeks}.`,
       `${daftarKata(namaOrang)} harus hadir; masing-masing boleh menggeser paling banyak satu kegiatannya sejauh 30 menit (lebih awal atau lebih lambat) sebagai satu blok utuh.`,
       demoTerpasang ? `${kel.demo} dan semua janji di Kalender Anda tidak boleh dipindah.` : 'Semua janji di Kalender Anda tidak boleh dipindah.',
     ],
@@ -392,7 +395,8 @@ interface DefTL {
 
 function family(p: DefTL): Family<TimelineItem, number[]> {
   return {
-    id: p.id, versi: 2, nama: p.nama, label: p.label, sumber: p.sumber, ringkas: p.ringkas, // v2: QC F04 demo hanya disebut bila terpasang
+    id: p.id, versi: 3, nama: p.nama, // v3: QC 2 R04, peserta kosong pada waktu rapat semula
+    label: p.label, sumber: p.sumber, ringkas: p.ringkas, // v2: QC F04 demo hanya disebut bila terpasang
     chapter: chapterById('timeline-scheduling'),
     bangun: p.bangun,
     pecahkan: pecahkanTimeline,
@@ -417,6 +421,9 @@ const periksaRapat = (item: TimelineItem, jawaban: number[]) => {
   // Mekanisme pergeseran harus dipakai: minimal satu orang perlu menggeser kegiatan pada jawaban.
   if (!item.baris.some((b) => { const c = cekOrang(b, jawaban[0], jawaban[0] + d); return c.ok && c.geser; })) masalah.push('tidak ada pergeseran yang diperlukan');
   if (item.baris.some((b) => b.kegiatan.length < 4 || b.kegiatan.length > 7)) masalah.push('jumlah kegiatan per orang di luar 4–7');
+  // QC 2 R04: waktu rapat semula tidak boleh berbenturan dengan agenda peserta.
+  const semula = item.jawaban.kegiatan.find((k) => k.peran === 'target-semula');
+  if (!semula || item.baris.some((b) => b.kegiatan.some((k) => k.mulai < semula.mulai + semula.durasi && semula.mulai < k.mulai + k.durasi))) masalah.push('waktu rapat semula berbenturan dengan agenda peserta');
   return masalah;
 };
 

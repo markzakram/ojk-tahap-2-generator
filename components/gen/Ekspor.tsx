@@ -13,6 +13,20 @@ async function muatGambar(src: string): Promise<Uint8Array | null> {
   try { const r = await fetch(src); return r.ok ? new Uint8Array(await r.arrayBuffer()) : null; } catch { return null; }
 }
 
+/** SVG visual pembahasan → PNG dua kali ukuran melalui canvas browser. */
+async function svgKePng(svg: string, lebar: number, tinggi: number): Promise<Uint8Array | null> {
+  const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+  try {
+    const img = new Image();
+    await new Promise<void>((ok, gagal) => { img.onload = () => ok(); img.onerror = () => gagal(new Error('SVG tidak dapat dimuat')); img.src = url; });
+    const kanvas = document.createElement('canvas');
+    kanvas.width = lebar * 2; kanvas.height = tinggi * 2;
+    kanvas.getContext('2d')!.drawImage(img, 0, 0, kanvas.width, kanvas.height);
+    const blob = await new Promise<Blob | null>((ok) => kanvas.toBlob(ok, 'image/png'));
+    return blob ? new Uint8Array(await blob.arrayBuffer()) : null;
+  } catch { return null; } finally { URL.revokeObjectURL(url); }
+}
+
 export default function Ekspor({ hasil, paketAktif, buka }: { hasil: Hasil; paketAktif: string; buka: (t: Tampilan) => void }) {
   const [cakupan, setCakupan] = useState<'aktif' | 'semua'>('aktif');
   const [pilih, setPilih] = useState<Record<Format, boolean>>({ siadu: true, usulan: true, json: false, csv: false });
@@ -31,7 +45,7 @@ export default function Ekspor({ hasil, paketAktif, buka }: { hasil: Hasil; pake
       for (let i = 0; i < pilihDok.length; i++) {
         setProses(`Menyusun Word ${i + 1}/${pilihDok.length}: ${pilihDok[i].nama}…`);
         await new Promise((r) => setTimeout(r, 0));
-        berkas[pilihDok[i].nama] = await docxSiadu(pilihDok[i], muatGambar);
+        berkas[pilihDok[i].nama] = await docxSiadu(pilihDok[i], muatGambar, svgKePng);
       }
       const paket = hasil.data.paket.filter((p) => !ids || ids.includes(p.id));
       if (pilih.json) berkas[`paket-tku-${hasil.data.benih}${ids ? `-${ids[0]}` : ''}.json`] = enc.encode(JSON.stringify({ benih: hasil.data.benih, dibuat: hasil.data.dibuat, resmi: hasil.resmi, paket: paket.map(isiLengkap) }, null, 2));

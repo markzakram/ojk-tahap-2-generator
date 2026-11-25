@@ -10,6 +10,8 @@ import { bulat, desimal, familyHitung, kombinasi, rp, type TemplateHitung } from
 const POJK_GADAI = 'POJK 39/2024 sebagaimana diubah POJK 29/2025';
 const PEGADAIAN = 'praktik PT Pegadaian (Persero) yang diuraikan OJK; dapat berbeda antarperusahaan';
 
+// QC 2 R01: tabel layanan dan istilah transaksi disusun ulang hanya dari materi Pergadaian (§3.1.1–3.1.19); gadai sistem
+// angsuran, sewa modal 15 harian, ulang gadai, cicil, dan minta tambah (Buku 7) dikeluarkan.
 const LAYANAN: TabelRelasi = {
   id: 'layanan-pergadaian',
   topik: 'layanan pergadaian',
@@ -17,14 +19,14 @@ const LAYANAN: TabelRelasi = {
   tanyaSubjek: (n) => `Layanan perusahaan pergadaian berupa ${n} disebut ...`,
   alasanSalah: alasanRelasi('adalah'),
   kalimat: kalimatRelasi('adalah'),
-  konsep: 'Usaha pergadaian: pinjaman dengan jaminan barang bergerak (hukum gadai), jasa titipan, jasa taksiran, pinjaman berbasis fidusia, dan produk lain sesuai izin.',
-  caraCepat: 'Barang diserahkan untuk pinjaman → gadai; hanya menilai harga → taksiran; hanya menyimpan → titipan; kendaraan diikat fidusia (BPKB diserahkan), kendaraan tetap dipakai → fidusia.',
+  konsep: 'Kegiatan utama pergadaian adalah pinjaman berdasarkan hukum gadai; kegiatan lain sesuai izin antara lain pinjaman fidusia, jasa titipan, dan jasa taksiran; produk dapat berbentuk syariah.',
+  caraCepat: 'Barang dikuasai penerima gadai → gadai; barang tetap dipakai pemilik → fidusia; hanya menilai → taksiran; hanya menyimpan → titipan; akad rahn dan ujrah → gadai syariah.',
   baris: [
-    baris('gadai', 'pinjaman gadai', 'kredit jangka pendek dengan jaminan barang bergerak yang diserahkan dan dikuasai pemberi pinjaman', 'dasar', `${S.bsc}, Bab VIII (hlm. 114–115); ${S.ebGadai}, §3.1.1`),
-    baris('taksiran', 'jasa taksiran', 'layanan pengujian barang bergerak untuk menilai harga barang milik nasabah tanpa harus meminjam', 'dasar', `${S.bsc}, Bab VIII (hlm. 115); ${S.ebGadai}, contoh soal 4.4`),
-    baris('titipan', 'jasa titipan', 'layanan penyimpanan barang berharga untuk menghindari risiko kehilangan, pencurian, atau kebakaran', 'dasar', `${S.bsc}, Bab VIII (hlm. 115)`),
-    baris('angsuran', 'gadai sistem angsuran', 'kredit usaha produktif dengan jaminan dikuasai pergadaian dan pelunasan secara cicilan bulanan', 'menengah', `${S.bsc}, Bab VIII (hlm. 116)`),
-    baris('fidusia', 'pinjaman berbasis fidusia', 'kredit dengan pengikatan jaminan fidusia atas kendaraan (BPKB diserahkan), sementara kendaraannya tetap dipakai pemilik', 'menengah', `${S.bsc}, Bab VIII (hlm. 116); ${S.ebGadai}, §3.1.13`),
+    baris('gadai', 'pinjaman gadai', 'pendanaan dengan benda bergerak yang diserahkan dalam penguasaan penerima gadai', 'dasar', `${S.ebGadai}, §3.1.1, §3.1.3, dan §3.1.19`),
+    baris('taksiran', 'jasa taksiran', 'layanan untuk mengetahui perkiraan harga barang tanpa harus meminjam', 'dasar', `${S.ebGadai}, §3.1.3 dan contoh soal 4.4`),
+    baris('titipan', 'jasa titipan', 'penyimpanan barang berharga menurut kontrak yang bukan otomatis pinjaman', 'dasar', `${S.ebGadai}, §3.1.1 dan §3.1.3`),
+    baris('fidusia', 'pinjaman fidusia', 'pendanaan beragunan yang penguasaan fisik barangnya lazim tetap pada pemberi jaminan', 'menengah', `${S.ebGadai}, §3.1.3, §3.1.13, dan §3.1.19`),
+    baris('syariah', 'gadai syariah', 'pendanaan beragunan yang memakai akad rahn untuk jaminan dan ujrah untuk jasa', 'menengah', `${S.ebGadai}, §3.1.17`),
   ],
 };
 
@@ -35,24 +37,23 @@ const TRANSAKSI: TabelRelasi = {
   tanyaSubjek: (n) => `Dalam transaksi gadai, istilah untuk ${n} adalah ...`,
   alasanSalah: alasanRelasi('adalah'),
   kalimat: kalimatRelasi('adalah'),
-  konsep: 'Istilah transaksi gadai: nilai taksiran, uang pinjaman, sewa modal, pelunasan (tebus), perpanjangan (ulang gadai, cicil, minta tambah), uang kelebihan lelang, dan Surat Bukti Gadai.',
-  caraCepat: 'Perpanjangan: pinjaman tetap → ulang gadai; bayar sebagian dulu → cicil; pinjaman bertambah → minta tambah; lunas seluruhnya → tebus.',
+  konsep: 'Alur gadai: barang ditaksir, batas pinjaman ditetapkan, surat bukti gadai disepakati, dana dicairkan, lalu kewajiban dilunasi sebelum jatuh tempo. Nilai taksiran tidak sama dengan jumlah pinjaman.',
+  caraCepat: 'Perkiraan nilai → taksiran; batas dana → plafon; bukti kontrak → surat bukti gadai; bayar pokok dan biaya → pelunasan; batas waktu → jatuh tempo; sisa hasil jual → kelebihan.',
   baris: [
-    baris('nilai-taksiran', 'nilai taksiran', 'perkiraan harga barang jaminan yang menjadi dasar penentuan batas pinjaman', 'dasar', `${S.ebGadai}, §3.1.2, §3.1.14; ${S.buku7}, Bab 3 (hlm. 57–58)`),
-    baris('sewa-modal', 'sewa modal', 'biaya atas penggunaan uang pinjaman gadai yang dihitung menurut jangka waktu pinjaman', 'menengah', `${S.buku7}, Bab 3 (hlm. 61–63); ${S.bsc}, Bab VIII (hlm. 119, 121)`, PEGADAIAN),
-    baris('tebus', 'pelunasan (tebus)', 'pembayaran seluruh uang pinjaman ditambah sewa modal', 'menengah', `${S.buku7}, Bab 3 (hlm. 61)`, PEGADAIAN),
-    baris('ulang-gadai', 'ulang gadai', 'perpanjangan jangka waktu dengan uang pinjaman tetap sebesar pinjaman lama', 'menantang', `${S.buku7}, Bab 3 (hlm. 61)`, PEGADAIAN),
-    baris('cicil', 'cicil', 'perpanjangan jangka waktu yang didahului pembayaran sebagian uang pinjaman', 'menantang', `${S.buku7}, Bab 3 (hlm. 61)`, PEGADAIAN),
-    baris('minta-tambah', 'minta tambah', 'perpanjangan jangka waktu sekaligus memperbesar uang pinjaman', 'menantang', `${S.buku7}, Bab 3 (hlm. 61)`, PEGADAIAN),
-    baris('kelebihan', 'uang kelebihan lelang', 'selisih hasil penjualan barang jaminan setelah dikurangi uang pinjaman, sewa modal, dan biaya lain', 'menengah', `${S.buku7}, Bab 3 (hlm. 64–65); ${S.ebGadai}, §3.1.7`),
-    baris('sbg', 'Surat Bukti Gadai (SBG)', 'dokumen perjanjian yang mencatat barang jaminan, uang pinjaman, biaya, dan ketentuan transaksi', 'dasar', `${S.ebGadai}, contoh soal 4.10; ${S.bsc}, Bab VIII (hlm. 119)`),
+    baris('nilai-taksiran', 'nilai taksiran', 'perkiraan nilai barang menurut metode penaksiran yang menjadi dasar batas pinjaman', 'dasar', `${S.ebGadai}, §3.1.2 dan §3.1.15`),
+    baris('plafon', 'plafon pinjaman', 'batas dana yang dapat diberikan menurut ketentuan produk setelah barang ditaksir', 'dasar', `${S.ebGadai}, §3.1.2 dan §3.1.14`),
+    baris('penaksir', 'penaksir', 'pihak yang menetapkan nilai barang jaminan dan wajib ada di setiap kantor cabang', 'dasar', `${S.ebGadai}, §3.1.2`, POJK_GADAI),
+    baris('sbg', 'surat bukti gadai', 'dokumen yang mencatat perjanjian, pinjaman, dan barang jaminan nasabah', 'dasar', `${S.ebGadai}, §3.1.2, §3.1.5, dan §3.1.18`),
+    baris('pelunasan', 'pelunasan', 'pembayaran pokok dan biaya yang sah dikurangi pembayaran yang telah dilakukan untuk menebus barang', 'menengah', `${S.ebGadai}, §3.1.12 dan §3.1.15`),
+    baris('jatuh-tempo', 'jatuh tempo', 'batas waktu pemenuhan kewajiban nasabah menurut perjanjian', 'dasar', `${S.ebGadai}, §3.1.2 dan §3.1.16`),
+    baris('kelebihan', 'kelebihan hasil lelang', 'sisa uang penjualan barang jaminan setelah kewajiban dan biaya yang sah dikurangkan', 'menengah', `${S.ebGadai}, §3.1.7 dan §3.1.16`),
   ],
 };
 
 export const gadaiIstilah = familyRelasi({
   id: 'PSJK-GADAI-ISTILAH', nama: 'Layanan dan istilah pergadaian', chapter: 'pergadaian', label: 'SHL',
-  sumber: `${S.bsc}; ${S.buku7}; ${S.ebGadai}`,
-  ringkas: 'Relasi dua arah untuk layanan pergadaian (gadai, taksiran, titipan, gadai angsuran, fidusia) dan istilah transaksi (nilai taksiran, sewa modal, tebus, ulang gadai, cicil, minta tambah, uang kelebihan lelang, SBG).',
+  sumber: `${S.ebGadai}, §3.1.1–3.1.19`,
+  ringkas: 'Relasi dua arah untuk layanan pergadaian (gadai, taksiran, titipan, fidusia, gadai syariah) dan istilah transaksi (nilai taksiran, plafon, penaksir, surat bukti gadai, pelunasan, jatuh tempo, kelebihan hasil lelang).',
 }, [LAYANAN, TRANSAKSI]);
 
 const ALASAN_LAIN_BOLEH = 'Kegiatan ini termasuk kegiatan usaha lain yang dapat dijalankan perusahaan pergadaian, jadi bukan jawaban.';
@@ -105,18 +106,18 @@ export const gadaiKasus = familyKurasi({
     sumber: `${S.ebGadai}, §3.1.19 dan contoh soal 4.25`,
   }),
   butir('kasus-bpkb', 'menengah', 'gadai dan fidusia', {
-    tanya: 'Seorang pedagang menjaminkan BPKB sepeda motornya kepada perusahaan pergadaian untuk memperoleh kredit usaha, sementara motornya tetap dipakai untuk berdagang. Layanan ini paling dekat dengan ...',
+    tanya: 'Seorang pedagang memperoleh pinjaman dari perusahaan pergadaian dengan pengikatan jaminan atas sepeda motornya, sementara motor itu tetap dipakainya untuk berdagang. Layanan ini paling dekat dengan ...',
     jawab: 'Pinjaman berbasis fidusia',
     salah: [
       ['Pinjaman gadai', 'Pada gadai, barang jaminan diserahkan dan dikuasai penerima gadai.'],
       ['Jasa titipan', 'Jasa titipan hanya menyimpan barang berharga.'],
       ['Jasa taksiran', 'Jasa taksiran hanya menilai harga barang.'],
-      ['Sewa pembiayaan', 'Sewa pembiayaan adalah cara pembiayaan perusahaan pembiayaan untuk penyediaan barang.'],
+      ['Kredit tanpa agunan', 'Pada kasus ini ada jaminan yang diikat, jadi bukan kredit tanpa agunan.'],
     ],
-    konsep: 'Produk berbasis fidusia', kunci: 'BPKB, motor tetap dipakai',
-    alasan: 'Pada pinjaman dengan pengikatan fidusia atas kendaraan, BPKB diserahkan sebagai jaminan, sedangkan kendaraannya tetap dikuasai dan dipakai debitur; pengikatan jaminannya mengikuti ketentuan fidusia (UU 42/1999).',
-    cepat: 'Surat kepemilikan dijaminkan, barang tetap dipakai → fidusia.',
-    sumber: `${S.bsc}, Bab VIII (hlm. 116); ${S.ebGadai}, §3.1.19`,
+    konsep: 'Produk berbasis fidusia', kunci: 'barang jaminan tetap dipakai pemilik',
+    alasan: 'Pada fidusia, penguasaan fisik barang lazim tetap pada pemberi jaminan dengan pengikatan hak jaminan yang berbeda dari gadai.',
+    cepat: 'Barang diikat jaminan tetapi tetap dipakai pemilik → fidusia.',
+    sumber: `${S.ebGadai}, §3.1.13 dan §3.1.19`,
   }),
   butir('barang-dapat', 'menengah', 'barang jaminan', {
     tanya: 'Beberapa barang tidak dapat dijadikan jaminan di pergadaian. Di antara barang berikut, yang justru dapat diterima sebagai jaminan adalah ...',

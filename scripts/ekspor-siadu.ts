@@ -15,11 +15,16 @@ const muat = async (src: string) => {
   try { return new Uint8Array(readFileSync(join('.', src.replace(/^\/tahap-1\//, 'tahap-1/')))); } catch { return null; }
 };
 
+// sharp terpasang bersama Next; bila tidak ada, naskah memuat uraian teks gambar sebagai gantinya
+const svgKePng = async (svg: string) => {
+  try { const { default: sharp } = await import('sharp'); return new Uint8Array(await sharp(Buffer.from(svg), { density: 144 }).png().toBuffer()); } catch { return null; }
+};
+
 async function utama() {
   const dok = dokumenSiadu(DATA as unknown as HasilSusun, pilih.length ? pilih : null);
   let soal = 0;
   for (const d of dok) {
-    writeFileSync(join(keluar, d.nama), await docxSiadu(d, muat));
+    writeFileSync(join(keluar, d.nama), await docxSiadu(d, muat, svgKePng));
     soal += d.jumlahSoal;
   }
   const siadu = dok.filter((d) => !d.usulan), usulan = dok.filter((d) => d.usulan);

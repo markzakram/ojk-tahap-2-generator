@@ -63,7 +63,7 @@ const FAKTA: ButirKurasi[] = [
       P('musyarakah', 'Musyarakah memerlukan penyertaan modal para mitra dalam usaha.'),
       P('murabahah', 'Murabahah adalah jual beli barang dengan margin.'),
       P('mudharabah', 'Mudharabah membagi laba usaha menurut nisbah.'),
-      P('istishna', 'Istishna adalah pemesanan pembuatan barang.'),
+      P('istisna', 'Istisna adalah pemesanan pembuatan barang.'),
       P('ijarah', 'Ijarah adalah sewa manfaat, bukan penitipan dana.'),
     ],
     konsep: 'Akad titipan', kataKunci: 'dijaga dan diminta kembali, tanpa nisbah',
@@ -91,7 +91,7 @@ const FAKTA: ButirKurasi[] = [
     pengecoh: [
       P('ijarah muntahiyah bittamlik', 'IMBT memuat mekanisme pemindahan kepemilikan pada akhir sewa, yang tidak disebut dalam kasus.'),
       P('salam', 'Salam adalah pemesanan barang dengan pembayaran di muka.'),
-      P('istishna', 'Istishna adalah pemesanan pembuatan barang.'),
+      P('istisna', 'Istisna adalah pemesanan pembuatan barang.'),
       P('murabahah', 'Murabahah adalah jual beli dengan margin.'),
       P('mudharabah', 'Mudharabah adalah kerja sama bagi hasil usaha.'),
     ],
@@ -253,10 +253,10 @@ const KASUS: ButirKurasi[] = [
       P('bonus wajib dijanjikan dalam persentase tetap sejak pembukaan rekening', 'Bonus tidak boleh disyaratkan atau diperjanjikan sebelumnya.'),
       P('bonus dihitung menurut nisbah bagi hasil yang disepakati', 'Nisbah adalah ciri mudharabah, bukan wadiah.'),
       P('bonus adalah margin jual beli yang diungkapkan kepada nasabah', 'Margin adalah komponen harga pada murabahah.'),
-      P('bonus menjadi kewajiban bank meskipun dana tidak dimanfaatkan', 'Bonus adalah hak prerogatif penyimpan, bukan kewajiban.'),
+      P('bonus menjadi kewajiban bank meskipun dana tidak dimanfaatkan', 'Bonus bukan kewajiban bank; pemberiannya tidak diperjanjikan.'),
     ],
     konsep: 'Bonus wadiah', kataKunci: 'bonus giro/tabungan wadiah',
-    alasan: ['Syarat bonus wadiah: bonus merupakan kebijakan (hak prerogatif) penyimpan dan tidak disyaratkan atau diperjanjikan sebelumnya.'],
+    alasan: ['Bonus wadiah merupakan kebijakan penyimpan dan tidak disyaratkan atau diperjanjikan sebelumnya.'],
     caraCepat: 'Bonus wadiah = tidak dijanjikan.',
   },
   {
@@ -483,7 +483,7 @@ const TABEL: TabelRelasi[] = [
     tanyaNilai: (s) => `Dalam keuangan syariah, akad ${s} adalah ....`,
     tanyaSubjek: (n) => `Dalam keuangan syariah, akad berupa ${n} disebut ....`,
     alasanSalah: alasanRelasi, kalimat: kalimatRelasi, konsep: 'Akad dalam keuangan syariah',
-    caraCepat: 'Cari kata kerja utama: menitipkan (wadiah), membagi hasil dengan satu pemodal (mudharabah) atau beberapa pemodal (musyarakah), menjual dengan margin (murabahah), menyewa (ijarah/IMBT), memesan (salam/istishna), meminjam pokok (qardh).',
+    caraCepat: 'Cari kata kerja utama: menitipkan (wadiah), membagi hasil dengan satu pemodal (mudharabah) atau beberapa pemodal (musyarakah), menjual dengan margin (murabahah), menyewa (ijarah/IMBT), memesan (salam/istisna), meminjam pokok (qardh).',
     baris: [
       bA('wadiah', 'wadiah', 'penitipan dana atau barang kepada pihak yang dipercaya untuk dijaga dan dikembalikan'),
       bA('mudharabah', 'mudharabah', 'kerja sama satu pihak penyedia modal dan pihak lain pengelola usaha dengan bagi hasil menurut nisbah'),
@@ -492,7 +492,7 @@ const TABEL: TabelRelasi[] = [
       bA('ijarah', 'ijarah', 'pemindahan hak guna barang atau jasa untuk waktu tertentu dengan sewa, tanpa memindahkan kepemilikan', 'menengah'),
       bA('imbt', 'ijarah muntahiyah bittamlik (IMBT)', 'sewa yang disertai mekanisme pemindahan kepemilikan pada akhir masa sewa sesuai akad', 'menengah'),
       bA('salam', 'salam', 'pembelian barang pesanan, misalnya hasil panen, dengan harga dibayar lunas saat akad dan barang diserahkan kemudian', 'menengah'),
-      bA('istishna', 'istishna', 'pemesanan pembuatan atau pembangunan barang tertentu sesuai spesifikasi', 'menengah'),
+      bA('istisna', 'istisna', 'pemesanan pembuatan atau pembangunan barang tertentu sesuai spesifikasi', 'menengah'),
       bA('qardh', 'qardh', 'pinjaman dana dengan kewajiban mengembalikan pokok tanpa imbalan pinjaman yang diperjanjikan'),
     ],
   },
@@ -623,7 +623,7 @@ export const KEUANGAN_SYARIAH = [
   familyRelasi({
     id: 'PSJK-SYARIAH-RELASI', nama: 'Keuangan syariah: akad, jasa perbankan, kelembagaan (dua arah)', chapter: 'keuangan-syariah', label: 'VARIASI',
     sumber: `${EB}, subbab 3.1.3–3.1.13; ${B8}, Tabel 3`,
-    ringkas: 'Tiga tabel relasi dua arah: sembilan akad (wadiah, mudharabah, musyarakah, murabahah, ijarah, IMBT, salam, istishna, qardh), enam jasa perbankan dan akadnya (qardh, wakalah, sharf, rahn, kafalah, wadiah yad amanah), dan kelembagaan (BUS, UUS, BPRS, DSN-MUI, DPS, OJK, DES).',
+    ringkas: 'Tiga tabel relasi dua arah: sembilan akad (wadiah, mudharabah, musyarakah, murabahah, ijarah, IMBT, salam, istisna, qardh), enam jasa perbankan dan akadnya (qardh, wakalah, sharf, rahn, kafalah, wadiah yad amanah), dan kelembagaan (BUS, UUS, BPRS, DSN-MUI, DPS, OJK, DES).',
   }, TABEL),
   familyKurasi({
     id: 'PSJK-SYARIAH-KASUS', nama: 'Keuangan syariah: kasus dan pernyataan majemuk', chapter: 'keuangan-syariah', label: 'VARIASI',

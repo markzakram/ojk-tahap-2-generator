@@ -30,8 +30,8 @@ const KESEHATAN: TabelRelasi = {
 const ISTILAH: TabelRelasi = {
   id: 'istilah-lkm',
   topik: 'istilah LKM',
-  tanyaNilai: (s) => `Dalam materi Lembaga Keuangan Mikro, ${s} adalah ...`,
-  tanyaSubjek: (n) => `Dalam materi Lembaga Keuangan Mikro, istilah untuk ${n} adalah ...`,
+  tanyaNilai: (s) => `Dalam kegiatan lembaga keuangan mikro, ${s} adalah ...`,
+  tanyaSubjek: (n) => `Dalam kegiatan lembaga keuangan mikro, istilah untuk ${n} adalah ...`,
   alasanSalah: alasanRelasi('adalah'),
   kalimat: kalimatRelasi('adalah'),
   konsep: 'Istilah dasar LKM: Bank Wakaf Mikro, BUM Desa, ekuitas, akad, nisbah, portofolio pinjaman, dan kesulitan likuiditas.',
@@ -175,7 +175,7 @@ export const lkmKasus = familyKurasi({
     sumber: `${S.ebLkm}, §3.1.2`, berlaku: POJK_LKM,
   }),
   butir('skala-desa', 'dasar', 'skala usaha', {
-    tanya: 'Sebuah LKM beroperasi di satu desa dan memiliki total aset Rp800 juta. Menurut kriteria umum dalam materi, skala usaha yang sesuai adalah ...',
+    tanya: 'Sebuah LKM beroperasi di satu desa dan memiliki total aset Rp800 juta. Menurut kriteria umum skala usaha LKM, skala usaha yang sesuai adalah ...',
     jawab: 'Skala kecil',
     salah: [
       ['Skala menengah', 'Skala menengah berkaitan dengan cakupan kecamatan dan aset mulai Rp1 miliar hingga kurang dari Rp10 miliar.'],

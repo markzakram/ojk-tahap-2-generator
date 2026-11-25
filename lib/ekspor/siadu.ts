@@ -8,10 +8,11 @@ import type { CalendarItem } from '../deduktif/calendar/model';
 import type { Alokasi, RoomItem } from '../deduktif/room/model';
 import { jamTL, type TimelineItem } from '../deduktif/timeline/model';
 import { jam as jamTS, type Susunan, type TimeslotItem } from '../deduktif/timeslot/model';
-import type { DragLineItem } from '../induktif/drag-line/pola';
+import { TAMPILAN_DL, geometriTampilan, type DragLineItem } from '../induktif/drag-line/pola';
 import { geometri, NAMA_WARNA, type Frame } from '../induktif/fill-shape/geometri';
 import type { FillShapeItem } from '../induktif/fill-shape/pola';
 import type { HasilSusun, Paket, SlotPaket } from '../paket/susun';
+import { gambarPembahasan } from '../visual';
 
 // Naskah Word input SiAdu (Auto Input). Format mengikuti template SiAdu yang dipakai Tahap 1, SKD, dan UTBK:
 //   Soal N · Category · Lesson · Chapter (tebal) · Tingkat Kesulitan · Bentuk Soal · teks soal · A.–E. · Jawaban · Pembahasan
@@ -31,7 +32,9 @@ export type Run = { teks: string; tebal?: boolean; miring?: boolean };
 export type Sel = { teks?: string; gambar?: string; tengah?: boolean };
 export type Blok =
   | { t: 'p'; runs: Run[]; ukuran?: number; warna?: string }
-  | { t: 'tabel'; kepala: string[]; baris: Sel[][]; lebar?: number[] };
+  | { t: 'tabel'; kepala: string[]; baris: Sel[][]; lebar?: number[] }
+  /** Visual pembahasan (SVG); diubah ke PNG saat berkas Word disusun. `alt` dipakai bila gambar tidak dapat dibuat. */
+  | { t: 'gambar'; svg: string; lebar: number; tinggi: number; alt: string };
 
 export interface DokumenSiadu {
   nama: string;
@@ -51,11 +54,12 @@ function bangun(s: SlotPaket): Soal | null {
   try { return bangkitkan(familyById(s.familyId), s.seed); } catch { return null; }
 }
 
-/** Pembahasan peserta: jawaban, langkah, alasan opsi salah, cara cepat (sumber penyusunan tidak dicetak). */
+/** Pembahasan peserta: jawaban, langkah, visual, alasan opsi salah, cara cepat (sumber penyusunan tidak dicetak). */
 function pembahasan(soal: Soal): Blok[] {
   const b = soal.pembahasan;
   const out: Blok[] = [p(b.jawaban, { tebal: true })];
   for (const l of b.langkah) out.push(p(l.teks));
+  for (const g of gambarPembahasan(soal)) { out.push(p(`Gambar: ${g.judul}`, { miring: true })); out.push({ t: 'gambar', svg: g.svg, lebar: g.lebar, tinggi: g.tinggi, alt: g.alt }); }
   if (b.opsiSalah?.length) { out.push(p('Alasan pilihan lain:', { tebal: true })); for (const t of b.opsiSalah) out.push(p(t)); }
   if (b.caraCepat) out.push({ t: 'p', runs: [{ teks: 'Cara cepat: ', tebal: true }, { teks: b.caraCepat }] });
   return out;
@@ -101,7 +105,7 @@ const warna = (w: number) => NAMA_WARNA[w] ?? String(w);
 function badanFillShape(it: FillShapeItem, kunci: Frame): Blok[] {
   const g = geometri(it.geometri);
   return [
-    p('Amati perubahan warna dari gambar 1 sampai 4, lalu tentukan warna setiap bidang pada gambar 5.'),
+    p('Amati perubahan warna dari Gambar 1 sampai Gambar 4, lalu tentukan warna setiap bidang pada Gambar 5.'),
     p(`Pengaturan: Bentuk ${g.nama}; ${g.bidang.length} bidang; warna putih, hijau, ungu`),
     { t: 'tabel', kepala: ['Bidang', 'Gambar 1', 'Gambar 2', 'Gambar 3', 'Gambar 4', 'Kunci Gambar 5'],
       baris: g.bidang.map((b, i) => [{ teks: `${i + 1}. ${b.nama}` }, ...it.frame.map((f) => ({ teks: warna(f[i]) })), { teks: warna(kunci[i]), tengah: true }]) },
@@ -114,6 +118,7 @@ function badanDragLine(it: DragLineItem, kunci: string[]): Blok[] {
   return [
     p('Tarik garis dari simpul terakhir yang tersambung ke simpul berikutnya sampai semua simpul terpakai tepat sekali. Garis awalan sudah dikunci.'),
     p(`Pengaturan: Kanvas ${it.lebar} × ${it.tinggi}; awalan dikunci ${it.awalan.map(kode).join(' → ')}`),
+    p(`Geometri: jari-jari simpul ${TAMPILAN_DL.jariJariSimpul}; tebal garis ${TAMPILAN_DL.tebalGaris}; area sentuh ${TAMPILAN_DL.areaSentuh}; jarak ruas terdekat ke simpul lain ${geometriTampilan(it, kunci).jarakRuasMinimum}`),
     { t: 'tabel', kepala: ['Simpul', 'Kode', 'X', 'Y', 'Urutan Kunci'],
       baris: it.simpul.map((s) => [{ teks: s.id }, { teks: s.kode }, { teks: String(s.x) }, { teks: String(s.y) }, { teks: String(kunci.indexOf(s.id) + 1), tengah: true }]) },
     p(`Jawaban: ${kunci.map(kode).join(' → ')}`),
@@ -244,12 +249,25 @@ export function dokumenSiadu(h: HasilSusun, paketIds: string[] | null, fotoDasar
 }
 
 /** Ubah satu dokumen menjadi berkas .docx (Times New Roman 12 pt, spasi 1,5, seperti dokumen SiAdu SKD/UTBK). */
-export async function docxSiadu(d: DokumenSiadu, muatGambar: (src: string) => Promise<Uint8Array | null>): Promise<Uint8Array> {
+export async function docxSiadu(
+  d: DokumenSiadu,
+  muatGambar: (src: string) => Promise<Uint8Array | null>,
+  /** Ubah SVG visual pembahasan menjadi PNG (browser: canvas; Node: sharp). */
+  svgKePng?: (svg: string, lebar: number, tinggi: number) => Promise<Uint8Array | null>,
+): Promise<Uint8Array> {
   const D = await import('docx');
   const runs = (rs: Run[], ukuran?: number, warna?: string) => rs.map((r) => new D.TextRun({ text: r.teks, bold: r.tebal, italics: r.miring, size: ukuran ? ukuran * 2 : undefined, color: warna }));
   const anak: (InstanceType<typeof D.Paragraph> | InstanceType<typeof D.Table>)[] = [];
   for (const b of d.blok) {
     if (b.t === 'p') { anak.push(new D.Paragraph({ children: runs(b.runs, b.ukuran, b.warna) })); continue; }
+    if (b.t === 'gambar') {
+      const png = svgKePng ? await svgKePng(b.svg, b.lebar, b.tinggi) : null;
+      const w = Math.min(600, b.lebar);
+      anak.push(new D.Paragraph({ children: png
+        ? [new D.ImageRun({ type: 'png', data: png, transformation: { width: Math.round(w), height: Math.round((w * b.tinggi) / b.lebar) }, altText: { name: 'Visual pembahasan', title: 'Visual pembahasan', description: b.alt } })]
+        : [new D.TextRun({ text: b.alt, italics: true })] }));
+      continue;
+    }
     const total = (b.lebar ?? b.kepala.map(() => 1)).reduce((a, x) => a + x, 0);
     const lebar = (i: number) => Math.round(((b.lebar?.[i] ?? 1) / total) * 9000);
     const sel = async (s: Sel, i: number, kepala = false) => {

@@ -59,3 +59,14 @@ Temuan QC TO-01 yang sudah diterapkan pada family tercatat di README (bagian "QC
 4. **Cakupan materi folder belum diperiksa menyeluruh**: pengayaan yang dikeluarkan hanya 13 butir yang disebut QC untuk TO-01. Butir SJK lain di bank belum dicocokkan satu per satu dengan 16 materi folder acuan.
 5. **Ekspor SiAdu 6 bentuk interaktif**: Fill Shape, Node Arrow Navigation, Calendar Date Selection, Place and Room Allocations, Timeline Scheduling, dan Timeslot Scheduling belum punya template Auto Input. Ekspor saat ini berupa berkas usulan (tabel data + kunci). Mohon tangkapan layar formulir SiAdu untuk bentuk tersebut agar ekspor disesuaikan dengan kolomnya.
 6. **Uji tampilan pada perangkat peserta** (T02/T08, F06): jarak aman ruas Drag the Line (≥ 0,85 satuan dari pusat simpul lain) dan font simpul sudah diterapkan di generator, tetapi belum diuji pada aplikasi/ukuran layar peserta yang sebenarnya.
+
+## QC 2 PCAM Tahap 2 (24 November 2026) — sisa tindak lanjut
+
+Perbaikan QC 2 tercatat di README (bagian "QC 2 PCAM Tahap 2"). Butir 1, 2, dan 4 pada daftar QC 1 di atas sudah selesai. Yang masih butuh orang:
+
+1. **Pemeriksaan cakupan**: teks 12 materi folder (Pengenalan OJK, Perencanaan Keuangan, Perbankan, Perusahaan Pembiayaan, Pergadaian, Pasar Modal, Asuransi, Dana Pensiun, Keuangan Syariah, Fintech, Aset Kripto, Digital Financial Literacy) sudah dicocokkan dengan kunci setiap butir secara otomatis (kata kunci yang tidak ada di teks), dan butir bersumber campuran di chapter itu dibaca. Empat materi (Lembaga Keuangan Mikro, Lembaga Penjaminan, Perusahaan Modal Ventura, Bulion) belum dibaca ulang; butirnya seluruhnya mencantumkan e-book sebagai sumber. Pencocokan otomatis tidak menggantikan telaah isi oleh editor.
+2. **Pensiun ditunda** dikeluarkan sesuai QC 2 (SJK 36). Versi materi Dana Pensiun yang dibaca 25 November 2026 memuat pensiun ditunda pada tabel subbab 3.1.9 dan 3.1.11. Bila tim menganggapnya sudah diajarkan, hapus dua baris `pensiun ditunda` di `lib/psjk/cakupan.ts` agar butirnya kembali.
+3. **SBPO/IBP** (arti indeks di atas/di bawah 50) tetap ditanyakan karena menjadi contoh soal 4.15 dan 4.22 materi Perbankan; nama dan isi publikasi tidak ditanyakan (T09).
+4. **Uji perangkat peserta (T02/T08)**: ukuran simpul, garis, label, dan area sentuh pada aplikasi ini sudah sama dengan `tampilan` di JSON; tampilan pada aplikasi tryout peserta yang sebenarnya tetap perlu diuji dengan angka itu.
+5. **Gambar di Pembahasan Word**: belum diuji pada importir SiAdu. Bila importir menolak gambar, kirim contoh format yang diterima.
+6. **Visual** diperiksa pada contoh tiap family (63 family) dan semua soal diperiksa mesin (ada, tidak kosong, tanpa nilai rusak). Telaah desain oleh tim tetap diperlukan sebelum rilis.

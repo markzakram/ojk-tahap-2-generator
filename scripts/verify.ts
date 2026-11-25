@@ -5,7 +5,8 @@
 //  1. soal berhasil dibangkitkan;
 //  2. deterministik — seed yang sama dibangkitkan dua kali menghasilkan JSON identik;
 //  3. validator independen menerima ulang soal (jawaban tunggal, kunci cocok, lolos pemeriksaan mutu, pembahasan ada);
-//  4. kontrol negatif — kunci soal lain (yang berbeda) harus ditolak untuk soal ini.
+//  4. kontrol negatif — kunci soal lain (yang berbeda) harus ditolak untuk soal ini;
+//  5. visual pembahasan tersedia dan utuh untuk setiap soal Induktif dan Deduktif (QC 2 R02).
 // Laporan juga menghitung sidik unik: banyaknya soal yang benar-benar berbeda struktur, bukan sekadar beda nama.
 // Untuk pilihan ganda juga dihitung seberapa sering kunci menjadi satu-satunya opsi terpanjang (per struktur unik);
 // bila jauh di atas peluang acak, peserta bisa menebak dari panjang opsi (peringatan ⚠, bukan kegagalan).
@@ -14,6 +15,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { bangkitkan, GagalBangun, periksaKandidat } from '../lib/core/engine';
 import { FAMILIES } from '../lib/core/registry';
 import type { CatatanKapasitas } from '../lib/data/kapasitas';
+import { gambarPembahasan, WAJIB_VISUAL } from '../lib/visual';
 
 const BERKAS_KAPASITAS = 'lib/data/kapasitas.json';
 const kapasitas: Record<string, CatatanKapasitas> = existsSync(BERKAS_KAPASITAS) ? JSON.parse(readFileSync(BERKAS_KAPASITAS, 'utf8')) : {};
@@ -47,6 +49,11 @@ for (const f of DIPERIKSA) {
         const salah = periksaKandidat(f, soal.item, sebelumnya.jawaban);
         if (salah.ok) masalah.push(`${seed}: kontrol negatif lolos — kunci soal lain diterima`);
         else kontrolNegatif++;
+      }
+      if (WAJIB_VISUAL.includes((soal.item as { jenis: string }).jenis)) {
+        const g = gambarPembahasan(soal);
+        if (!g.length) masalah.push(`${seed}: tanpa visual pembahasan`);
+        if (g.some((x) => !x.alt || /undefined|NaN|Infinity/.test(x.svg))) masalah.push(`${seed}: visual pembahasan rusak`);
       }
       sebelumnya = { kunci: soal.kunci, jawaban: soal.jawaban };
       const pg = soal.item as { jenis?: string; opsi?: { label: string; teks: string }[] };

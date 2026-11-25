@@ -63,22 +63,24 @@ export const TABEL_OJK_LEMBAGA: TabelKalimat[] = [
       { id: 'ppdp', subjek: 'Kepala Eksekutif Pengawas Perasuransian, Penjaminan, dan Dana Pensiun', nilai: 'perusahaan asuransi, perusahaan penjaminan, dan dana pensiun', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.4`, berlakuPer: P2SK_2026 },
       { id: 'pvml', subjek: 'Kepala Eksekutif Pengawas Lembaga Pembiayaan, Perusahaan Modal Ventura, Lembaga Keuangan Mikro, dan Lembaga Jasa Keuangan Lainnya', nilai: 'perusahaan pembiayaan, perusahaan modal ventura, dan lembaga keuangan mikro', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.4`, berlakuPer: P2SK_2026 },
       { id: 'itsk', subjek: 'Kepala Eksekutif Pengawas Inovasi Teknologi Sektor Keuangan, Aset Keuangan Digital, dan Aset Kripto', nilai: 'penyelenggara inovasi teknologi sektor keuangan dan perdagangan aset kripto', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.4 dan 3.1.16`, berlakuPer: P2SK_2026 },
-      { id: 'pepk', subjek: 'Kepala Eksekutif Pengawas Perilaku Pelaku Usaha Jasa Keuangan, Edukasi, dan Pelindungan Konsumen', nilai: 'perilaku pelaku usaha jasa keuangan (market conduct) terhadap konsumen', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.4`, berlakuPer: P2SK_2026 },
+      { id: 'pepk', subjek: 'Kepala Eksekutif Pengawas Perilaku Pelaku Usaha Jasa Keuangan, Edukasi, dan Pelindungan Konsumen', nilai: 'perilaku pelaku usaha jasa keuangan terhadap konsumen', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.4`, berlakuPer: P2SK_2026 },
       { id: 'bmks', subjek: 'Kepala Eksekutif Pengawas Bursa Mineral dan Komoditas Strategis', nilai: 'bursa mineral dan komoditas strategis', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.1 dan 3.1.4`, berlakuPer: P2SK_2026 },
     ],
   },
   {
     id: 'mandat-lembaga', topik: 'ojk-bi-lps',
-    kalimat: (b) => `Mandat utama ${b.subjek} adalah ${b.nilai}.`,
-    tanyaNilai: (s) => `Dalam sistem keuangan Indonesia, mandat utama ${s} adalah ....`,
-    tanyaSubjek: (n) => `Pihak yang mandat utamanya ${n} adalah ....`,
+    kalimat: (b) => `Peran utama ${b.subjek} adalah ${b.nilai}.`,
+    tanyaNilai: (s) => `Dalam sistem keuangan Indonesia, peran utama ${s} adalah ....`,
+    tanyaSubjek: (n) => `Pihak yang peran utamanya ${n} adalah ....`,
     alasanSalah: (benar, salah, arah) => arah === 'nilai'
-      ? `Itu mandat ${salah.subjek}, bukan ${benar.subjek}.`
-      : `Mandat utama ${salah.subjek} adalah ${salah.nilai}.`,
-    konsep: 'Pilih institusi berdasarkan objek tindakan: BI moneter, sistem pembayaran, makroprudensial; LPS penjaminan simpanan dan resolusi; Kemenkeu fiskal; Satgas PASTI aktivitas keuangan ilegal; BEI penyelenggara bursa (SRO) di bawah pengawasan OJK.',
-    caraCepat: 'Kata kunci: moneter → BI; simpanan → LPS; fiskal → Kemenkeu; ilegal → Satgas PASTI; perdagangan efek → BEI.',
+      ? `Itu peran ${salah.subjek}, bukan ${benar.subjek}.`
+      : `Peran utama ${salah.subjek} adalah ${salah.nilai}.`,
+    konsep: 'Pilih pihak berdasarkan objek tindakan: OJK mengatur dan mengawasi sektor jasa keuangan; BI moneter, sistem pembayaran, makroprudensial; LPS penjaminan simpanan dan resolusi; Satgas PASTI aktivitas ilegal; PUJK penyedia produk dan penerima pertama pengaduan.',
+    caraCepat: 'Kata kunci: moneter → BI; simpanan → LPS; ilegal → Satgas PASTI; pengawasan sektor → OJK; produk dan keluhan pertama → PUJK.',
     baris: [
-      { id: 'bi', subjek: 'Bank Indonesia', nilai: 'kebijakan moneter, sistem pembayaran, dan makroprudensial', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.9; ${SLK1}, Bab 3–4`, berlakuPer: P2SK },
+      { id: 'ojk', subjek: 'Otoritas Jasa Keuangan', nilai: 'pengaturan dan pengawasan sektor jasa keuangan, termasuk perilaku pelaku usahanya', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.9`, berlakuPer: P2SK },
+      { id: 'bi', subjek: 'Bank Indonesia', nilai: 'kebijakan moneter, sistem pembayaran, dan makroprudensial', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.9`, berlakuPer: P2SK },
+      { id: 'pujk', subjek: 'Pelaku Usaha Jasa Keuangan (PUJK)', nilai: 'penyediaan produk keuangan dan penerimaan pertama pengaduan konsumennya', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.11 dan 3.1.15`, berlakuPer: POJK22 },
       { id: 'lps', subjek: 'Lembaga Penjamin Simpanan', nilai: 'penjaminan simpanan serta penanganan atau resolusi bank', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.9`, berlakuPer: P2SK },
       { id: 'kemenkeu', subjek: 'Kementerian Keuangan', nilai: 'kebijakan fiskal yang berdampak pada sistem keuangan', tingkat: 'dasar', sumber: `${SLK1}, Bab 3; ${MPSJKI}, bagian Kolaborasi` },
       { id: 'bei', subjek: 'Bursa Efek Indonesia', nilai: 'penyelenggaraan perdagangan efek sebagai self regulatory organization', tingkat: 'menengah', sumber: `${BSC}, Bab IV (Apa itu Pasar Modal?)` },
@@ -103,6 +105,42 @@ export const TABEL_OJK_LEMBAGA: TabelKalimat[] = [
       { id: 'slik-2018', subjek: 'pengelolaan informasi debitur beralih dari BI ke OJK sebagai SLIK', nilai: '2 Januari 2018', tingkat: 'menantang', sumber: `${SLK1}, Bab 6` },
       { id: 'kripto-2025', subjek: 'pengawasan aset keuangan digital termasuk aset kripto beralih dari Bappebti ke OJK', nilai: 'Januari 2025', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.16`, berlakuPer: P2SK },
       { id: 'uu-2026', subjek: 'UU 4/2026 tentang perubahan UU P2SK mulai berlaku', nilai: '17 Juni 2026', tingkat: 'menantang', sumber: `${EB_OJK}, subbab 3.1.1`, berlakuPer: P2SK_2026 },
+    ],
+  },
+  // ---- QC 2 R01: tabel pengganti dari materi folder (subbab 3.1.2, 3.1.6, 3.1.8) ----
+  {
+    id: 'istilah-lembaga', topik: 'tujuan-fungsi-tugas',
+    kalimat: (b) => `Istilah "${b.subjek}" menunjuk pada ${b.nilai}.`,
+    tanyaNilai: (s) => `Dalam penjelasan kelembagaan OJK, istilah "${s}" menunjuk pada ....`,
+    tanyaSubjek: (n) => `Dalam penjelasan kelembagaan OJK, istilah yang menunjuk pada ${n} adalah ....`,
+    alasanSalah: salahUmum('pengertian istilah', 'Istilah', 'menunjuk pada'),
+    konsep: 'Tujuan = hasil yang ingin dicapai; fungsi = sistem yang diselenggarakan; tugas = bidang kegiatan; kewenangan = tindakan hukum atau administratif; kode etik = norma kepatutan.',
+    caraCepat: 'Hasil → tujuan; sistem → fungsi; bidang kegiatan → tugas; tindakan hukum → kewenangan; norma kepatutan → kode etik; pengawas norma → Komite Etik.',
+    baris: [
+      { id: 'tujuan', subjek: 'tujuan', nilai: 'hasil yang ingin dicapai', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.2` },
+      { id: 'fungsi', subjek: 'fungsi', nilai: 'sistem yang diselenggarakan', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.2` },
+      { id: 'tugas', subjek: 'tugas', nilai: 'bidang kegiatan yang dilaksanakan', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.2` },
+      { id: 'kewenangan', subjek: 'kewenangan', nilai: 'tindakan hukum atau administratif yang dapat dilakukan', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.2` },
+      { id: 'kode-etik', subjek: 'kode etik', nilai: 'norma kepatutan dan kepantasan yang wajib dipatuhi', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.6` },
+      { id: 'komite-etik', subjek: 'Komite Etik', nilai: 'organ pendukung Dewan Komisioner yang mengawasi kepatuhan pegawai', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.6` },
+    ],
+  },
+  {
+    id: 'sektor-jasa', topik: 'produk-sektor',
+    kalimat: (b) => `Kegiatan ${b.subjek} ${b.nilai}.`,
+    tanyaNilai: (s) => `Karakter kegiatan ${s} adalah ....`,
+    tanyaSubjek: (n) => `Kegiatan jasa keuangan yang ${n} adalah ....`,
+    alasanSalah: (benar, salah, arah) => arah === 'nilai'
+      ? `Itu karakter kegiatan ${salah.subjek}, bukan ${benar.subjek}.`
+      : `Kegiatan ${salah.subjek} ${salah.nilai}.`,
+    konsep: 'Produk jasa keuangan sama-sama diawasi, tetapi karakter hak, kewajiban, risiko, dan regulasinya berbeda menurut sektor.',
+    caraCepat: 'Himpun dan salurkan dana → bank; efek → pasar modal; risiko menurut polis → asuransi; membiayai kebutuhan tertentu → pembiayaan; manfaat pensiun → dana pensiun.',
+    baris: [
+      { id: 'bank', subjek: 'perbankan', nilai: 'menghimpun dana dan menyalurkan kredit atau pembiayaan', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.8` },
+      { id: 'pm', subjek: 'pasar modal', nilai: 'mempertemukan penerbit efek dan investor', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.8` },
+      { id: 'asuransi', subjek: 'perasuransian', nilai: 'mengalihkan atau membagi risiko sesuai polis', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.8` },
+      { id: 'pembiayaan', subjek: 'perusahaan pembiayaan', nilai: 'menyediakan dana untuk kebutuhan tertentu tanpa menghimpun simpanan', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.8` },
+      { id: 'dapen', subjek: 'dana pensiun', nilai: 'menyelenggarakan program manfaat hari tua bagi pesertanya', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.8` },
     ],
   },
 ];
@@ -179,6 +217,61 @@ export const TABEL_OJK_KONSUMEN: TabelKalimat[] = [
       { id: 'penjualan', subjek: 'penjualan produk', nilai: 'proses dan media pemasaran, kapabilitas pemasar, serta perjanjian baku', tingkat: 'menantang', sumber: `${SLK1}, Bab 5` },
       { id: 'pasca-jual', subjek: 'layanan pasca jual', nilai: 'aksesibilitas dan kemudahan konsumen memakai layanan setelah pembelian', tingkat: 'menengah', sumber: `${SLK1}, Bab 5` },
       { id: 'sengketa', subjek: 'penyelesaian pengaduan atau sengketa', nilai: 'penyelesaian keluhan melalui internal dan external dispute resolution', tingkat: 'menengah', sumber: `${SLK1}, Bab 5` },
+    ],
+  },
+  // ---- QC 2 R01: tabel pengganti dari materi folder (subbab 3.1.12–3.1.17) ----
+  {
+    id: 'modus', topik: 'waspada-penipuan',
+    kalimat: (b) => `Modus ${b.subjek} tampak ketika ${b.nilai}.`,
+    tanyaNilai: (s) => `Dalam penipuan keuangan, modus ${s} tampak ketika ....`,
+    tanyaSubjek: (n) => `Dalam sebuah penipuan keuangan, ${n}. Modus yang paling langsung tampak adalah ....`,
+    alasanSalah: (benar, salah, arah) => arah === 'nilai'
+      ? `Itu contoh modus ${salah.subjek}, bukan ${benar.subjek}.`
+      : `Modus ${salah.subjek} tampak ketika ${salah.nilai}.`,
+    konsep: 'Modus penipuan keuangan: penyamaran identitas pejabat, pemalsuan logo, tautan tiruan, rasa mendesak, bukti keuntungan yang tidak terverifikasi, dan aplikasi tidak resmi. Periksa melalui kanal resmi yang diakses sendiri.',
+    caraCepat: 'Cari alat tipuannya: orang (menyamar), gambar (logo), alamat (tautan), waktu (mendesak), tangkapan layar (bukti keuntungan), atau aplikasi.',
+    baris: [
+      { id: 'menyamar', subjek: 'penyamaran identitas', nilai: 'pelaku mengaku sebagai pejabat atau petugas lembaga resmi', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.13` },
+      { id: 'logo', subjek: 'pemalsuan logo', nilai: 'lambang lembaga resmi dipasang pada brosur agar tampak berizin', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.13` },
+      { id: 'tautan', subjek: 'tautan tiruan', nilai: 'alamat situs dibuat mirip situs resmi untuk mencuri data', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.13` },
+      { id: 'mendesak', subjek: 'penciptaan rasa mendesak', nilai: 'korban diburu waktu agar tidak sempat memeriksa', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.13` },
+      { id: 'bukti', subjek: 'bukti keuntungan yang tidak terverifikasi', nilai: 'tangkapan layar saldo dan laba disebar untuk meyakinkan calon korban', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.13` },
+      { id: 'aplikasi', subjek: 'aplikasi tidak resmi', nilai: 'korban diminta memasang berkas yang dikirim lewat pesan pribadi', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.13` },
+    ],
+  },
+  {
+    id: 'tanda-bahaya', topik: 'waspada-investasi',
+    kalimat: (b) => `Tanda bahaya berupa ${b.subjek} tampak ketika ${b.nilai}.`,
+    tanyaNilai: (s) => `Tanda bahaya penawaran investasi berupa ${s} tampak ketika ....`,
+    tanyaSubjek: (n) => `Pada sebuah penawaran investasi, ${n}. Tanda bahaya yang paling langsung tampak adalah ....`,
+    alasanSalah: (benar, salah, arah) => arah === 'nilai'
+      ? `Itu contoh ${salah.subjek}, bukan ${benar.subjek}.`
+      : `Tanda bahaya berupa ${salah.subjek} tampak ketika ${salah.nilai}.`,
+    konsep: 'Tanda bahaya penawaran investasi: jaminan hasil tinggi dan pasti, tekanan merekrut anggota, transfer ke rekening pribadi, identitas pengelola tidak jelas, dan penolakan memberi dokumen resmi.',
+    caraCepat: 'Cocokkan kejadian: janji pasti → jaminan hasil; ajak orang → perekrutan; rekening perorangan → transfer pribadi; pengelola tak dikenal → identitas; menghindari berkas → dokumen.',
+    baris: [
+      { id: 'hasil-pasti', subjek: 'jaminan imbal hasil tinggi dan pasti', nilai: 'penawar menjanjikan untung besar setiap pekan tanpa kemungkinan rugi', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.12` },
+      { id: 'rekrut', subjek: 'tekanan merekrut anggota baru', nilai: 'komisi hanya diberikan bila peserta mengajak orang lain bergabung', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.12` },
+      { id: 'rekening', subjek: 'permintaan transfer ke rekening pribadi', nilai: 'dana diminta dikirim ke rekening atas nama perorangan', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.12` },
+      { id: 'identitas', subjek: 'identitas pengelola yang tidak jelas', nilai: 'nama badan usaha dan penanggung jawabnya tidak dapat ditemukan', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.12` },
+      { id: 'dokumen', subjek: 'penolakan memberikan dokumen resmi', nilai: 'permintaan salinan izin dan perjanjian selalu dihindari', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.12` },
+    ],
+  },
+  {
+    id: 'anggapan-keliru', topik: 'kesalahan-konsep',
+    kalimat: (b) => `Anggapan "${b.subjek}" keliru karena ${b.nilai}.`,
+    tanyaNilai: (s) => `Anggapan "${s}" keliru karena ....`,
+    alasanSalah: (benar, salah) => `Alasan itu membantah anggapan lain, yaitu "${salah.subjek}".`,
+    konsep: 'Kesalahan konseptual yang sering muncul: menyamakan izin dengan jaminan untung, pengawasan dengan penjaminan, dan pelaporan dengan pengembalian dana.',
+    caraCepat: 'Cari alasan yang membantah kata kunci anggapan itu sendiri.',
+    baris: [
+      { id: 'pasti-untung', subjek: 'setiap investasi melalui entitas berizin pasti untung', nilai: 'status kegiatan tidak menghapus risiko pasar', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.17` },
+      { id: 'hanya-ojk', subjek: 'semua layanan keuangan hanya diawasi OJK', nilai: 'terdapat kewenangan BI dan otoritas lain', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.17` },
+      { id: 'semua-lps', subjek: 'seluruh simpanan dan investasi dijamin LPS', nilai: 'penjaminan simpanan mempunyai syarat dan lingkup khusus', tingkat: 'dasar', sumber: `${EB_OJK}, subbab 3.1.9 dan 3.1.17` },
+      { id: 'lima-prinsip', subjek: 'prinsip pelindungan konsumen masih hanya lima', nilai: 'ketentuan terbaru memuat tujuh prinsip', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.10 dan 3.1.17`, berlakuPer: POJK22 },
+      { id: 'kebal', subjek: 'OJK tidak dapat dimintai pertanggungjawaban karena independen', nilai: 'independensi harus dipasangkan dengan akuntabilitas', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.3` },
+      { id: 'semua-kegiatan', subjek: 'tercatat dalam daftar OJK berarti boleh menjalankan semua kegiatan', nilai: 'legalitas harus sesuai badan hukum, produk, kegiatan, dan status terbaru', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.8` },
+      { id: 'dana-kembali', subjek: 'melapor kepada Satgas PASTI menjamin dana kembali', nilai: 'pengembalian dana bergantung pada fakta, proses, dan mekanisme hukum', tingkat: 'menengah', sumber: `${EB_OJK}, subbab 3.1.14` },
     ],
   },
 ];

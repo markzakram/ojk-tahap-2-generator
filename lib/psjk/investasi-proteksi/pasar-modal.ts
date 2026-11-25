@@ -14,27 +14,28 @@ const BS = SUMBER.bspm;
 const RD_BERLAKU = 'Buku Saku Pasar Modal 2023 (ketentuan reksa dana yang berlaku saat itu)';
 
 // ─────────────────────────────── SHL: fakta langsung ───────────────────────────────
-const RD_DEF = {
-  saham: 'berinvestasi sekurang-kurangnya 80% dari NAB pada efek bersifat ekuitas',
-  pt: 'berinvestasi sekurang-kurangnya 80% dari NAB pada efek bersifat utang',
-  campuran: 'berinvestasi paling banyak 79% dari NAB pada masing-masing ekuitas, utang, dan/atau pasar uang',
-  pu: 'hanya berinvestasi pada pasar uang dan efek utang yang jatuh temponya paling lama setahun',
-  penjaminan: 'memberikan penjaminan atas investasi awal pemodal melalui pihak penjamin (guarantor) yang ditunjuk',
-  etf: 'unit penyertaannya diperdagangkan di bursa efek secara real time seperti layaknya saham',
+// QC 2: tanpa batas komposisi 80%/79% (R01) dan tanpa klaim risiko mutlak antarjenis (R07).
+const RD_CIRI = {
+  saham: 'didominasi efek yang menunjukkan kepemilikan atas perusahaan',
+  pt: 'didominasi efek bersifat utang',
+  campuran: 'memadukan beberapa kelas aset menurut kebijakan investasinya',
+  pu: 'berfokus pada instrumen likuid jangka pendek sesuai ketentuan jenisnya',
 };
-const RD_NAMA: Record<keyof typeof RD_DEF, string> = {
+const RD_NAMA: Record<keyof typeof RD_CIRI, string> = {
   saham: 'reksa dana saham', pt: 'reksa dana pendapatan tetap', campuran: 'reksa dana campuran', pu: 'reksa dana pasar uang',
-  penjaminan: 'reksa dana dengan penjaminan', etf: 'Exchange Traded Fund (ETF)',
 };
-function butirRd(k: 'saham' | 'pt' | 'campuran' | 'pu', tambahan: string): ButirKurasi {
+function butirRd(k: keyof typeof RD_CIRI, tambahan: string): ButirKurasi {
   return {
-    id: `rd-${k}`, tingkat: 'menengah', topik: 'jenis-reksa-dana', sumber: `${BS}, bab 2.1.4 B (Jenis Reksa Dana)`, berlakuPer: RD_BERLAKU,
-    pertanyaan: `Berdasarkan karakteristik portofolionya, ${RD_NAMA[k]} adalah reksa dana yang ....`,
-    jawaban: RD_DEF[k],
-    pengecoh: (Object.keys(RD_DEF) as (keyof typeof RD_DEF)[]).filter((x) => x !== k).map((x) => P(RD_DEF[x], `Itu ciri ${RD_NAMA[x]}, bukan ${RD_NAMA[k]}.`)),
-    konsep: 'Jenis reksa dana konvensional berdasarkan portofolio', kataKunci: RD_NAMA[k],
-    alasan: [`${RD_NAMA[k].charAt(0).toUpperCase() + RD_NAMA[k].slice(1)} ${RD_DEF[k]}.`, tambahan],
-    caraCepat: 'Saham ≥80% ekuitas; pendapatan tetap ≥80% utang; campuran masing-masing ≤79%; pasar uang hanya pasar uang/utang ≤1 tahun.',
+    id: `rd-${k}`, tingkat: 'menengah', topik: 'jenis-reksa-dana', sumber: `${EB}, subbab 3.1.9`,
+    pertanyaan: `Portofolio sebuah reksa dana ${RD_CIRI[k]}. Jenis reksa dana itu adalah ....`,
+    jawaban: RD_NAMA[k],
+    pengecoh: [
+      ...(Object.keys(RD_CIRI) as (keyof typeof RD_CIRI)[]).filter((x) => x !== k).map((x) => P(RD_NAMA[x], `Portofolio ${RD_NAMA[x]} ${RD_CIRI[x]}.`)),
+      P('Exchange Traded Fund (ETF)', 'ETF dibedakan dari unitnya yang dapat diperdagangkan melalui bursa, bukan dari isi portofolio pada soal.'),
+    ],
+    konsep: 'Jenis reksa dana menurut fokus portofolionya', kataKunci: RD_CIRI[k],
+    alasan: [`Portofolio ${RD_NAMA[k]} ${RD_CIRI[k]}.`, tambahan],
+    caraCepat: 'Efek kepemilikan → saham; efek utang → pendapatan tetap; perpaduan → campuran; jangka pendek dan likuid → pasar uang.',
   };
 }
 
@@ -67,10 +68,10 @@ const FAKTA: ButirKurasi[] = [
     alasan: ['Pasar modal menjadi sarana pendanaan usaha (perusahaan memperoleh dana dari investor) dan sarana bagi masyarakat untuk berinvestasi pada instrumen keuangan.'],
     caraCepat: 'Pasar modal mempertemukan yang butuh dana (pendanaan) dengan yang punya dana (investasi).',
   },
-  butirRd('saham', 'Reksa dana saham memiliki tingkat risiko paling tinggi di antara jenis konvensional karena harga saham berfluktuasi.'),
-  butirRd('pt', 'Risikonya lebih rendah daripada reksa dana saham dan campuran.'),
-  butirRd('campuran', 'Portofolionya wajib memuat efek bersifat ekuitas dan efek bersifat utang.'),
-  butirRd('pu', 'Risikonya paling rendah dibanding jenis reksa dana lainnya.'),
+  butirRd('saham', 'Setiap jenis reksa dana mempunyai risiko berbeda dan nilai unitnya dapat naik atau turun.'),
+  butirRd('pt', 'Risiko yang perlu diperhatikan adalah perubahan harga obligasi dan risiko kredit penerbitnya.'),
+  butirRd('campuran', 'Risikonya adalah fluktuasi gabungan dari beberapa jenis aset dalam portofolio.'),
+  butirRd('pu', 'Risiko yang tetap perlu diperhatikan adalah perubahan tingkat imbal hasil dan risiko kredit.'),
   {
     id: 'etf', tingkat: 'dasar', topik: 'produk', sumber: `${BS}, bab 2.1.5; ${EB}, subbab 3.1.10`,
     pertanyaan: 'Reksa dana yang unit penyertaannya diperdagangkan di bursa efek sehingga dapat dibeli atau dijual secara real time seperti saham disebut ....',
@@ -80,7 +81,7 @@ const FAKTA: ButirKurasi[] = [
       P('Efek Beragun Aset (EBA)', 'EBA adalah efek berbasis kumpulan aset keuangan, bukan reksa dana.'),
       P('Dana Investasi Real Estat (DIRE)', 'DIRE adalah wadah investasi pada aset real estat, bukan reksa dana ETF.'),
       P('reksa dana pasar uang', 'Reksa dana pasar uang dibedakan dari portofolionya, bukan dari perdagangan di bursa.'),
-      P('obligasi zero coupon', 'Obligasi zero coupon adalah efek utang tanpa kupon.'),
+      P('reksa dana campuran', 'Reksa dana campuran dibedakan dari perpaduan asetnya, bukan dari perdagangan unit di bursa.'),
     ],
     konsep: 'Exchange Traded Fund', kataKunci: 'unit penyertaan diperdagangkan di bursa',
     alasan: ['ETF adalah reksa dana yang unit penyertaannya diperdagangkan di bursa efek; pembelian dan penjualannya melalui mekanisme bursa secara real time.'],
@@ -165,7 +166,7 @@ const FAKTA: ButirKurasi[] = [
       P('OJK, BEI, dan KSEI', 'OJK adalah regulator, bukan SRO.'),
       P('BEI, bank kustodian, dan manajer investasi', 'Bank kustodian dan manajer investasi bukan SRO.'),
       P('KPEI, KSEI, dan agen penjual efek reksa dana', 'APERD bukan SRO.'),
-      P('BEI, KPEI, dan wali amanat', 'Wali amanat adalah lembaga penunjang, bukan SRO.'),
+      P('BEI, KPEI, dan emiten', 'Emiten adalah pihak yang menawarkan efek kepada masyarakat, bukan SRO.'),
     ],
     konsep: 'Self-Regulatory Organization', kataKunci: 'SRO',
     alasan: ['SRO melaksanakan kewenangan penerapan aturan di industri pasar modal; SRO terdiri atas Bursa Efek (BEI), Lembaga Kliring dan Penjaminan (KPEI), dan Lembaga Penyimpanan dan Penyelesaian (KSEI).'],
@@ -423,33 +424,32 @@ const KASUS: ButirKurasi[] = [
 ];
 
 // ─────────────────────────────── VARIASI: relasi ───────────────────────────────
-const bL = pembuatBaris(`${BS}, bab 1.4`);
-const bPr = pembuatBaris(`${BS}, bab 1.4.5–1.4.6 B`);
-const bIn = pembuatBaris(`${BS}, bab 2.1`);
-const bIs = pembuatBaris(`${BS}, bab 1.3 dan 2.1; ${EB}, subbab 3.1.3–3.1.14`);
+const bL = pembuatBaris(`${EB}, subbab 3.1.4–3.1.5`);
+const bIn = pembuatBaris(`${EB}, subbab 3.1.6–3.1.10`);
+const bIs = pembuatBaris(`${EB}, subbab 3.1.3–3.1.16`);
 
+// QC 2 R01: BAE, wali amanat, perusahaan pemeringkat, penasihat investasi, DINFRA, tipe saham/obligasi, sinking fund, dan
+// oversubscribed tidak diajarkan di materi folder, jadi tabel disusun ulang dari subbab 3.1.3–3.1.16.
 const TABEL_PELAKU: TabelRelasi[] = [
   {
     id: 'lembaga', topik: 'pelaku',
-    tanyaNilai: (s) => `Dalam struktur pasar modal Indonesia, ${s} adalah ....`,
-    tanyaSubjek: (n) => `Dalam struktur pasar modal Indonesia, ${n} adalah ....`,
-    alasanSalah: alasanRelasi, kalimat: kalimatRelasi, konsep: 'Pengawas, SRO, perusahaan efek, dan lembaga penunjang',
-    caraCepat: 'Ingat satu fungsi inti per pihak: OJK mengawasi, BEI mempertemukan, KPEI kliring, KSEI kustodian sentral, MI mengelola, APERD menjual, wali amanat mewakili pemegang obligasi.',
+    tanyaNilai: (s) => `Dalam ekosistem pasar modal Indonesia, ${s} berperan sebagai ....`,
+    tanyaSubjek: (n) => `Dalam ekosistem pasar modal Indonesia, pihak yang berperan sebagai ${n} adalah ....`,
+    alasanSalah: (b, x, arah) => (arah === 'nilai' ? `Uraian itu adalah peran ${x.subjek}, bukan ${b.subjek}.` : `${x.subjek.charAt(0).toUpperCase() + x.subjek.slice(1)} berperan sebagai ${x.nilai}.`),
+    kalimat: (b) => `${b.subjek.charAt(0).toUpperCase() + b.subjek.slice(1)} berperan sebagai ${b.nilai}.`,
+    konsep: 'Pengawas (OJK), infrastruktur (BEI, KPEI, KSEI), dan pihak penunjang pasar modal',
+    caraCepat: 'Ingat satu fungsi inti per pihak: OJK mengawasi, BEI mempertemukan pesanan, KPEI kliring dan penjaminan, KSEI penyimpanan dan penyelesaian, MI mengelola, bank kustodian menyimpan, APERD menjual.',
     baris: [
-      bL('ojk', 'Otoritas Jasa Keuangan (OJK)', 'lembaga yang mengatur dan mengawasi seluruh kegiatan di sektor pasar modal'),
-      bL('bei', 'Bursa Efek Indonesia (BEI)', 'penyelenggara sistem dan sarana yang mempertemukan penawaran jual dan beli efek'),
-      bL('kpei', 'Kliring Penjaminan Efek Indonesia (KPEI)', 'penyelenggara jasa kliring dan penjaminan penyelesaian transaksi bursa'),
-      bL('ksei', 'Kustodian Sentral Efek Indonesia (KSEI)', 'penyelenggara jasa penyimpanan efek secara terpusat dan penyelesaian transaksi efek'),
-      bL('ppe', 'Perantara Pedagang Efek (PPE)', 'perusahaan efek yang melakukan jual beli efek untuk kepentingan sendiri atau pihak lain', 'menengah'),
-      bL('pee', 'Penjamin Emisi Efek (PEE)', 'perusahaan efek yang berkontrak dengan calon emiten untuk melaksanakan penawaran umum', 'menengah'),
-      bL('mi', 'manajer investasi', 'pihak yang mengelola portofolio efek untuk kepentingan nasabah individual atau sekelompok nasabah'),
-      bL('aperd', 'Agen Penjual Efek Reksa Dana (APERD)', 'pihak yang memasarkan unit penyertaan kepada investor berdasarkan kontrak kerja sama dengan manajer investasi', 'menengah'),
-      bL('bk', 'bank kustodian', 'pihak yang disetujui OJK memberi jasa penitipan efek dan mewakili pemegang rekening yang menjadi nasabahnya', 'menengah'),
-      bL('bae', 'Biro Administrasi Efek (BAE)', 'pihak yang berdasarkan kontrak dengan emiten mencatat kepemilikan efek dan pembagian hak terkait efek', 'menengah'),
-      bL('wa', 'wali amanat', 'pihak yang mewakili kepentingan para pemegang efek bersifat utang atau sukuk', 'menengah'),
-      bL('ppe-rating', 'perusahaan pemeringkat efek', 'pihak yang memberi opini tentang kemampuan memenuhi kewajiban pembayaran secara penuh dan tepat waktu', 'menengah'),
-      bL('pi', 'penasihat investasi', 'pihak yang memberi rekomendasi jual beli efek kepada pihak lain dengan memperoleh imbalan jasa', 'menengah'),
-      bL('emiten', 'emiten', 'pihak yang melakukan penawaran umum efek kepada masyarakat'),
+      bL('ojk', 'Otoritas Jasa Keuangan (OJK)', 'regulator dan pengawas kegiatan pasar modal'),
+      bL('bei', 'Bursa Efek Indonesia (BEI)', 'penyelenggara sistem dan sarana perdagangan efek'),
+      bL('kpei', 'Kliring Penjaminan Efek Indonesia (KPEI)', 'pelaksana kliring dan penjaminan penyelesaian transaksi bursa'),
+      bL('ksei', 'Kustodian Sentral Efek Indonesia (KSEI)', 'penyedia layanan penyimpanan dan penyelesaian efek secara terpusat'),
+      bL('emiten', 'emiten', 'pihak yang melakukan penawaran umum efek'),
+      bL('pee', 'penjamin emisi efek', 'pembantu proses penawaran efek emiten berdasarkan perjanjian', 'menengah'),
+      bL('ppe', 'perantara pedagang efek', 'pelaku perdagangan efek untuk kepentingan sendiri atau nasabah', 'menengah'),
+      bL('mi', 'manajer investasi', 'pengelola portofolio efek untuk nasabah atau investasi kolektif'),
+      bL('bk', 'bank kustodian', 'pelaksana penyimpanan dan administrasi aset investasi yang dititipkan', 'menengah'),
+      bL('aperd', 'Agen Penjual Efek Reksa Dana (APERD)', 'penyalur penjualan produk reksa dana kepada investor', 'menengah'),
     ],
   },
 ];
@@ -460,31 +460,16 @@ const TABEL_ISTILAH: TabelRelasi[] = [
     tanyaNilai: (s) => `Sebagai instrumen pasar modal, ${s} adalah ....`,
     tanyaSubjek: (n) => `Di pasar modal, ${n} disebut ....`,
     alasanSalah: alasanRelasi, kalimat: kalimatRelasi, konsep: 'Instrumen dan produk investasi pasar modal',
-    caraCepat: 'Kenali objek haknya: kepemilikan (saham), utang (obligasi), aset dasar syariah (sukuk), portofolio efek (reksa dana), tagihan (EBA), real estat (DIRE), infrastruktur (DINFRA).',
+    caraCepat: 'Kenali objek haknya: kepemilikan (saham), utang (obligasi), aset/kegiatan syariah (sukuk), portofolio efek (reksa dana), unit di bursa (ETF), kumpulan aset keuangan (EBA), real estat (DIRE), aset acuan (derivatif).',
     baris: [
-      bIn('saham', 'saham', 'tanda penyertaan modal seseorang atau badan usaha pada suatu perseroan terbatas'),
-      bIn('obligasi', 'obligasi', 'surat pernyataan utang penerbit disertai janji membayar kembali pokok beserta kupon'),
-      bIn('sukuk', 'sukuk', 'efek syariah berupa sertifikat kepemilikan atas bagian tidak terpisahkan dari aset dasar', 'menengah'),
-      bIn('rd', 'reksa dana', 'wadah penghimpun dana pemodal yang diinvestasikan manajer investasi dalam portofolio efek'),
-      bIn('eba', 'Efek Beragun Aset (EBA)', 'efek yang portofolionya berupa kumpulan aset keuangan seperti tagihan kartu kredit dan KPR', 'menengah'),
-      bIn('dire', 'Dana Investasi Real Estat (DIRE)', 'wadah penghimpun dana pemodal yang ditanamkan pada aset properti dan aset yang terkait dengan properti', 'menengah'),
-      bIn('dinfra', 'Dana Investasi Infrastruktur (DINFRA)', 'wadah KIK yang dananya sebagian besar ditanamkan pada aset prasarana seperti jalan tol atau pelabuhan', 'menengah'),
-      bIn('derivatif', 'instrumen derivatif', 'efek yang nilainya berkaitan dengan aset atau indikator dasar tertentu', 'menengah', { sumber: `${EB}, subbab 3.1.10` }),
-    ],
-  },
-  {
-    id: 'tipe', topik: 'tipe-saham-obligasi',
-    tanyaNilai: (s) => `Di pasar modal, ${s} adalah ....`,
-    tanyaSubjek: (n) => `Di pasar modal, ${n} disebut ....`,
-    alasanSalah: alasanRelasi, kalimat: kalimatRelasi, konsep: 'Tipe saham dan tipe obligasi',
-    caraCepat: 'Saham: biasa (hak suara, terakhir saat likuidasi), preferen (dividen tetap, didahulukan), dwiwarna (milik negara). Obligasi: zero coupon, floating, fixed.',
-    baris: [
-      bIn('biasa', 'saham biasa', 'saham dengan hak suara dalam RUPS yang berada di urutan terakhir saat likuidasi'),
-      bIn('preferen', 'saham preferen', 'saham dengan hak dividen tetap yang didahulukan dari pemegang saham biasa', 'menengah'),
-      bIn('dwiwarna', 'saham dwiwarna', 'saham khusus yang hanya dapat dimiliki Negara Republik Indonesia', 'menengah'),
-      bIn('zero', 'obligasi zero coupon', 'obligasi yang tidak membayar kupon dan ditawarkan dengan harga diskon', 'menengah'),
-      bIn('floating', 'obligasi floating rate', 'obligasi yang kuponnya mengikuti suku bunga acuan dengan batas bawah tertentu', 'menengah'),
-      bIn('fixed', 'obligasi fixed rate', 'obligasi yang kuponnya dibayar dengan tingkat yang tetap'),
+      bIn('saham', 'saham', 'bukti penyertaan modal atau kepemilikan pada perusahaan'),
+      bIn('obligasi', 'obligasi', 'efek bersifat utang yang menjadikan pemegangnya kreditur penerbit'),
+      bIn('sukuk', 'sukuk', 'efek syariah yang mewakili bagian kepentingan atas aset, proyek, atau kegiatan usaha yang mendasari', 'menengah'),
+      bIn('rd', 'reksa dana', 'wadah penghimpunan dana pemodal yang diinvestasikan manajer investasi dalam portofolio efek'),
+      bIn('etf', 'Exchange Traded Fund (ETF)', 'produk investasi kolektif yang unitnya dapat diperdagangkan melalui bursa', 'menengah'),
+      bIn('eba', 'Efek Beragun Aset (EBA)', 'produk berbasis kumpulan aset keuangan yang mendasarinya', 'menengah'),
+      bIn('dire', 'Dana Investasi Real Estat (DIRE)', 'wadah investasi kolektif yang terkait aset real estat', 'menengah'),
+      bIn('derivatif', 'instrumen derivatif', 'instrumen yang nilainya berkaitan dengan aset atau indikator dasar tertentu', 'menengah'),
     ],
   },
   {
@@ -492,22 +477,212 @@ const TABEL_ISTILAH: TabelRelasi[] = [
     tanyaNilai: (s) => `Dalam kegiatan pasar modal, istilah ${s} berarti ....`,
     tanyaSubjek: (n) => `Dalam kegiatan pasar modal, ${n} disebut ....`,
     alasanSalah: alasanRelasi, kalimat: kalimatRelasi, konsep: 'Istilah penawaran, perdagangan, dan imbal hasil',
-    caraCepat: 'Pisahkan istilah pasar (perdana/sekunder), dokumen (prospektus), reksa dana (NAB), saham (dividen, gain/loss), dan obligasi (kupon, nominal, jatuh tempo, sinking fund).',
+    caraCepat: 'Pisahkan istilah pasar (perdana/sekunder), penawaran (prospektus, e-IPO), saham (dividen, gain/loss, RUPS, stock split), obligasi (kupon, nominal, jatuh tempo), reksa dana (NAB), dan pelindungan (SIPF).',
     baris: [
-      bIs('perdana', 'pasar perdana', 'pasar tempat efek ditawarkan pertama kali kepada masyarakat sebelum dicatatkan di bursa'),
-      bIs('sekunder', 'pasar sekunder', 'pasar tempat efek yang sudah tercatat di bursa diperjualbelikan antarinvestor'),
-      bIs('prospektus', 'prospektus', 'dokumen yang memuat informasi material penawaran umum, termasuk risiko dan penggunaan dana'),
-      bIs('oversub', 'oversubscribed', 'kondisi pesanan investor pada penawaran umum melebihi jumlah efek yang ditawarkan', 'menengah'),
-      bIs('nab', 'Nilai Aktiva Bersih (NAB)', 'nilai pasar wajar efek dan kekayaan reksa dana dikurangi seluruh kewajibannya', 'menengah'),
-      bIs('cg', 'capital gain', 'selisih positif antara harga jual dan harga beli efek'),
-      bIs('cl', 'capital loss', 'selisih negatif antara harga jual dan harga beli efek'),
-      bIs('dividen', 'dividen', 'bagian keuntungan perusahaan yang dibagikan kepada pemegang saham atas persetujuan RUPS'),
-      bIs('kupon', 'kupon', 'imbal hasil yang dibayarkan kepada pemegang obligasi sebagai persentase nilai nominal'),
-      bIs('nominal', 'nilai nominal (par)', 'besar pokok yang harus dikembalikan penerbit obligasi kepada pemegangnya', 'menengah'),
-      bIs('jatuh-tempo', 'jatuh tempo', 'waktu yang ditetapkan untuk pengembalian pokok pinjaman obligasi'),
-      bIs('sinking', 'sinking fund', 'penyisihan dana secara berkala oleh penerbit obligasi untuk pembayaran pokok', 'menantang'),
-      bIs('diversifikasi', 'diversifikasi', 'penyebaran investasi ke beberapa instrumen agar risiko tidak terkonsentrasi'),
+      bIs('perdana', 'pasar perdana', 'tahap ketika efek ditawarkan kepada investor dalam proses penerbitan'),
+      bIs('sekunder', 'pasar sekunder', 'tempat efek yang telah beredar diperdagangkan antarinvestor'),
+      bIs('prospektus', 'prospektus', 'dokumen informasi material penawaran, termasuk risiko usaha dan penggunaan dana'),
+      bIs('eipo', 'e-IPO', 'sistem elektronik yang mendukung pelaksanaan penawaran umum tertentu', 'menengah'),
+      bIs('nab', 'Nilai Aktiva Bersih (NAB)', 'nilai bersih aset reksa dana setelah dikurangi kewajiban', 'menengah'),
+      bIs('cg', 'capital gain', 'selisih positif antara harga jual dan harga beli'),
+      bIs('cl', 'capital loss', 'selisih negatif antara harga jual dan harga beli'),
+      bIs('dividen', 'dividen', 'bagian laba yang dibagikan kepada pemegang saham sesuai keputusan yang sah'),
+      bIs('rups', 'RUPS', 'rapat tempat pemegang saham hadir dan memberikan suara', 'menengah'),
+      bIs('split', 'stock split', 'pemecahan nilai nominal saham sebagai aksi korporasi', 'menengah'),
+      bIs('kupon', 'kupon', 'bunga obligasi yang dihitung dari nilai nominalnya'),
+      bIs('nominal', 'nilai nominal obligasi', 'nilai pokok obligasi yang menjadi dasar perhitungan kupon', 'menengah'),
+      bIs('jatuh-tempo', 'jatuh tempo', 'saat pokok obligasi dilunasi menurut syarat efek'),
+      bIs('diversifikasi', 'diversifikasi', 'penyebaran investasi ke beberapa instrumen agar tidak bergantung pada satu penerbit'),
+      bIs('ihsg', 'Indeks Harga Saham Gabungan (IHSG)', 'ukuran yang menggambarkan pergerakan kelompok saham dalam cakupannya'),
+      bIs('sipf', 'Dana Perlindungan Pemodal (SIPF)', 'skema pelindungan pemodal menurut cakupannya yang bukan jaminan atas rugi karena harga turun', 'menengah'),
+      bIs('scf', 'securities crowdfunding (SCF)', 'urun dana berbasis penawaran efek melalui penyelenggara sesuai peraturan', 'menengah'),
     ],
+  },
+];
+
+
+// ─────────────────────────────── QC 2 R01: butir pengganti dari materi folder (subbab 3.1.2–3.1.17) ───────────────────────────────
+const RISIKO_NAMA = ['risiko pasar', 'risiko kredit', 'risiko likuiditas', 'risiko konsentrasi', 'risiko operasional'] as const;
+const RISIKO_URAI: Record<(typeof RISIKO_NAMA)[number], string> = {
+  'risiko pasar': 'berkaitan dengan perubahan harga efek',
+  'risiko kredit': 'berkaitan dengan gagal bayar penerbit',
+  'risiko likuiditas': 'berkaitan dengan sulitnya bertransaksi pada harga wajar',
+  'risiko konsentrasi': 'berkaitan dengan dana yang bertumpu pada satu penerbit',
+  'risiko operasional': 'berkaitan dengan gangguan proses atau sistem',
+};
+function butirRisiko(id: string, nama: (typeof RISIKO_NAMA)[number], kejadian: string, cepat: string): ButirKurasi {
+  return {
+    id: `risiko-${id}`, tingkat: 'dasar', topik: 'risiko', sumber: `${EB}, subbab 3.1.14`,
+    pertanyaan: `${kejadian} Risiko yang paling langsung tampak pada keadaan itu adalah ....`,
+    jawaban: nama,
+    pengecoh: RISIKO_NAMA.filter((x) => x !== nama).map((x) => P(x, `${x.charAt(0).toUpperCase() + x.slice(1)} ${RISIKO_URAI[x]}.`)),
+    konsep: 'Jenis risiko pasar modal', kataKunci: RISIKO_URAI[nama],
+    alasan: [`${nama.charAt(0).toUpperCase() + nama.slice(1)} ${RISIKO_URAI[nama]}, sesuai dengan keadaan pada soal.`],
+    caraCepat: cepat,
+  };
+}
+
+const TAMBAHAN_FAKTA: ButirKurasi[] = [
+  {
+    id: 'pasar-uang-vs-modal', tingkat: 'dasar', topik: 'fungsi', sumber: `${EB}, subbab 3.1.2`,
+    pertanyaan: 'Perbedaan umum antara pasar uang dan pasar modal adalah ....',
+    jawaban: 'pasar uang berfokus pada kebutuhan dana jangka pendek, pasar modal pada pendanaan dan investasi lewat efek',
+    pengecoh: [
+      P('pasar uang hanya memperdagangkan saham, pasar modal hanya memperdagangkan uang kertas', 'Saham adalah instrumen pasar modal, dan pasar modal tidak memperdagangkan uang kertas.'),
+      P('pasar uang menjamin keuntungan, sedangkan pasar modal menjamin pengembalian pokok', 'Keduanya tidak menjamin keuntungan maupun pokok.'),
+      P('pasar uang diawasi bursa, sedangkan pasar modal tidak memiliki pengawas', 'Kegiatan pasar modal diatur dan diawasi OJK.'),
+      P('pasar uang untuk perusahaan besar saja, pasar modal untuk perorangan saja', 'Pembedanya fungsi dan jangka waktu, bukan jenis pelakunya.'),
+    ],
+    konsep: 'Pasar uang dan pasar modal', kataKunci: 'jangka pendek, pendanaan dan investasi',
+    alasan: ['Pasar uang lazim dipakai untuk likuiditas dan pendanaan jangka pendek; pasar modal berkaitan dengan pendanaan dan investasi melalui efek.'],
+    caraCepat: 'Dana dekat → pasar uang; pendanaan/investasi lewat efek → pasar modal.',
+  },
+  {
+    id: 'segmen-reguler', tingkat: 'menengah', topik: 'penyelesaian', sumber: `${EB}, subbab 3.1.12`, berlakuPer: 'ketentuan BEI tentang segmen pasar dan waktu penyelesaian',
+    pertanyaan: 'Segmen pasar di BEI yang penyelesaiannya dua hari bursa setelah hari transaksi (T+2) adalah ....',
+    jawaban: 'pasar reguler',
+    pengecoh: [
+      P('pasar tunai', 'Pasar tunai diselesaikan pada hari transaksi (T+0).'),
+      P('pasar negosiasi', 'Pasar negosiasi diselesaikan menurut kesepakatan dan ketentuan segmen pasarnya.'),
+      P('pasar perdana', 'Pasar perdana adalah tahap penawaran efek, bukan segmen perdagangan di bursa.'),
+      P('pasar uang', 'Pasar uang bukan segmen perdagangan saham di BEI.'),
+    ],
+    konsep: 'Penyelesaian menurut segmen pasar', kataKunci: 'T+2',
+    alasan: ['Pasar reguler BEI diselesaikan T+2, yakni dua hari bursa setelah transaksi.'],
+    caraCepat: 'Reguler T+2; tunai T+0; negosiasi menurut kesepakatan.',
+  },
+  {
+    id: 'segmen-negosiasi', tingkat: 'menengah', topik: 'penyelesaian', sumber: `${EB}, subbab 3.1.12`, berlakuPer: 'ketentuan BEI tentang segmen pasar dan waktu penyelesaian',
+    pertanyaan: 'Penyelesaian transaksi di pasar negosiasi BEI dilakukan ....',
+    jawaban: 'menurut kesepakatan dan ketentuan segmen pasar tersebut',
+    pengecoh: [
+      P('selalu pada hari transaksi itu juga', 'T+0 berlaku untuk pasar tunai.'),
+      P('selalu dua hari bursa setelah transaksi', 'T+2 berlaku untuk pasar reguler.'),
+      P('setelah perusahaan membagikan dividen', 'Pembagian dividen tidak menentukan penyelesaian transaksi.'),
+      P('setelah harga saham kembali ke harga beli', 'Penyelesaian transaksi tidak menunggu pergerakan harga.'),
+    ],
+    konsep: 'Penyelesaian menurut segmen pasar', kataKunci: 'pasar negosiasi',
+    alasan: ['Pasar negosiasi mengikuti mekanisme kesepakatan dan ketentuan yang terkait dengan segmen itu.'],
+    caraCepat: 'Negosiasi = kesepakatan.',
+  },
+  {
+    id: 'pojk-33', tingkat: 'menengah', topik: 'regulasi', sumber: `${EB}, subbab 3.1.17`, berlakuPer: 'POJK 33 Tahun 2024',
+    pertanyaan: 'Peraturan OJK yang menyangkut pengembangan dan penguatan pengelolaan investasi di pasar modal adalah ....',
+    jawaban: 'POJK 33 Tahun 2024',
+    pengecoh: [
+      P('POJK 32 Tahun 2024', 'POJK 32 Tahun 2024 mengatur pengembangan dan penguatan transaksi serta lembaga efek.'),
+      P('POJK 39 Tahun 2024', 'POJK 39 Tahun 2024 mengatur sektor pergadaian.'),
+      P('POJK 22 Tahun 2023', 'POJK 22 Tahun 2023 mengatur pelindungan konsumen dan masyarakat.'),
+      P('POJK 46 Tahun 2024', 'POJK 46 Tahun 2024 mengatur perusahaan pembiayaan.'),
+    ],
+    konsep: 'Kerangka regulasi pasar modal', kataKunci: 'pengelolaan investasi',
+    alasan: ['POJK 33 Tahun 2024 menyangkut pengembangan dan penguatan pengelolaan investasi di pasar modal.'],
+    caraCepat: '32 = transaksi dan lembaga efek; 33 = pengelolaan investasi.',
+  },
+  {
+    id: 'pojk-32', tingkat: 'menengah', topik: 'regulasi', sumber: `${EB}, subbab 3.1.17`, berlakuPer: 'POJK 32 Tahun 2024',
+    pertanyaan: 'POJK 32 Tahun 2024 mengatur pengembangan dan penguatan ....',
+    jawaban: 'transaksi dan lembaga efek',
+    pengecoh: [
+      P('pengelolaan investasi di pasar modal', 'Pengelolaan investasi diatur POJK 33 Tahun 2024.'),
+      P('perusahaan pembiayaan', 'Perusahaan pembiayaan diatur POJK 46 Tahun 2024.'),
+      P('kegiatan usaha pergadaian', 'Pergadaian diatur POJK 39 Tahun 2024.'),
+      P('pelindungan konsumen jasa keuangan', 'Pelindungan konsumen diatur POJK 22 Tahun 2023.'),
+    ],
+    konsep: 'Kerangka regulasi pasar modal', kataKunci: 'POJK 32 Tahun 2024',
+    alasan: ['POJK 32 Tahun 2024 mengatur pengembangan dan penguatan transaksi serta lembaga efek.'],
+    caraCepat: '32 = transaksi dan lembaga efek; 33 = pengelolaan investasi.',
+  },
+];
+
+const TAMBAHAN_KASUS: ButirKurasi[] = [
+  butirRisiko('pasar', 'risiko pasar', 'Sesudah saham dibeli, harganya turun karena kondisi bisnis dan perekonomian berubah.', 'Harga berubah karena kondisi pasar → risiko pasar.'),
+  butirRisiko('kredit', 'risiko kredit', 'Penerbit obligasi tidak mampu membayar kupon dan pokok sesuai jadwal.', 'Penerbit tidak membayar → risiko kredit.'),
+  butirRisiko('likuiditas', 'risiko likuiditas', 'Investor ingin menjual efeknya, tetapi hampir tidak ada pembeli pada harga yang wajar.', 'Sulit dijual → risiko likuiditas.'),
+  butirRisiko('konsentrasi', 'risiko konsentrasi', 'Seluruh dana investor ditempatkan pada saham satu perusahaan.', 'Semua dana di satu penerbit → risiko konsentrasi.'),
+  {
+    id: 'stock-split', tingkat: 'menengah', topik: 'aksi-korporasi', sumber: `${EB}, subbab 3.1.13`,
+    pertanyaan: 'Sebuah emiten melakukan stock split sehingga jumlah lembar saham milik Rani bertambah, sedangkan harga teoretis per lembarnya turun. Kesimpulan yang tepat adalah ....',
+    jawaban: 'kekayaan Rani tidak otomatis bertambah hanya karena jumlah lembarnya bertambah',
+    pengecoh: [
+      P('kekayaan Rani pasti berlipat karena jumlah lembarnya bertambah', 'Harga per lembar ikut menyesuaikan, jadi nilai ekonominya tidak otomatis berlipat.'),
+      P('Rani berubah dari pemegang saham menjadi kreditur emiten', 'Stock split tidak mengubah saham menjadi utang.'),
+      P('emiten menerima dana baru sebesar tambahan lembar saham', 'Stock split memecah nilai nominal, bukan menjual saham baru.'),
+      P('harga saham di bursa sejak saat itu ditetapkan OJK', 'Harga terbentuk dari transaksi; OJK tidak menetapkan harga saham.'),
+    ],
+    konsep: 'Aksi korporasi dan nilai ekonomi', kataKunci: 'stock split',
+    alasan: ['Perubahan jumlah saham atau harga teoretis akibat aksi korporasi tidak otomatis menambah kekayaan investor secara proporsional.'],
+    caraCepat: 'Lembar naik, harga per lembar turun → nilai tidak otomatis naik.',
+  },
+  {
+    id: 'mi-bk-aperd', tingkat: 'menengah', topik: 'pelaku', sumber: `${EB}, subbab 3.1.5`,
+    pertanyaan: 'Dalam sebuah reksa dana, PT A memutuskan komposisi portofolio, Bank B menyimpan dan mengadministrasikan asetnya, dan PT C memasarkan produknya. Peran A, B, dan C berturut-turut adalah ....',
+    jawaban: 'manajer investasi, bank kustodian, dan APERD',
+    pengecoh: [
+      P('bank kustodian, manajer investasi, dan APERD', 'Yang mengelola portofolio adalah manajer investasi (A), bukan bank kustodian.'),
+      P('APERD, bank kustodian, dan manajer investasi', 'Peran A dan C tertukar.'),
+      P('manajer investasi, APERD, dan bank kustodian', 'Peran B dan C tertukar.'),
+      P('emiten, penjamin emisi efek, dan perantara pedagang efek', 'Ketiganya pihak dalam penawaran dan perdagangan efek, bukan pengelolaan reksa dana.'),
+    ],
+    konsep: 'Pihak dalam pengelolaan investasi kolektif', kataKunci: 'mengelola, menyimpan, menjual',
+    alasan: ['Manajer investasi mengelola portofolio, bank kustodian menyimpan dan mengadministrasikan aset, dan APERD menyalurkan penjualan.'],
+    caraCepat: 'Kelola → MI; simpan → bank kustodian; jual → APERD.',
+  },
+  {
+    id: 'pee-ppe', tingkat: 'menengah', topik: 'pelaku', sumber: `${EB}, subbab 3.1.5`,
+    pertanyaan: 'Sebuah perusahaan efek membantu PT Laras menawarkan saham perdananya, lalu pada hari lain menjalankan pesanan jual nasabah di bursa. Dua kegiatan itu berturut-turut adalah kegiatan ....',
+    jawaban: 'penjamin emisi efek dan perantara pedagang efek',
+    pengecoh: [
+      P('perantara pedagang efek dan penjamin emisi efek', 'Urutannya tertukar: membantu penawaran adalah penjamin emisi.'),
+      P('manajer investasi dan bank kustodian', 'Tidak ada pengelolaan portofolio atau penyimpanan aset pada kasus.'),
+      P('penjamin emisi efek dan manajer investasi', 'Menjalankan pesanan nasabah adalah kegiatan perantara pedagang efek.'),
+      P('lembaga kliring dan kustodian sentral', 'Kliring dan kustodian sentral adalah infrastruktur pasar, bukan kegiatan perusahaan efek.'),
+    ],
+    konsep: 'Dua fungsi perusahaan efek', kataKunci: 'membantu penawaran, menjalankan pesanan',
+    alasan: ['Penjamin emisi efek membantu proses penawaran; perantara pedagang efek menjalankan perdagangan untuk sendiri atau nasabah.'],
+    caraCepat: 'Penawaran → penjamin emisi; jual beli di bursa → perantara.',
+  },
+  {
+    id: 'sukuk-bukan-obligasi', tingkat: 'menengah', topik: 'instrumen', sumber: `${EB}, subbab 3.1.8`,
+    pertanyaan: 'Pernyataan yang tepat untuk membedakan sukuk dan obligasi konvensional adalah ....',
+    jawaban: 'sukuk mewakili kepentingan atas aset atau kegiatan yang mendasari sesuai akad, obligasi adalah utang penerbit',
+    pengecoh: [
+      P('sukuk sama dengan obligasi, hanya bunganya diganti nama menjadi margin', 'Sukuk bukan obligasi yang sekadar diganti istilah bunganya.'),
+      P('sukuk menjamin keuntungan tetap, sedangkan obligasi tidak menjanjikan apa pun', 'Sukuk tidak menjamin keuntungan; imbalannya bergantung pada akad dan dokumen penerbitan.'),
+      P('sukuk menunjukkan kepemilikan atas perusahaan, sedangkan obligasi kepemilikan atas aset', 'Kepemilikan perusahaan adalah saham; obligasi adalah hubungan utang.'),
+      P('sukuk tidak memiliki risiko penerbit, sedangkan obligasi memiliki risiko gagal bayar', 'Investor sukuk tetap menghadapi risiko penerbit dan aset yang mendasari.'),
+    ],
+    konsep: 'Sukuk dan obligasi', kataKunci: 'aset atau kegiatan yang mendasari',
+    alasan: ['Sukuk merepresentasikan bagian kepentingan atas aset, proyek, atau kegiatan usaha sesuai akad; obligasi merupakan efek bersifat utang.'],
+    caraCepat: 'Ada aset/kegiatan dan akad → sukuk; hubungan utang → obligasi.',
+  },
+  {
+    id: 'scf-bukan-donasi', tingkat: 'dasar', topik: 'produk', sumber: `${EB}, subbab 3.1.15`,
+    pertanyaan: 'Pernyataan yang tepat mengenai securities crowdfunding (SCF) adalah ....',
+    jawaban: 'urun dana berbasis penawaran efek melalui penyelenggara, bukan sekadar donasi',
+    pengecoh: [
+      P('pengumpulan donasi tanpa hak apa pun bagi penyumbangnya', 'SCF berbasis penawaran efek, jadi bukan sekadar donasi.'),
+      P('pembelian saham emiten yang sudah tercatat di bursa efek', 'SCF tidak dapat disamakan dengan pembelian saham di bursa.'),
+      P('simpanan berjangka di bank yang dijamin oleh negara', 'SCF bukan simpanan bank.'),
+      P('kredit tanpa agunan dari perusahaan pembiayaan', 'SCF adalah urun dana melalui penawaran efek, bukan kredit.'),
+    ],
+    konsep: 'Securities crowdfunding', kataKunci: 'urun dana, penawaran efek',
+    alasan: ['SCF adalah skema urun dana berbasis penawaran efek melalui penyelenggara; hak dan risikonya mengikuti jenis efek dan dokumen penawaran.'],
+    caraCepat: 'SCF = urun dana + efek + penyelenggara.',
+  },
+  {
+    id: 'hak-saham', tingkat: 'dasar', topik: 'saham', sumber: `${EB}, subbab 3.1.6`,
+    pertanyaan: 'Hak yang berkaitan dengan kedudukan seseorang sebagai pemegang saham adalah ....',
+    jawaban: 'memberikan suara dalam RUPS dan menerima dividen ketika diputuskan',
+    pengecoh: [
+      P('menerima kupon tetap setiap tahun dari perusahaan', 'Kupon adalah ciri instrumen utang seperti obligasi.'),
+      P('menerima pengembalian harga beli ketika harga saham turun', 'Harga saham dapat turun dan tidak ada jaminan pengembalian harga beli.'),
+      P('menagih pokok pinjaman kepada perusahaan saat jatuh tempo', 'Pokok pinjaman adalah hak kreditur, bukan pemegang saham.'),
+      P('menetapkan harga saham harian di bursa efek', 'Harga terbentuk dari transaksi di pasar.'),
+    ],
+    konsep: 'Hak pemegang saham', kataKunci: 'RUPS, dividen',
+    alasan: ['Hak pemegang saham dapat berupa kehadiran atau suara dalam RUPS dan penerimaan dividen ketika diputuskan.'],
+    caraCepat: 'Saham = kepemilikan → suara RUPS dan dividen.',
   },
 ];
 
@@ -624,6 +799,38 @@ const HITUNG: TemplateHitung[] = [
     langkah: (p) => [`T = ${namaHari(p.t)}; T+1 = ${namaHari(hariBursa(p.t, 1, p.libur))}; T+2 = ${namaHari(hariBursa(p.t, 2, p.libur))}.`, 'Sabtu, Minggu, dan hari libur bursa tidak dihitung.'],
     caraCepat: 'Hitung dua hari bursa sesudah T; lewati akhir pekan dan libur bursa.',
   },
+  {
+    id: 'capital-loss', topik: 'saham', tingkat: 'menengah', sumber: `${EB}, subbab 3.1.6`,
+    set: [{ B: 2000, J: 1850, D: 50, n: 1000 }, { B: 3200, J: 2900, D: 80, n: 500 }, { B: 1250, J: 1100, D: 25, n: 2000 }, { B: 5400, J: 5000, D: 120, n: 300 }],
+    pertanyaan: (p) => `Investor membeli ${angka(p.n)} lembar saham pada harga ${rp(p.B)} per lembar, menerima dividen ${rp(p.D)} per lembar, lalu menjual seluruhnya pada harga ${rp(p.J)} per lembar. Sebelum biaya transaksi dan pajak, besar capital loss dari penjualan itu adalah ....`,
+    hitung: (p) => (p.B - p.J) * p.n, format: rp,
+    salah: [
+      { nilai: (p) => p.B - p.J, alasan: () => 'Itu capital loss per lembar; belum dikalikan jumlah lembar.' },
+      { nilai: (p) => (p.B - p.J - p.D) * p.n, alasan: () => 'Dividen ikut dikurangkan, padahal dividen terpisah dari selisih harga.' },
+      { nilai: (p) => (p.B - p.J + p.D) * p.n, alasan: () => 'Dividen ikut ditambahkan, padahal dividen terpisah dari selisih harga.' },
+      { nilai: (p) => p.D * p.n, alasan: () => 'Itu total dividen, bukan capital loss.' },
+      { nilai: (p) => p.J * p.n, alasan: () => 'Itu nilai penjualan, bukan selisihnya dengan nilai pembelian.' },
+    ],
+    konsep: 'Capital loss terpisah dari dividen', kataKunci: 'harga jual lebih rendah dari harga beli',
+    langkah: (p) => [`Capital loss per lembar = ${rp(p.B)} − ${rp(p.J)} = ${rp(p.B - p.J)}.`, `Total = ${rp(p.B - p.J)} × ${angka(p.n)} = ${rp((p.B - p.J) * p.n)}. Dividen dihitung terpisah.`],
+    caraCepat: 'Capital loss = (harga beli − harga jual) × jumlah lembar.',
+  },
+  {
+    id: 'dana-penerbitan', topik: 'pasar-perdana-sekunder', tingkat: 'menengah', sumber: `${EB}, subbab 3.1.3`,
+    set: [{ n: 1000, p: 2000, q: 2200 }, { n: 5000, p: 1500, q: 1750 }, { n: 2000, p: 3000, q: 3300 }, { n: 4000, p: 1200, q: 1450 }],
+    pertanyaan: (p) => `PT Rona menerbitkan ${angka(p.n)} saham baru seharga ${rp(p.p)} per lembar dan seluruhnya dibeli Investor A dalam penawaran perdana. Kemudian Investor A menjual seluruh saham itu kepada Investor B di pasar sekunder seharga ${rp(p.q)} per lembar. Sebelum biaya, dana yang diterima PT Rona dari kedua transaksi itu adalah ....`,
+    hitung: (p) => p.n * p.p, format: rp,
+    salah: [
+      { nilai: (p) => p.n * p.q, alasan: () => 'Itu nilai transaksi di pasar sekunder yang diterima Investor A.' },
+      { nilai: (p) => p.n * (p.p + p.q), alasan: () => 'Dana pasar sekunder ikut dijumlahkan, padahal berpindah dari Investor B kepada Investor A.' },
+      { nilai: (p) => p.n * (p.q - p.p), alasan: () => 'Itu selisih harga yang dinikmati Investor A, bukan dana PT Rona.' },
+      { nilai: (p) => (p.n * (p.p + p.q)) / 2, alasan: () => 'Itu rata-rata nilai kedua transaksi; PT Rona hanya menerima dana penawaran perdana.' },
+      { nilai: (p) => p.n * p.p - p.n * (p.q - p.p), alasan: () => 'Selisih harga pasar sekunder tidak mengurangi dana penawaran perdana.' },
+    ],
+    konsep: 'Aliran dana pasar perdana dan sekunder', kataKunci: 'saham baru, pasar sekunder',
+    langkah: (p) => [`Penawaran perdana: ${angka(p.n)} × ${rp(p.p)} = ${rp(p.n * p.p)} diterima PT Rona.`, `Pasar sekunder: ${rp(p.n * p.q)} berpindah dari Investor B kepada Investor A; PT Rona tidak menerimanya.`],
+    caraCepat: 'Penerbit hanya menerima dana dari penawaran perdana.',
+  },
 ];
 
 export const PASAR_MODAL = [
@@ -631,25 +838,25 @@ export const PASAR_MODAL = [
     id: 'PSJK-PM-FAKTA', nama: 'Pasar modal: fakta dan jenis produk', chapter: 'pasar-modal', label: 'SHL',
     sumber: `${BS}; ${EB} (contoh soal 4.1–4.15)`,
     ringkas: 'Soal fakta langsung: definisi dan fungsi pasar modal (UU PM jo. P2SK), empat jenis reksa dana konvensional, ETF, bentuk hukum reksa dana dan KIK, penyelesaian pasar tunai, peringkat efek, OJK sebagai pengawas, SRO.',
-  }, FAKTA),
+  }, [...FAKTA, ...TAMBAHAN_FAKTA]),
   familyRelasi({
     id: 'PSJK-PM-PELAKU', nama: 'Pasar modal: lembaga dan profesi (dua arah)', chapter: 'pasar-modal', label: 'VARIASI',
-    sumber: `${BS}, bab 1.4`,
-    ringkas: 'Dua tabel relasi dua arah: empat belas pihak (OJK, BEI, KPEI, KSEI, PPE, PEE, MI, APERD, bank kustodian, BAE, wali amanat, pemeringkat, penasihat investasi, emiten) dan lima profesi (akuntan publik, konsultan hukum, penilai, notaris, ASPM).',
+    sumber: `${EB}, subbab 3.1.4–3.1.5`,
+    ringkas: 'Relasi dua arah sepuluh pihak: OJK, BEI, KPEI, KSEI, emiten, penjamin emisi, perantara pedagang efek, manajer investasi, bank kustodian, dan APERD.',
   }, TABEL_PELAKU),
   familyRelasi({
     id: 'PSJK-PM-ISTILAH', nama: 'Pasar modal: instrumen dan istilah (dua arah)', chapter: 'pasar-modal', label: 'VARIASI',
-    sumber: `${BS}, bab 1.3 dan 2.1; ${EB}`,
-    ringkas: 'Tiga tabel relasi dua arah: instrumen (saham, obligasi, sukuk, reksa dana, EBA, DIRE, DINFRA, derivatif), tipe saham/obligasi, dan tiga belas istilah (pasar perdana/sekunder, prospektus, NAB, capital gain/loss, dividen, kupon, nominal, sinking fund, dll.).',
+    sumber: `${EB}, subbab 3.1.3–3.1.16`,
+    ringkas: 'Dua tabel relasi dua arah: delapan instrumen (saham, obligasi, sukuk, reksa dana, ETF, EBA, DIRE, derivatif) dan tujuh belas istilah (pasar perdana/sekunder, prospektus, e-IPO, NAB, dividen, RUPS, kupon, IHSG, SIPF, SCF, dll.).',
   }, TABEL_ISTILAH),
   familyKurasi({
     id: 'PSJK-PM-KASUS', nama: 'Pasar modal: kasus dan pernyataan majemuk', chapter: 'pasar-modal', label: 'VARIASI',
     sumber: `${EB}, subbab 3.1.3–3.1.16; ${BS}`,
-    ringkas: 'Kasus aliran dana pasar perdana/sekunder, urutan BEI-KPEI-KSEI, saham vs obligasi, hak pemegang saham (KECUALI), urutan likuidasi, pernyataan efektif, SIPF, diversifikasi, IHSG, APERD, wali amanat, oversubscribed, sekuritisasi, peringkat dan kupon.',
-  }, KASUS),
+    ringkas: 'Kasus aliran dana pasar perdana/sekunder, urutan BEI-KPEI-KSEI, saham vs obligasi, hak pemegang saham (KECUALI), SIPF, diversifikasi, IHSG, jenis risiko, stock split, peran MI–kustodian–APERD, sukuk vs obligasi, dan SCF. Butir di luar cakupan materi folder disaring (QC 2 R01).',
+  }, [...KASUS, ...TAMBAHAN_KASUS]),
   familyHitung({
     id: 'PSJK-PM-HITUNG', nama: 'Pasar modal: hitungan imbal hasil, kupon, NAB, T+2', chapter: 'pasar-modal', label: 'VARIASI',
     sumber: `${EB}, subbab 3.1.6–3.1.12; ${BS}`,
-    ringkas: 'Enam template: capital gain (dipisah dari dividen), imbal hasil total, dividend yield (rumus dinyatakan di soal), kupon per pembayaran, NAB per unit, dan tanggal penyelesaian T+2 dengan akhir pekan/libur bursa.',
+    ringkas: 'Capital gain dan capital loss (dipisah dari dividen), dana penerbitan, kupon per pembayaran, NAB per unit, dan tanggal penyelesaian T+2 dengan akhir pekan/libur bursa.',
   }, HITUNG),
 ];

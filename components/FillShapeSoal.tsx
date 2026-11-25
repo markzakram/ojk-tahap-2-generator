@@ -47,17 +47,17 @@ export default function FillShapeSoal({ item, kunci, tampilKunci }: { item: Fill
         </defs>
       </svg>
       <h2>Fill Shape · {geo.nama}</h2>
-      <p className="instruksi">Amati perubahan warna dari gambar 1 sampai 4, lalu tentukan warna setiap bidang pada gambar 5.</p>
+      <p className="instruksi">Amati perubahan warna dari Gambar 1 sampai Gambar 4, lalu tentukan warna setiap bidang pada Gambar 5.</p>
       <div className="fs-baris">
         {item.frame.map((f, t) => (
           <figure key={t} className="fs-frame">
             <Bentuk geo={geo} f={f} ukuran={132} label={`Gambar ${t + 1}`} />
-            <figcaption>{t + 1}</figcaption>
+            <figcaption>Gambar {t + 1}</figcaption>
           </figure>
         ))}
         <figure className="fs-frame jawab">
           <Bentuk geo={geo} f={isi} ukuran={228} label="Gambar 5 (jawaban)" onKlik={klik} tandai={tampilKunci ? isi.map((w, i) => w !== kunci[i]) : undefined} />
-          <figcaption>5 — klik bidang untuk mewarnai</figcaption>
+          <figcaption>Gambar 5 — klik bidang untuk mewarnai</figcaption>
         </figure>
         {tampilKunci && (
           <figure className="fs-frame">

@@ -81,8 +81,8 @@ export default function Dasbor({ buka }: { buka: (t: Tampilan) => void }) {
           </ul>
         </section>
         <section className="a-card a-side">
-          <h2>QC 1 PCAM Tahap 2</h2>
-          <p className="a-kecil" style={{ margin: 0 }}>Temuan QC TO-01 (19 November 2026) sudah diterapkan pada family: pembahasan SJK tanpa atribusi e-book/buku, butir SMART/LSPI/duplikasi diganti, asumsi hitungan dinyatakan, rujukan demo Timeline dibersihkan, batas hunian Room menjadi kendali internal, jalur Drag the Line bebas dari simpul lain, dan pola deret Drag the Line dihapus. Butir yang menunggu keputusan editor dicatat di <code>bahan/Catatan Telaah Editor.md</code>.</p>
+          <h2>QC 1 dan QC 2 PCAM Tahap 2</h2>
+          <p className="a-kecil" style={{ margin: 0 }}>QC 2 (24 November 2026) sudah diterapkan pada family: soal SJK hanya dari konsep yang diajarkan 16 materi folder, visual pembahasan tersedia untuk semua soal Induktif dan Deduktif (aplikasi, JSON, Word), waktu rapat semula Timeline tidak berbenturan dengan agenda peserta, cara cepat yang terlalu mutlak diperbaiki, stem tanpa “Dalam materi …”, dan JSON Drag the Line memuat geometri tampilan. Temuan QC 1 tetap berlaku. Hal yang menunggu keputusan editor dicatat di <code>bahan/Catatan Telaah Editor.md</code>.</p>
         </section>
       </div>
     </>

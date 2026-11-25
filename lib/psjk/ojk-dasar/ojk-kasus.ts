@@ -398,7 +398,7 @@ export const BUTIR_OJK_KASUS: ButirKurasi[] = [
   },
   {
     id: 'majemuk-fungsi', tingkat: 'menantang', topik: 'fungsi',
-    pertanyaan: 'Perhatikan pernyataan berikut tentang fungsi OJK sebagaimana dirumuskan dalam materi setelah UU P2SK: (1) menyelenggarakan sistem pengaturan dan pengawasan terintegrasi; (2) memelihara stabilitas sistem keuangan secara aktif sesuai kewenangannya; (3) menetapkan kebijakan moneter dan nilai tukar; (4) memberikan pelindungan terhadap konsumen dan masyarakat. Pernyataan yang benar adalah ....',
+    pertanyaan: 'Perhatikan pernyataan berikut tentang fungsi OJK setelah UU P2SK: (1) menyelenggarakan sistem pengaturan dan pengawasan terintegrasi; (2) memelihara stabilitas sistem keuangan secara aktif sesuai kewenangannya; (3) menetapkan kebijakan moneter dan nilai tukar; (4) memberikan pelindungan terhadap konsumen dan masyarakat. Pernyataan yang benar adalah ....',
     jawaban: K.s124,
     pengecoh: [
       { teks: K.s12, alasan: 'Pernyataan (4) juga benar: pelindungan konsumen dan masyarakat termasuk fungsi OJK.' },

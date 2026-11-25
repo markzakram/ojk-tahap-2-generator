@@ -17,8 +17,49 @@ export interface DragLineItem {
 }
 
 export const JARI_JARI = 0.5;
+/**
+ * Geometri tampilan dalam satuan kanvas (QC 2 T02/T08). Dipakai langsung oleh DragLineSoal dan ditulis ke JSON, jadi angka di
+ * berkas sama dengan yang digambar: kode di dalam lingkaran, garis jalur, dan area sentuh simpul.
+ */
+export const TAMPILAN_DL = {
+  jariJariSimpul: JARI_JARI,
+  /** Tebal garis lingkaran simpul biasa dan simpul ujung. */
+  tebalTepiSimpul: 0.05, tebalTepiUjung: 0.1,
+  tebalGaris: 0.06, tebalGarisAwalan: 0.07,
+  ukuranFont: 0.3, ukuranFontPanjang: 0.24,
+  /** Sentuhan dianggap mengenai simpul bila berjarak paling jauh sekian dari pusatnya. */
+  areaSentuh: JARI_JARI,
+} as const;
+/** Ukuran font kode simpul: kode lebih dari empat karakter memakai font kecil. */
+export const fontKode = (kode: string) => (kode.length > 4 ? TAMPILAN_DL.ukuranFontPanjang : TAMPILAN_DL.ukuranFont);
+/** Kotak label kode (perkiraan lebar huruf 0,62 × ukuran font, sama dengan Arial tebal). */
+export const kotakLabel = (kode: string) => ({ lebar: +(kode.length * 0.62 * fontKode(kode)).toFixed(3), tinggi: +fontKode(kode).toFixed(3) });
 /** QC T02: ruas jalur jawaban harus berjarak ≥ jari-jari simpul + 0,35 dari pusat setiap simpul lain (tebal garis dan area sentuh). */
 export const JARAK_AMAN = JARI_JARI + 0.35;
+
+/** Jarak terkecil antara ruas jalur jawaban dan pusat simpul di luar kedua ujung ruasnya. */
+export function jarakMinimum(simpul: Simpul[], jalur: string[]): number {
+  const per = new Map(simpul.map((x) => [x.id, x]));
+  let min = Infinity;
+  for (let i = 0; i + 1 < jalur.length; i++) for (const x of simpul) {
+    if (x.id === jalur[i] || x.id === jalur[i + 1]) continue;
+    min = Math.min(min, jarakKeRuas(x, per.get(jalur[i])!, per.get(jalur[i + 1])!));
+  }
+  return min;
+}
+
+/** Geometri tampilan satu soal untuk JSON, termasuk jarak bebas yang tersisa setelah jari-jari simpul dan tebal garis. */
+export function geometriTampilan(item: DragLineItem, jawaban: string[]) {
+  const min = jarakMinimum(item.simpul, jawaban);
+  const luar = TAMPILAN_DL.jariJariSimpul + TAMPILAN_DL.tebalTepiUjung / 2;
+  return {
+    ...TAMPILAN_DL,
+    label: Object.fromEntries(item.simpul.map((s) => [s.id, kotakLabel(s.kode)])),
+    jarakRuasMinimum: +min.toFixed(3),
+    /** Sisa ruang antara tepi garis jalur dan tepi simpul lain (harus > 0). */
+    ruangBebas: +(min - luar - TAMPILAN_DL.tebalGarisAwalan / 2).toFixed(3),
+  };
+}
 
 function jarakKeRuas(p: { x: number; y: number }, a: { x: number; y: number }, b: { x: number; y: number }): number {
   const dx = b.x - a.x, dy = b.y - a.y;
@@ -75,7 +116,12 @@ interface CfgDL {
 
 const PANJANG_CHAPTER: Record<string, number> = { 'drag-the-line-2': 2, 'drag-the-line-3': 3, 'drag-the-line-4': 4 };
 
+/** Aturan pustaka utama per family, dibaca visual pembahasan (lib/visual/drag-line.ts). */
+const KELAS_UTAMA = new Map<string, string>();
+export const kelasUtama = (familyId: string) => KELAS_UTAMA.get(familyId);
+
 function buat(cfg: CfgDL): Family<DragLineItem, string[]> {
+  KELAS_UTAMA.set(cfg.id, cfg.kelas);
   const kodeUrut = (item: DragLineItem, jawaban: string[]) => jawaban.map((id) => item.simpul.find((s) => s.id === id)!.kode);
   return {
     // v2: QC T02, tata letak menjauhkan ruas jalur jawaban dari simpul lain
@@ -107,6 +153,8 @@ function buat(cfg: CfgDL): Family<DragLineItem, string[]> {
       if (!cfg.kembar && new Set(kode).size !== kode.length) m.push('ada kode kembar');
       if (item.awalan.length < 1 || item.awalan.length >= jawaban.length - 1) m.push('awalan tidak wajar');
       const tabrak = ruasMenabrak(item.simpul, jawaban);
+      const lebarLabel = Math.max(...kode.map((k) => kotakLabel(k).lebar));
+      if (lebarLabel > 2 * JARI_JARI - 0.1) m.push('label kode melewati lingkaran simpul');
       if (tabrak.length) m.push(`ruas ${tabrak[0].dari}–${tabrak[0].ke} melintasi simpul ${tabrak[0].simpul} (jarak ${tabrak[0].jarak})`);
       return m;
     },

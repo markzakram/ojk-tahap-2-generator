@@ -14,10 +14,19 @@ import { H, NAMA_WARNA, U, W, kunciFrame, samaFrame, terapkan, type Frame, type 
 //  - ritme       : kelompok bidang (lapisan) selalu seragam; tiap kelompok punya siklus warna dengan lama bertahan 1–3 langkah.
 
 export type JenisAturan = 'periodik' | 'operasi' | 'jejak' | 'kosong' | 'ritme';
-export interface Ramalan { jenis: JenisAturan; uraian: string[]; g5: Frame }
+/** Rincian aturan untuk visual pembahasan (QC 2 R02). Indeks gambar t = 0..4 (Gambar 1..5). */
+export type DataAturan =
+  | { jenis: 'periodik'; p: number }
+  | { jenis: 'operasi'; aturan: { nama: string; perm: number[]; peta: Warna[] }[] }
+  | { jenis: 'jejak'; unsur: { nama: string; warna: Warna; pos: number[]; gerak: string }[] }
+  | { jenis: 'kosong'; putih: number[]; dasar: number[]; acuan?: number[]; kataAcuan?: string }
+  | { jenis: 'ritme'; kelompok: { nama: string; bidang: number[]; warna: Warna[] }[] };
+export interface Ramalan { jenis: JenisAturan; uraian: string[]; g5: Frame; data: DataAturan }
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
-const G = (t: number) => `G${t + 1}`;
+/** Label gambar seperti yang terlihat peserta (QC 2 R02: bukan "G1"). */
+const G = (t: number) => `Gambar ${t + 1}`;
+const kapitalAwal = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 const tanda = (x: number) => (x > 0 ? `+${x}` : x < 0 ? `−${-x}` : '0');
 const normal = (x: number, n: number) => { const m = mod(x, n); return m > n / 2 ? m - n : m; };
 
@@ -56,7 +65,7 @@ function periodik(F: Frame[], tambah: Tambah) {
     for (let t = p; t < 4; t++) if (!samaFrame(F[t], F[t - p])) ok = false;
     if (!ok) continue;
     const pasangan = Array.from({ length: 4 - p }, (_, k) => `${G(k + p)} = ${G(k)}`).join(', ');
-    tambah('periodik', [`Gambar berulang setiap ${p} langkah (${pasangan}).`, `Karena itu G5 sama dengan ${G(4 - p)}.`], F[4 - p]);
+    tambah('periodik', [`Gambar berulang setiap ${p} langkah (${pasangan}).`, `Karena itu Gambar 5 sama dengan ${G(4 - p)}.`], F[4 - p], { jenis: 'periodik', p });
   }
 }
 
@@ -76,14 +85,14 @@ function operasi(geo: Geometri, F: Frame[], tambah: Tambah) {
     if (A.includes(B)) {
       tambah('operasi', [
         `Setiap langkah gambar berubah dengan aturan yang sama: ${B.nama}.`,
-        `Aturan ini cocok untuk G1 → G2, G2 → G3, dan G3 → G4; terapkan sekali lagi pada G4 untuk memperoleh G5.`,
-      ], g5);
+        `Aturan ini cocok untuk Gambar 1 → 2, 2 → 3, dan 3 → 4; terapkan sekali lagi pada Gambar 4 untuk memperoleh Gambar 5.`,
+      ], g5, { jenis: 'operasi', aturan: [B] });
     } else {
       tambah('operasi', [
-        `G1 → G2 dan G3 → G4 memakai aturan pertama: ${pasangan[0].nama}.`,
-        `G2 → G3 memakai aturan kedua: ${B.nama}.`,
-        `Kedua aturan berselang-seling, jadi G4 → G5 kembali memakai aturan kedua.`,
-      ], g5);
+        `Gambar 1 → 2 dan Gambar 3 → 4 memakai aturan pertama: ${pasangan[0].nama}.`,
+        `Gambar 2 → 3 memakai aturan kedua: ${B.nama}.`,
+        `Kedua aturan berselang-seling, jadi Gambar 4 → 5 kembali memakai aturan kedua.`,
+      ], g5, { jenis: 'operasi', aturan: [pasangan[0], B] });
     }
   }
 }
@@ -160,13 +169,15 @@ function hipotesisJejak(geo: Geometri, F: Frame[], tambah: Tambah) {
   }
   if (F[0].filter((x) => x !== W).length > 6) return;
   const nama = (i: number) => geo.bidang[i].nama;
-  const perWarna: { pos: number[]; uraian: string[] }[][] = [];
+  type Unsur = Extract<DataAturan, { jenis: 'jejak' }>['unsur'][number];
+  const perWarna: { pos: number[]; uraian: string[]; unsur: Unsur[] }[][] = [];
   for (const c of warna) {
     const S = F.map((f) => new Set(f.flatMap((x, i) => (x === c ? [i] : []))));
     const reg = [...S[0]];
     const kand = reg.map((r) => kandidatJejak(geo, r, S));
     if (kand.some((k) => !k.length)) return;
-    const hasil = new Map<string, { pos: number[]; uraian: string[] }>();
+    const hasil = new Map<string, { pos: number[]; uraian: string[]; unsur: Unsur[] }>();
+    const sebut = (j: number) => `${kapitalAwal(NAMA_WARNA[c])}${reg.length > 1 ? ` ${j + 1}` : ''}`;
     const pilih: Jejak[] = [];
     const dfs = (j: number) => {
       if (hasil.size > 6) return;
@@ -177,7 +188,8 @@ function hipotesisJejak(geo: Geometri, F: Frame[], tambah: Tambah) {
         if (!hasil.has(kunci)) {
           hasil.set(kunci, {
             pos,
-            uraian: pilih.map((x) => `Unsur ${NAMA_WARNA[c]} yang pada G1 berada di ${nama(x.pos[1])} ${x.uraian}: ${[1, 2, 3, 4].map((t) => nama(x.pos[t])).join(' → ')}, sehingga pada G5 berada di ${nama(x.pos[5])}.`),
+            uraian: pilih.map((x, j) => `${sebut(j)} (pada Gambar 1 di ${nama(x.pos[1])}) ${x.uraian}: ${[1, 2, 3, 4].map((t) => nama(x.pos[t])).join(' → ')}, sehingga pada Gambar 5 berada di ${nama(x.pos[5])}.`),
+            unsur: pilih.map((x, j) => ({ nama: sebut(j), warna: c, pos: x.pos.slice(1), gerak: x.uraian })),
           });
         }
         return;
@@ -193,19 +205,19 @@ function hipotesisJejak(geo: Geometri, F: Frame[], tambah: Tambah) {
     if (!hasil.size) return;
     perWarna.push([...hasil.values()]);
   }
-  const gabung = (i: number, g5: Frame, uraian: string[]) => {
+  const gabung = (i: number, g5: Frame, uraian: string[], unsur: Unsur[]) => {
     if (i === perWarna.length) {
-      tambah('jejak', [`Setiap bidang berwarna dilacak sebagai unsur yang bergerak sendiri; warna yang sama belum tentu bergerak bersama.`, ...uraian], g5);
+      tambah('jejak', [`Setiap bidang berwarna dilacak sebagai unsur yang bergerak sendiri; warna yang sama belum tentu bergerak bersama.`, ...uraian], g5, { jenis: 'jejak', unsur });
       return;
     }
     for (const p of perWarna[i]) {
       if (p.pos.some((x) => g5[x] !== W)) continue;
       const g = [...g5] as Frame;
       p.pos.forEach((x) => (g[x] = warna[i]));
-      gabung(i + 1, g, [...uraian, ...p.uraian]);
+      gabung(i + 1, g, [...uraian, ...p.uraian], [...unsur, ...p.unsur]);
     }
   };
-  gabung(0, new Array(n).fill(W) as Frame, []);
+  gabung(0, new Array(n).fill(W) as Frame, [], []);
 }
 
 // ── bidang kosong berpindah ──────────────────────────────────────────────────────────────────────────────
@@ -234,8 +246,8 @@ function hipotesisKosong(geo: Geometri, F: Frame[], tambah: Tambah) {
     const dasar = dasarDari(undefined);
     if (dasar && dasar.every((x, i) => x >= 0 || i === p4)) {
       const g5 = dasar.map((x, i) => (i === p4 ? W : x)) as Frame;
-      tambah('kosong', [awal, `Bidang putih ${tr.uraian}; pada G5 putih berada di ${nama(p4)}.`,
-        `Bidang yang tidak sedang putih selalu kembali ke warna dasarnya: ${uraiDasar(dasar, [])}.`], g5);
+      tambah('kosong', [awal, `Bidang putih ${tr.uraian}; pada Gambar 5 putih berada di ${nama(p4)}.`,
+        `Bidang yang tidak sedang putih selalu kembali ke warna dasarnya: ${uraiDasar(dasar, [])}.`], g5, { jenis: 'kosong', putih: tr.pos.slice(1), dasar });
     }
     if (geo.pusat === undefined || !geo.ujung || !tr.pos.every((x) => geo.ujung!.includes(x))) continue;
     const pusat = geo.pusat;
@@ -250,10 +262,11 @@ function hipotesisKosong(geo: Geometri, F: Frame[], tambah: Tambah) {
       for (const i of geo.ujung) g5[i] = (i === p4 ? W : d2[i]) as Warna;
       g5[pusat] = b5 as Warna;
       const kata = lag === 0 ? 'yang sedang dikosongkan' : lag === 1 ? 'yang akan dikosongkan pada gambar berikutnya' : 'yang dikosongkan pada gambar sebelumnya';
-      tambah('kosong', [awal, `Bidang putih ${tr.uraian}; pada G5 putih berada di ${nama(p4)}.`,
+      tambah('kosong', [awal, `Bidang putih ${tr.uraian}; pada Gambar 5 putih berada di ${nama(p4)}.`,
         `Ujung yang tidak sedang putih selalu kembali ke warna dasarnya: ${uraiDasar(d2, [pusat])}.`,
         `Pusat menampilkan warna dasar ujung ${kata}: ${[0, 1, 2, 3].map((t) => `${G(t)} ${NAMA_WARNA[F[t][pusat]]}`).join(', ')}.`,
-        `Ujung ${kata} pada G5 adalah ${nama(tr.pos[5 + lag])} yang berwarna dasar ${NAMA_WARNA[b5]}, jadi pusat G5 ${NAMA_WARNA[b5]}.`], g5);
+        `Ujung ${kata} pada Gambar 5 adalah ${nama(tr.pos[5 + lag])} yang berwarna dasar ${NAMA_WARNA[b5]}, jadi pusat Gambar 5 ${NAMA_WARNA[b5]}.`], g5,
+        { jenis: 'kosong', putih: tr.pos.slice(1), dasar: d2, acuan: [1, 2, 3, 4, 5].map((k) => tr.pos[k + lag]), kataAcuan: kata });
     }
   }
 }
@@ -266,6 +279,7 @@ function hipotesisRitme(geo: Geometri, F: Frame[], tambah: Tambah) {
   const perKel = kel.map((g) => {
     const s = F.map((f) => f[g.bidang[0]]);
     const ram = new Map<Warna, string>();
+    const deret = (x: Warna) => [...s, x] as Warna[];
     const urut = s.map((w) => NAMA_WARNA[w]).join(' → ');
     for (const C of SIKLUS) for (let d = 1; d <= (C.length === 1 ? 1 : 3); d++) for (let o = 0; o < d * C.length; o++) {
       const w = (t: number) => C[Math.floor((t + o) / d) % C.length];
@@ -275,39 +289,40 @@ function hipotesisRitme(geo: Geometri, F: Frame[], tambah: Tambah) {
       const i0 = C.indexOf(s[0]);
       const nmC = [...C.slice(i0), ...C.slice(0, i0), s[0]].map((c) => NAMA_WARNA[c]).join(' → ');
       const Nama = g.nama[0].toUpperCase() + g.nama.slice(1);
-      const akhir = s[2] === s[3] ? `warna ${NAMA_WARNA[s[3]]} masih bertahan` : `warna ${NAMA_WARNA[s[3]]} baru muncul di G4`;
+      const akhir = s[2] === s[3] ? `warna ${NAMA_WARNA[s[3]]} masih bertahan` : `warna ${NAMA_WARNA[s[3]]} baru muncul di Gambar 4`;
       ram.set(x, C.length === 1 ? `${Nama} selalu ${NAMA_WARNA[x]}.`
-        : d === 1 ? `${Nama} berganti setiap langkah dengan siklus ${nmC}: ${urut}, jadi G5 ${NAMA_WARNA[x]}.`
-          : `${Nama} berubah lebih lambat: setiap warna bertahan ${d} langkah dengan siklus ${nmC}. Yang terlihat ${urut}; ${akhir}, jadi G5 ${NAMA_WARNA[x]}.`);
+        : d === 1 ? `${Nama} berganti setiap langkah dengan siklus ${nmC}: ${urut}, jadi pada Gambar 5 ${NAMA_WARNA[x]}.`
+          : `${Nama} berubah lebih lambat: setiap warna bertahan ${d} langkah dengan siklus ${nmC}. Yang terlihat ${urut}; ${akhir}, jadi pada Gambar 5 ${NAMA_WARNA[x]}.`);
     }
-    return [...ram.entries()];
+    return [...ram.entries()].map(([x, u]) => [x, u, { nama: g.nama, bidang: g.bidang, warna: deret(x) }] as const);
   });
   if (perKel.some((p) => !p.length)) return;
-  const gabung = (i: number, g5: Frame, uraian: string[]) => {
+  type Kelompok = Extract<DataAturan, { jenis: 'ritme' }>['kelompok'][number];
+  const gabung = (i: number, g5: Frame, uraian: string[], kelompok: Kelompok[]) => {
     if (i === kel.length) {
-      tambah('ritme', [`Bidang terbagi menjadi kelompok yang selalu berwarna seragam: ${kel.map((g) => g.nama).join(' dan ')}. Lacak setiap kelompok secara terpisah.`, ...uraian], g5);
+      tambah('ritme', [`Bidang terbagi menjadi kelompok yang selalu berwarna seragam: ${kel.map((g) => g.nama).join(' dan ')}. Lacak setiap kelompok secara terpisah.`, ...uraian], g5, { jenis: 'ritme', kelompok });
       return;
     }
-    for (const [w, u] of perKel[i]) {
+    for (const [w, u, k] of perKel[i]) {
       const g = [...g5] as Frame;
       kel[i].bidang.forEach((b) => (g[b] = w));
-      gabung(i + 1, g, [...uraian, u]);
+      gabung(i + 1, g, [...uraian, u], [...kelompok, k]);
     }
   };
-  gabung(0, [...F[0]] as Frame, []);
+  gabung(0, [...F[0]] as Frame, [], []);
 }
 
-type Tambah = (jenis: JenisAturan, uraian: string[], g5: Frame) => void;
+type Tambah = (jenis: JenisAturan, uraian: string[], g5: Frame, data: DataAturan) => void;
 
 /** Semua ramalan G5 dari aturan yang cocok dengan G1–G4 (satu entri per jenis aturan × G5 berbeda). */
 export function ramalkan(geo: Geometri, F: Frame[]): Ramalan[] {
   const out: Ramalan[] = [];
   const lihat = new Set<string>();
-  const tambah: Tambah = (jenis, uraian, g5) => {
+  const tambah: Tambah = (jenis, uraian, g5, data) => {
     const k = jenis + kunciFrame(g5);
     if (lihat.has(k)) return;
     lihat.add(k);
-    out.push({ jenis, uraian, g5 });
+    out.push({ jenis, uraian, g5, data });
   };
   periodik(F, tambah);
   operasi(geo, F, tambah);
