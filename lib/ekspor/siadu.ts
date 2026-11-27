@@ -55,13 +55,13 @@ function bangun(s: SlotPaket): Soal | null {
   try { return bangkitkan(familyById(s.familyId), s.seed); } catch { return null; }
 }
 
-/** Pembahasan peserta: jawaban, langkah, visual, alasan opsi salah, cara cepat (sumber penyusunan tidak dicetak). */
 /**
  * Pembahasan peserta dengan urutan yang sama seperti di aplikasi (komponen Pembahasan): jawaban, Konsep, Kata kunci, langkah
  * bernomor, visual, alasan opsi salah, cara cepat. Nomor langkah ditulis sebagai teks ("1. ", "2. ") agar tetap terbaca oleh
  * importir yang hanya mengambil teks; paragrafnya diberi indentasi gantung supaya tampil sebagai daftar poin di Word.
+ * Sumber penyusunan tidak dicetak. Kelengkapannya diperiksa `periksaPembahasanWord` pada `npm run verify`.
  */
-function pembahasan(soal: Soal): Blok[] {
+export function blokPembahasan(soal: Soal): Blok[] {
   const b = soal.pembahasan;
   const out: Blok[] = [p(b.jawaban, { tebal: true })];
   if (b.konsep) out.push({ t: 'p', runs: [{ teks: 'Konsep: ', tebal: true }, { teks: b.konsep }] });
@@ -71,6 +71,35 @@ function pembahasan(soal: Soal): Blok[] {
   if (b.opsiSalah?.length) { out.push(p('Alasan opsi salah:', { tebal: true })); for (const t of b.opsiSalah) out.push({ t: 'p', runs: [{ teks: t }], gantung: true }); }
   if (b.caraCepat) out.push({ t: 'p', runs: [{ teks: 'Cara cepat: ', tebal: true }, { teks: b.caraCepat }] });
   return out;
+}
+
+/** Bagian pembahasan yang sudah ditulis ke Word. Bagian baru pada tipe Pembahasan harus ditambahkan di sini dan di blokPembahasan. */
+const BAGIAN_WORD = ['jawaban', 'konsep', 'kataKunci', 'langkah', 'opsiSalah', 'caraCepat'];
+
+/**
+ * Pemeriksaan kelengkapan pembahasan Word terhadap isi pembahasan yang tampil di aplikasi: setiap bagian yang terisi harus
+ * muncul (Konsep, Kata kunci, setiap langkah bernomor berurutan dengan indentasi gantung, setiap alasan opsi salah, cara cepat,
+ * dan setiap visual). Bagian pembahasan yang belum dikenal Word ikut dilaporkan, supaya bagian baru tidak hilang dari unduhan.
+ * Kosong bila lengkap. `blok` dapat diganti untuk menguji pemeriksaan ini sendiri.
+ */
+export function periksaPembahasanWord(soal: Soal, blok: Blok[] = blokPembahasan(soal)): string[] {
+  const b = soal.pembahasan;
+  const m: string[] = [];
+  const paragraf = blok.flatMap((x) => (x.t === 'p' ? [{ teks: x.runs.map((r) => r.teks).join(''), gantung: !!x.gantung, tebal: !!x.runs[0]?.tebal }] : []));
+  const ada = (teks: string, o: { gantung?: boolean } = {}) => paragraf.some((x) => x.teks === teks && (!o.gantung || x.gantung));
+  for (const [k, v] of Object.entries(b)) {
+    if (v === undefined || v === '' || (Array.isArray(v) && !v.length)) continue;
+    if (!BAGIAN_WORD.includes(k)) m.push(`bagian pembahasan "${k}" tidak ditulis ke Word`);
+  }
+  if (paragraf[0]?.teks !== b.jawaban || !paragraf[0]?.tebal) m.push('jawaban tidak menjadi baris pertama yang tebal');
+  if (b.konsep && !ada(`Konsep: ${b.konsep}`)) m.push('Konsep tidak ada di Word');
+  if (b.kataKunci && !ada(`Kata kunci: ${b.kataKunci}`)) m.push('Kata kunci tidak ada di Word');
+  b.langkah.forEach((l, i) => { if (!ada(`${i + 1}. ${l.teks}`, { gantung: true })) m.push(`langkah ${i + 1} tidak bernomor atau tidak ada di Word`); });
+  for (const t of b.opsiSalah ?? []) if (!ada(t, { gantung: true })) m.push(`alasan opsi salah "${t.slice(0, 40)}" tidak ada di Word`);
+  if (b.caraCepat && !ada(`Cara cepat: ${b.caraCepat}`)) m.push('Cara cepat tidak ada di Word');
+  const nGambar = gambarPembahasan(soal).length;
+  if (blok.filter((x) => x.t === 'gambar').length !== nGambar) m.push(`visual di Word tidak sama dengan aplikasi (${nGambar} gambar)`);
+  return m;
 }
 
 function badanPg(it: PilihanGandaItem, kunci: string): Blok[] {
@@ -210,7 +239,7 @@ function blokSoal(no: number, s: SlotPaket, soal: Soal, fotoDasar: string): Blok
     p(''),
     ...badan,
     p('Pembahasan:', { tebal: true }),
-    ...pembahasan(soal),
+    ...blokPembahasan(soal),
     p(''),
   ];
 }

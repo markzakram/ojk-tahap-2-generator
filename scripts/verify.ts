@@ -6,7 +6,9 @@
 //  2. deterministik — seed yang sama dibangkitkan dua kali menghasilkan JSON identik;
 //  3. validator independen menerima ulang soal (jawaban tunggal, kunci cocok, lolos pemeriksaan mutu, pembahasan ada);
 //  4. kontrol negatif — kunci soal lain (yang berbeda) harus ditolak untuk soal ini;
-//  5. visual pembahasan tersedia dan utuh untuk setiap soal Induktif dan Deduktif (QC 2 R02).
+//  5. visual pembahasan tersedia dan utuh untuk setiap soal Induktif dan Deduktif (QC 2 R02);
+//  6. pembahasan Word (ekspor SiAdu) memuat semua bagian yang tampil di aplikasi: Konsep, Kata kunci, langkah bernomor,
+//     alasan opsi salah, cara cepat, dan visual (lib/ekspor/siadu.ts, periksaPembahasanWord).
 // Laporan juga menghitung sidik unik: banyaknya soal yang benar-benar berbeda struktur, bukan sekadar beda nama.
 // Untuk pilihan ganda juga dihitung seberapa sering kunci menjadi satu-satunya opsi terpanjang (per struktur unik);
 // bila jauh di atas peluang acak, peserta bisa menebak dari panjang opsi (peringatan ⚠, bukan kegagalan).
@@ -16,6 +18,7 @@ import { bangkitkan, GagalBangun, periksaKandidat } from '../lib/core/engine';
 import { FAMILIES } from '../lib/core/registry';
 import type { CatatanKapasitas } from '../lib/data/kapasitas';
 import { gambarPembahasan, WAJIB_VISUAL } from '../lib/visual';
+import { periksaPembahasanWord } from '../lib/ekspor/siadu';
 
 const BERKAS_KAPASITAS = 'lib/data/kapasitas.json';
 const kapasitas: Record<string, CatatanKapasitas> = existsSync(BERKAS_KAPASITAS) ? JSON.parse(readFileSync(BERKAS_KAPASITAS, 'utf8')) : {};
@@ -50,6 +53,8 @@ for (const f of DIPERIKSA) {
         if (salah.ok) masalah.push(`${seed}: kontrol negatif lolos — kunci soal lain diterima`);
         else kontrolNegatif++;
       }
+      const word = periksaPembahasanWord(soal);
+      if (word.length) masalah.push(`${seed}: pembahasan Word tidak lengkap (${word.join('; ')})`);
       if (WAJIB_VISUAL.includes((soal.item as { jenis: string }).jenis)) {
         const g = gambarPembahasan(soal);
         if (!g.length) masalah.push(`${seed}: tanpa visual pembahasan`);
