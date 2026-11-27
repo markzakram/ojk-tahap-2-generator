@@ -7,7 +7,7 @@ import { csvSlot, isiLengkap, unduhBerkas, type Hasil } from '@/lib/paket/hasil'
 import type { Tampilan } from './Kerangka';
 
 const DASAR = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
-type Format = 'siadu' | 'usulan' | 'json' | 'csv';
+type Format = 'siadu' | 'json' | 'csv';
 
 async function muatGambar(src: string): Promise<Uint8Array | null> {
   try { const r = await fetch(src); return r.ok ? new Uint8Array(await r.arrayBuffer()) : null; } catch { return null; }
@@ -29,19 +29,19 @@ async function svgKePng(svg: string, lebar: number, tinggi: number): Promise<Uin
 
 export default function Ekspor({ hasil, paketAktif, buka }: { hasil: Hasil; paketAktif: string; buka: (t: Tampilan) => void }) {
   const [cakupan, setCakupan] = useState<'aktif' | 'semua'>('aktif');
-  const [pilih, setPilih] = useState<Record<Format, boolean>>({ siadu: true, usulan: true, json: false, csv: false });
+  const [pilih, setPilih] = useState<Record<Format, boolean>>({ siadu: true, json: false, csv: false });
   const [proses, setProses] = useState('');
   const aktif = hasil.data.paket.find((p) => p.id === paketAktif) ?? hasil.data.paket[0];
   const ids = cakupan === 'aktif' && aktif ? [aktif.id] : null;
   const dok = dokumenSiadu(hasil.data, ids, DASAR);
-  const nSiadu = dok.filter((d) => !d.usulan), nUsulan = dok.filter((d) => d.usulan);
+  const nSoal = dok.reduce((a, d) => a + d.jumlahSoal, 0), nManual = dok.reduce((a, d) => a + d.nomorManual.length, 0);
   const bentuk = [...new Set(CHAPTERS.map((c) => c.bentuk))];
 
   const jalankan = async () => {
     try {
       const berkas: Record<string, Uint8Array> = {};
       const enc = new TextEncoder();
-      const pilihDok = dok.filter((d) => (d.usulan ? pilih.usulan : pilih.siadu));
+      const pilihDok = pilih.siadu ? dok : [];
       for (let i = 0; i < pilihDok.length; i++) {
         setProses(`Menyusun Word ${i + 1}/${pilihDok.length}: ${pilihDok[i].nama}…`);
         await new Promise((r) => setTimeout(r, 0));
@@ -90,8 +90,7 @@ export default function Ekspor({ hasil, paketAktif, buka }: { hasil: Hasil; pake
           <div>
             <h2>2 · Format</h2>
             {([
-              ['siadu', `Word SiAdu siap impor — ${nSiadu.length} berkas, ${nSiadu.reduce((a, d) => a + d.jumlahSoal, 0)} soal (${BENTUK_SIADU_DIDUKUNG.join(', ')})`],
-              ['usulan', `Word usulan bentuk interaktif — ${nUsulan.length} berkas, ${nUsulan.reduce((a, d) => a + d.jumlahSoal, 0)} soal (Fill Shape, Node Arrow Navigation, Calendar, Room, Timeline, Timeslot)`],
+              ['siadu', `Word SiAdu — ${dok.length} berkas (satu per paket × subtes), ${nSoal} soal${nManual ? `; ${nManual} soal bentuk interaktif ditulis sebagai tabel untuk input manual` : ''}`],
               ['json', 'JSON lengkap (soal, kunci, pembahasan, Mapping)'],
               ['csv', 'CSV daftar soal (Category, Lesson, Chapter, Bentuk Soal, kode SIADU, seed, kunci)'],
             ] as const).map(([k, label]) => (
@@ -112,7 +111,7 @@ export default function Ekspor({ hasil, paketAktif, buka }: { hasil: Hasil; pake
                 <thead><tr><th>Berkas</th><th>Paket · subtes</th><th className="r">Soal</th><th>Status</th></tr></thead>
                 <tbody>
                   {dok.slice(0, 60).map((d) => (
-                    <tr key={d.nama}><td className="a-mono">{d.nama}</td><td>{d.paket} · {d.subtes}</td><td className="r a-num">{d.jumlahSoal}</td><td>{d.usulan ? <span className="a-tag a-tag-amber">Usulan format</span> : <span className="a-tag a-tag-hijau">Siap impor</span>}</td></tr>
+                    <tr key={d.nama}><td className="a-mono">{d.nama}</td><td>{d.paket} · {d.subtes}</td><td className="r a-num">{d.jumlahSoal}</td><td>{!d.nomorManual.length ? <span className="a-tag a-tag-hijau">Siap impor</span> : d.nomorManual.length === d.jumlahSoal ? <span className="a-tag a-tag-amber">Input manual</span> : <span className="a-tag a-tag-amber">{d.nomorManual.length} soal input manual</span>}</td></tr>
                   ))}
                 </tbody>
               </table>
@@ -127,10 +126,10 @@ export default function Ekspor({ hasil, paketAktif, buka }: { hasil: Hasil; pake
           <table className="tabel-mini">
             <thead><tr><th>Bentuk Soal (Mapping)</th><th>Status ekspor</th></tr></thead>
             <tbody>
-              {bentuk.map((b) => <tr key={b}><td>{b}</td><td>{BENTUK_SIADU_DIDUKUNG.includes(b) ? 'Template Auto Input' : 'Usulan tabel data + kunci'}</td></tr>)}
+              {bentuk.map((b) => <tr key={b}><td>{b}</td><td>{BENTUK_SIADU_DIDUKUNG.includes(b) ? 'Template Auto Input' : 'Tabel data + kunci (input manual)'}</td></tr>)}
             </tbody>
           </table>
-          <div className="a-note a-note-amber">Enam bentuk interaktif belum punya template importir SiAdu. Berkas usulan memuat teks soal, tabel data, dan kunci untuk input manual. Kirim tangkapan layar formulir SiAdu untuk bentuk tersebut agar ekspornya disesuaikan dengan kolom resminya.</div>
+          <div className="a-note a-note-amber">Enam bentuk interaktif belum punya template importir SiAdu. Soalnya tetap ada di berkas subtes yang sama sesuai urutan tryout, ditulis sebagai teks soal, tabel data, dan kunci untuk input manual; nomornya disebut di bagian atas berkas. Kirim tangkapan layar formulir SiAdu untuk bentuk tersebut agar ekspornya disesuaikan dengan kolom resminya.</div>
           <p className="a-kecil" style={{ margin: 0 }}>Logical Ranking menulis tabel Nama | Deskripsi | Gambar | Posisi Urut dengan foto tersemat. Sumber penyusunan soal tidak dicetak di pembahasan; datanya tetap ada di JSON.</p>
         </aside>
       </div>

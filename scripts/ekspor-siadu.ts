@@ -1,6 +1,6 @@
 // Ekspor naskah Word SiAdu dari paket resmi (lib/data/paket.json): `npm run siadu` (semua paket) atau
 // `npm run siadu -- TO-01 LS-01-deduktif-badges` (paket tertentu). Hasil di output/siadu/<paket>-<subtes>-siadu.docx,
-// ditambah <paket>-<subtes>-usulan.docx untuk bentuk interaktif yang belum punya template importir SiAdu.
+// berisi semua soal subtes itu; soal bentuk interaktif tanpa template importir ditulis sebagai tabel untuk input manual.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import DATA from '../lib/data/paket.json';
@@ -27,7 +27,7 @@ async function utama() {
     writeFileSync(join(keluar, d.nama), await docxSiadu(d, muat, svgKePng));
     soal += d.jumlahSoal;
   }
-  const siadu = dok.filter((d) => !d.usulan), usulan = dok.filter((d) => d.usulan);
-  console.log(`Ditulis ke ${keluar}: ${siadu.length} berkas SiAdu (${siadu.reduce((a, d) => a + d.jumlahSoal, 0)} soal) dan ${usulan.length} berkas usulan (${usulan.reduce((a, d) => a + d.jumlahSoal, 0)} soal); total ${soal} soal.`);
+  const manual = dok.reduce((a, d) => a + d.nomorManual.length, 0);
+  console.log(`Ditulis ke ${keluar}: ${dok.length} berkas Word SiAdu, ${soal} soal (${manual} soal bentuk interaktif untuk input manual).`);
 }
 utama();

@@ -89,7 +89,7 @@ export function hitungRingkasan(): Ringkasan {
   const keputusan: Ringkasan['keputusan'] = [];
   for (const t of TARGET_TANPA_CHAPTER) keputusan.push({ teks: `${t.catatan}: ${NAMA_SUBTES[t.subtes].replace(/^Tes /, '')}`, jumlah: `${kebutuhan(t.perTryout, t.perLatsol)} soal` });
   for (const c of chapter.filter((x) => x.status === 'belum' && x.catatan === 'Belum ada blueprint')) keputusan.push({ teks: `Belum ada blueprint: ${c.nama}`, jumlah: `${c.kebutuhan} soal` });
-  keputusan.push({ teks: 'Format input SiAdu untuk 6 bentuk interaktif (Fill Shape, Node Arrow Navigation, Calendar, Room, Timeline, Timeslot); ekspor saat ini berupa usulan', jumlah: 'ekspor' });
+  keputusan.push({ teks: 'Format input SiAdu untuk 6 bentuk interaktif (Fill Shape, Node Arrow Navigation, Calendar, Room, Timeline, Timeslot); ekspor saat ini berupa tabel data untuk input manual', jumlah: 'ekspor' });
   keputusan.push({ teks: 'QC 2: uji Drag the Line pada aplikasi peserta (T02/T08) dan gambar Pembahasan pada importir SiAdu', jumlah: 'QC' });
   keputusan.push({ teks: 'Telaah editor: fakta yang hanya bersumber dari e-book, sumber yang bertentangan (bahan/Catatan Telaah Editor.md)', jumlah: 'PSJK' });
   for (const c of chapter.filter((x) => x.status === 'tanpa-variasi')) keputusan.push({ teks: `${c.nama} belum punya family VARIASI`, jumlah: `${c.kebutuhan} soal` });

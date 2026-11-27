@@ -20,9 +20,10 @@ import { gambarPembahasan } from '../visual';
 //
 // Bentuk yang punya template importir: Option New (Bahasa Inggris, PSJK) dan Logical Ranking (Badges, tabel Nama | Deskripsi |
 // Gambar | Posisi Urut). Enam bentuk interaktif lain (Fill Shape, Node Arrow Navigation, Calendar Date Selection, Place and
-// Room Allocations, Timeline Scheduling, Timeslot Scheduling) belum punya template, jadi ditulis ke berkas "usulan" terpisah:
-// struktur yang sama dengan tabel data dan kunci, untuk input manual atau sampai format resmi SiAdu-nya diketahui.
-// Importir membaca semua teks setelah "Pembahasan:" sampai "Soal N" berikutnya, jadi satu berkas = satu paket × satu subtes.
+// Room Allocations, Timeline Scheduling, Timeslot Scheduling) belum punya template, jadi ditulis dengan struktur yang sama
+// ditambah tabel data dan kunci untuk input manual, sampai format resmi SiAdu-nya diketahui.
+// Satu berkas = satu paket × satu subtes, berisi semua soal subtes itu sesuai urutan tryout. Nomor soal yang perlu input manual
+// disebut di bagian atas berkas. Importir membaca semua teks setelah "Pembahasan:" sampai "Soal N" berikutnya.
 
 export const BENTUK_SIADU_DIDUKUNG = ['Option New', 'Logical Ranking'];
 const TINGKAT_SIADU: Record<string, string> = { dasar: 'Mudah', menengah: 'Sedang', menantang: 'Sulit' };
@@ -42,8 +43,9 @@ export interface DokumenSiadu {
   judul: string;
   paket: string;
   subtes: string;
-  usulan: boolean;
   jumlahSoal: number;
+  /** Nomor soal berbentuk interaktif tanpa template importir (ditulis sebagai tabel data + kunci untuk input manual). */
+  nomorManual: number[];
   blok: Blok[];
 }
 
@@ -136,7 +138,7 @@ function badanBadges(it: BadgesItem, kunci: Peringkat, fotoDasar: string): Blok[
   return out;
 }
 
-// ─────────── usulan untuk bentuk interaktif tanpa template importir ───────────
+// ─────────── bentuk interaktif tanpa template importir: tabel data + kunci untuk input manual ───────────
 const warna = (w: number) => NAMA_WARNA[w] ?? String(w);
 
 function badanFillShape(it: FillShapeItem, kunci: Frame): Blok[] {
@@ -245,44 +247,54 @@ function blokSoal(no: number, s: SlotPaket, soal: Soal, fotoDasar: string): Blok
 }
 
 /**
- * Naskah SiAdu untuk paket terpilih: satu berkas per paket × subtes untuk bentuk yang punya template importir, ditambah
- * berkas "usulan" bila subtes itu memuat bentuk interaktif lain. `fotoDasar` = alamat dasar situs (basePath) untuk foto Badges.
+ * Naskah SiAdu untuk paket terpilih: satu berkas per paket × subtes berisi semua soal sesuai urutan tryout. Soal bentuk
+ * interaktif tanpa template importir ditulis sebagai tabel data + kunci dan nomornya dicatat di `nomorManual`.
+ * `fotoDasar` = alamat dasar situs (basePath) untuk foto Badges.
  */
 export function dokumenSiadu(h: HasilSusun, paketIds: string[] | null, fotoDasar = ''): DokumenSiadu[] {
   const hasil: DokumenSiadu[] = [];
   for (const pk of h.paket.filter((x: Paket) => !paketIds || paketIds.includes(x.id))) {
     for (const b of pk.bagian) {
-      const kelompok = { siadu: [] as SlotPaket[], usulan: [] as SlotPaket[] };
-      for (const s of b.slot) (BENTUK_SIADU_DIDUKUNG.includes(chapterById(s.chapterId).bentuk) ? kelompok.siadu : kelompok.usulan).push(s);
-      for (const jenis of ['siadu', 'usulan'] as const) {
-        const slot = kelompok[jenis].filter((s) => s.uid);
-        if (!slot.length) continue;
-        const usulan = jenis === 'usulan';
-        const judul = `${pk.nama} · ${NAMA_SUBTES[b.subtes]}`;
-        const blok: Blok[] = [
-          { t: 'p', runs: [{ teks: `${TES} — ${judul}`, tebal: true }], ukuran: 15 },
-          { t: 'p', runs: [{ teks: usulan
-            ? 'USULAN FORMAT — bentuk soal interaktif ini belum punya template Auto Input SiAdu. Data dan kunci ditulis dalam tabel untuk input manual; jangan diunggah ke importir sebelum format resminya ditetapkan.'
-            : `Format input Word SiAdu (Auto Input) · ${slot.length} soal · benih ${h.benih}. Bentuk Soal: ${[...new Set(slot.map((s) => chapterById(s.chapterId).bentuk))].join(', ')}.`, miring: true }], warna: usulan ? 'A33A2D' : '667089' },
-          p(''),
-        ];
-        let no = 0;
-        for (const s of slot) {
-          const soal = bangun(s);
-          if (!soal) continue;
-          const isi = blokSoal(no + 1, s, soal, fotoDasar);
-          if (!isi) continue;
-          no++;
-          blok.push(...isi);
-        }
-        hasil.push({
-          nama: `${slug(pk.id)}-${slug(b.subtes)}-${usulan ? 'usulan' : 'siadu'}.docx`,
-          judul, paket: pk.nama, subtes: NAMA_SUBTES[b.subtes], usulan, jumlahSoal: no, blok,
-        });
+      const slot = b.slot.filter((s) => s.uid);
+      if (!slot.length) continue;
+      const judul = `${pk.nama} · ${NAMA_SUBTES[b.subtes]}`;
+      const isiSoal: Blok[] = [];
+      const nomorManual: number[] = [];
+      const bentukManual = new Set<string>();
+      let no = 0;
+      for (const s of slot) {
+        const soal = bangun(s);
+        if (!soal) continue;
+        const isi = blokSoal(no + 1, s, soal, fotoDasar);
+        if (!isi) continue;
+        no++;
+        isiSoal.push(...isi);
+        const bentuk = chapterById(s.chapterId).bentuk;
+        if (!BENTUK_SIADU_DIDUKUNG.includes(bentuk)) { nomorManual.push(no); bentukManual.add(bentuk); }
       }
+      const bentukSemua = [...new Set(slot.map((s) => chapterById(s.chapterId).bentuk))];
+      const blok: Blok[] = [
+        { t: 'p', runs: [{ teks: `${TES} — ${judul}`, tebal: true }], ukuran: 15 },
+        { t: 'p', runs: [{ teks: `Format input Word SiAdu (Auto Input) · ${no} soal · benih ${h.benih}. Bentuk Soal: ${bentukSemua.join(', ')}.`, miring: true }], warna: '667089' },
+      ];
+      if (nomorManual.length) blok.push({ t: 'p', runs: [{ teks: `${nomorManual.length === no ? 'Semua soal' : `Soal ${rentangNomor(nomorManual)}`} (${[...bentukManual].join(', ')}) belum punya template Auto Input SiAdu: teks soal, data, dan kunci ditulis dalam tabel untuk input manual. Bila importir menolak soal ${nomorManual.length === no ? 'ini' : 'tersebut'}, masukkan secara manual.`, miring: true }], warna: 'A33A2D' });
+      blok.push(p(''), ...isiSoal);
+      hasil.push({ nama: `${slug(pk.id)}-${slug(b.subtes)}-siadu.docx`, judul, paket: pk.nama, subtes: NAMA_SUBTES[b.subtes], jumlahSoal: no, nomorManual, blok });
     }
   }
   return hasil;
+}
+
+/** "1–3, 5, 7–9" dari daftar nomor terurut. */
+function rentangNomor(n: number[]): string {
+  const r: string[] = [];
+  for (let i = 0; i < n.length;) {
+    let j = i;
+    while (j + 1 < n.length && n[j + 1] === n[j] + 1) j++;
+    r.push(j > i ? `${n[i]}–${n[j]}` : String(n[i]));
+    i = j + 1;
+  }
+  return r.join(', ');
 }
 
 /** Ubah satu dokumen menjadi berkas .docx (Times New Roman 12 pt, spasi 1,5, seperti dokumen SiAdu SKD/UTBK). */
