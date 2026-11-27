@@ -145,6 +145,7 @@ Naskah Word mengikuti template Auto Input SiAdu yang juga dipakai Tahap 1, SKD, 
 - **Option New** (Bahasa Inggris dan PSJK, 820 soal): bacaan Reading diulang per soal; fragmen Sentence Arrangement ditulis "(A) …" agar tidak terbaca sebagai pilihan.
 - **Logical Ranking** (Badges): tabel Nama | Deskripsi | Gambar | Posisi Urut dengan foto tersemat; kartu tanpa petunjuk diberi deskripsi netral karena SiAdu menolak deskripsi kosong.
 - **Enam bentuk interaktif lain** (Fill Shape, Node Arrow Navigation, Calendar Date Selection, Place and Room Allocations, Timeline Scheduling, Timeslot Scheduling) belum punya template importir. Bentuk ini ditulis ke berkas `…-usulan.docx` terpisah: teks soal, baris Pengaturan, tabel data, dan kunci, untuk input manual sampai format resmi SiAdu diketahui.
+- Pembahasan Word mengikuti urutan di aplikasi: jawaban, **Konsep**, **Kata kunci** (soal Bahasa Inggris dan Pengetahuan Sektor Jasa Keuangan), langkah bernomor "1.", "2.", … dengan indentasi gantung, visual, **Alasan opsi salah**, lalu **Cara cepat**. Nomor ditulis sebagai teks agar tetap terbaca oleh importir yang hanya mengambil teks.
 - Visual pembahasan disisipkan sebagai PNG setelah langkah pembahasan ("Gambar: …").
 - Impor ke SiAdu sungguhan belum diuji, termasuk gambar di dalam Pembahasan; struktur berkas diperiksa dengan membaca ulang XML Word.
 

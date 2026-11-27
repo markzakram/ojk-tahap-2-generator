@@ -31,7 +31,8 @@ const HURUF = 'ABCDE';
 export type Run = { teks: string; tebal?: boolean; miring?: boolean };
 export type Sel = { teks?: string; gambar?: string; tengah?: boolean };
 export type Blok =
-  | { t: 'p'; runs: Run[]; ukuran?: number; warna?: string }
+  /** `gantung`: paragraf berawalan nomor/huruf ("1. ", "A. ") dengan indentasi gantung, tampil sebagai butir daftar. */
+  | { t: 'p'; runs: Run[]; ukuran?: number; warna?: string; gantung?: boolean }
   | { t: 'tabel'; kepala: string[]; baris: Sel[][]; lebar?: number[] }
   /** Visual pembahasan (SVG); diubah ke PNG saat berkas Word disusun. `alt` dipakai bila gambar tidak dapat dibuat. */
   | { t: 'gambar'; svg: string; lebar: number; tinggi: number; alt: string };
@@ -55,12 +56,19 @@ function bangun(s: SlotPaket): Soal | null {
 }
 
 /** Pembahasan peserta: jawaban, langkah, visual, alasan opsi salah, cara cepat (sumber penyusunan tidak dicetak). */
+/**
+ * Pembahasan peserta dengan urutan yang sama seperti di aplikasi (komponen Pembahasan): jawaban, Konsep, Kata kunci, langkah
+ * bernomor, visual, alasan opsi salah, cara cepat. Nomor langkah ditulis sebagai teks ("1. ", "2. ") agar tetap terbaca oleh
+ * importir yang hanya mengambil teks; paragrafnya diberi indentasi gantung supaya tampil sebagai daftar poin di Word.
+ */
 function pembahasan(soal: Soal): Blok[] {
   const b = soal.pembahasan;
   const out: Blok[] = [p(b.jawaban, { tebal: true })];
-  for (const l of b.langkah) out.push(p(l.teks));
+  if (b.konsep) out.push({ t: 'p', runs: [{ teks: 'Konsep: ', tebal: true }, { teks: b.konsep }] });
+  if (b.kataKunci) out.push({ t: 'p', runs: [{ teks: 'Kata kunci: ', tebal: true }, { teks: b.kataKunci }] });
+  b.langkah.forEach((l, i) => out.push({ t: 'p', runs: [{ teks: `${i + 1}. ${l.teks}` }], gantung: true }));
   for (const g of gambarPembahasan(soal)) { out.push(p(`Gambar: ${g.judul}`, { miring: true })); out.push({ t: 'gambar', svg: g.svg, lebar: g.lebar, tinggi: g.tinggi, alt: g.alt }); }
-  if (b.opsiSalah?.length) { out.push(p('Alasan pilihan lain:', { tebal: true })); for (const t of b.opsiSalah) out.push(p(t)); }
+  if (b.opsiSalah?.length) { out.push(p('Alasan opsi salah:', { tebal: true })); for (const t of b.opsiSalah) out.push({ t: 'p', runs: [{ teks: t }], gantung: true }); }
   if (b.caraCepat) out.push({ t: 'p', runs: [{ teks: 'Cara cepat: ', tebal: true }, { teks: b.caraCepat }] });
   return out;
 }
@@ -259,7 +267,7 @@ export async function docxSiadu(
   const runs = (rs: Run[], ukuran?: number, warna?: string) => rs.map((r) => new D.TextRun({ text: r.teks, bold: r.tebal, italics: r.miring, size: ukuran ? ukuran * 2 : undefined, color: warna }));
   const anak: (InstanceType<typeof D.Paragraph> | InstanceType<typeof D.Table>)[] = [];
   for (const b of d.blok) {
-    if (b.t === 'p') { anak.push(new D.Paragraph({ children: runs(b.runs, b.ukuran, b.warna) })); continue; }
+    if (b.t === 'p') { anak.push(new D.Paragraph({ children: runs(b.runs, b.ukuran, b.warna), ...(b.gantung ? { indent: { left: 360, hanging: 360 } } : {}) })); continue; }
     if (b.t === 'gambar') {
       const png = svgKePng ? await svgKePng(b.svg, b.lebar, b.tinggi) : null;
       const w = Math.min(600, b.lebar);
